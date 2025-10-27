@@ -1,0 +1,6 @@
+package com.dotcom.retail.user
+
+class EmailAlreadyRegisteredException(
+    val email: String,
+    message: String = "Email already registered: $email"
+) : RuntimeException(message)
