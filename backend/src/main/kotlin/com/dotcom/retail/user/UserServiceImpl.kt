@@ -12,6 +12,10 @@ class UserServiceImpl(
 
 
     override fun getByEmail(email: String): User? {
+        return userRepository.findByEmail(email) // TODO throw
+    }
+
+    override fun findByEmail(email: String): User? {
         return userRepository.findByEmail(email)
     }
 

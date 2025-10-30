@@ -27,7 +27,7 @@ class AuthController(
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
 
         return ResponseEntity
-            .ok()
+            .status(HttpStatus.CREATED)
             .header(COOKIE_HEADER_NAME, cookie.toString())
             .body(AuthResponse(user.accessToken.toString(), userService.toUserResponse(user)))
     }
