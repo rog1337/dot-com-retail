@@ -1,8 +1,6 @@
 package com.dotcom.retail.user
 
-import java.util.UUID
-
-data class UserResponse(
+data class UserDto(
     val id: String,
     val email: String,
     val displayName: String

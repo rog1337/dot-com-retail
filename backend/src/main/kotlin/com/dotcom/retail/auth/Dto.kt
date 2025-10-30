@@ -1,6 +1,6 @@
 package com.dotcom.retail.auth
 
-import com.dotcom.retail.user.UserResponse
+import com.dotcom.retail.user.UserDto
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -26,5 +26,11 @@ data class LoginRequest(
 
 data class AuthResponse(
     val accessToken: String,
-    val user: UserResponse,
+    val user: UserDto,
+)
+
+data class RegisterOAuthUser(
+    val email: String,
+    val displayName: String,
+    val pictureUrl: String?,
 )

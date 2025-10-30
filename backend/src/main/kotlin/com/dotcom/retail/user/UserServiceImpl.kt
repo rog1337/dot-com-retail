@@ -35,10 +35,4 @@ class UserServiceImpl(
     override fun save(user: User): User {
         return userRepository.save(user)
     }
-
-    override fun toUserResponse(user: User): UserResponse = UserResponse(
-        id = user.id.toString(),
-        email = user.email,
-        displayName = user.displayName,
-    )
 }

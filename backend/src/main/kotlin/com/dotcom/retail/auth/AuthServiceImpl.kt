@@ -1,6 +1,6 @@
 package com.dotcom.retail.auth
 
-import com.dotcom.retail.security.JwtService
+import com.dotcom.retail.security.jwt.JwtService
 import com.dotcom.retail.security.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.security.SecurityConstants.COOKIE_SAME_SITE_STRICT
 import com.dotcom.retail.security.SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS
@@ -18,10 +18,18 @@ class AuthServiceImpl(
 
     override fun register(request: RegisterRequest): User {
         val user = userService.create(request)
-        setUserAccessToken(user)
-        setUserRefreshToken(user)
+        setUserAuthenticationTokens(user)
 
         return user
+    }
+
+    override fun registerOAuthUser(details: RegisterOAuthUser): User {
+        val user = User(
+            email = details.email,
+            displayName = details.displayName,
+        )
+
+        return userService.save(user)
     }
 
     override fun login(request: LoginRequest): AuthResponse {
@@ -36,6 +44,11 @@ class AuthServiceImpl(
             .sameSite(COOKIE_SAME_SITE_STRICT)
             .path(COOKIE_PATH)
             .build()
+    }
+
+    override fun setUserAuthenticationTokens(user: User): User {
+        setUserAccessToken(user)
+        return setUserRefreshToken(user)
     }
 
     fun setUserAccessToken(user: User): User {

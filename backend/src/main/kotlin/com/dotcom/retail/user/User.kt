@@ -18,7 +18,7 @@ class User(
     val id: UUID? = null,
 
     var email: String,
-    private var passwordHash: String,
+    private var passwordHash: String? = null,
 
     var displayName: String,
 
@@ -39,7 +39,7 @@ class User(
 
     override fun getAuthorities(): Collection<GrantedAuthority?> = emptyList()
     override fun getUsername(): String = email
-    override fun getPassword(): String = passwordHash
+    override fun getPassword(): String? = passwordHash
 
     companion object
 }

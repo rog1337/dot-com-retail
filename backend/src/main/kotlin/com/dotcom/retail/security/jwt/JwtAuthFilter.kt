@@ -1,5 +1,6 @@
-package com.dotcom.retail.security
+package com.dotcom.retail.security.jwt
 
+import com.dotcom.retail.security.SecurityConstants
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.UnsupportedJwtException
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.lang.NonNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.WebAuthenticationDetails
 import org.springframework.stereotype.Component
@@ -20,9 +20,12 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthFilter(
     private val jwtService: JwtService,
-//    private val userService: UserService,
-    private val userDetailsService: UserDetailsService,
 ) : OncePerRequestFilter() {
+
+    companion object {
+        const val INVALID_REFRESH_TOKEN_MSG = "Invalid refresh token"
+        const val INVALID_ACCESS_TOKEN_MSG = "Invalid access token"
+    }
 
     override fun doFilterInternal(
         @NonNull request: HttpServletRequest,
@@ -31,10 +34,7 @@ class JwtAuthFilter(
     ) {
 
         try {
-            val INVALID_REFRESH_TOKEN_MSG = "Invalid refresh token"
-            val INVALID_ACCESS_TOKEN_MSG = "Invalid access token"
-
-            val generatedToken = jwtService.generateToken()
+            val generatedToken = jwtService.generateDevToken()
             println("generated token: \n$generatedToken")
 
             val claims: Claims?

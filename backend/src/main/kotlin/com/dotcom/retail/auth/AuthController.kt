@@ -2,6 +2,7 @@ package com.dotcom.retail.auth
 
 import com.dotcom.retail.security.SecurityConstants.COOKIE_HEADER_NAME
 import com.dotcom.retail.user.UserService
+import com.dotcom.retail.user.toDto
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
@@ -29,7 +30,7 @@ class AuthController(
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .header(COOKIE_HEADER_NAME, cookie.toString())
-            .body(AuthResponse(user.accessToken.toString(), userService.toUserResponse(user)))
+            .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
     @GetMapping("/cookie")

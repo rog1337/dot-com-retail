@@ -1,6 +1,6 @@
-package com.dotcom.retail.security
+package com.dotcom.retail.security.jwt
 
-import com.dotcom.retail.security.SecurityConstants.TOKEN_TYPE_CLAIM
+import com.dotcom.retail.security.SecurityConstants
 import com.dotcom.retail.user.User
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
@@ -25,7 +25,7 @@ class JwtService(
     fun generateAccessToken(user: User): String {
         return Jwts
             .builder()
-            .claim(TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
+            .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
             .subject(user.id.toString())
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + SecurityConstants.ACCESS_TOKEN_EXPIRATION_MS))
@@ -61,6 +61,7 @@ class JwtService(
         response.status = status.value()
 
         val body = mapOf(
+            "status" to status.value(),
             "message" to message,
             "details" to details
         )
@@ -72,22 +73,8 @@ class JwtService(
         return request.requestURI.equals(SecurityConstants.REFRESH_REQUEST_ENDPOINT) && request.method == HttpMethod.GET.toString()
     }
 
-//    private fun extractToken(request: HttpServletRequest): String? {
-//        return if (isRefreshRequest(request)) {
-//            extractJwtFromCookie(request)
-//        } else {
-//            extractTokenFromHeader(request)
-//        }
-//    }
-//
-//    private fun extractTokenFromHeader(request: HttpServletRequest): String? {
-//        val header = request.getHeader(Constants.AUTHORIZATION_HEADER)
-//
-//    }
-
-
     // for testing
-    fun generateToken(): String {
+    fun generateDevToken(): String {
         return Jwts
             .builder()
             .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
