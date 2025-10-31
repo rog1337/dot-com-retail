@@ -1,7 +1,8 @@
 package com.dotcom.retail.security.jwt
 
-import com.dotcom.retail.security.SecurityConstants
-import com.dotcom.retail.user.User
+import com.dotcom.retail.common.constants.SecurityConstants
+import com.dotcom.retail.domain.auth.AuthController
+import com.dotcom.retail.domain.user.User
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -17,7 +18,7 @@ import java.util.Date
 
 @Service
 class JwtService(
-    @Value("\${jwt.token.secret}") private val secret: String,
+    @Value("\${jwt.secret}") private val secret: String,
 ) {
 
     private val KEY = Keys.hmacShaKeyFor(secret.toByteArray(Charsets.UTF_8))
@@ -70,7 +71,7 @@ class JwtService(
     }
 
     fun isRefreshRequest(request: HttpServletRequest): Boolean {
-        return request.requestURI.equals(SecurityConstants.REFRESH_REQUEST_ENDPOINT) && request.method == HttpMethod.GET.toString()
+        return request.requestURI.equals(AuthController.REFRESH_PATH_FULL) && request.method == HttpMethod.GET.toString()
     }
 
     // for testing

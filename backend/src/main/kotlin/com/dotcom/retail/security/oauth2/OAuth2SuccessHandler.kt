@@ -1,11 +1,11 @@
 package com.dotcom.retail.security.oauth2
 
-import com.dotcom.retail.auth.AuthService
-import com.dotcom.retail.auth.OAuth2EmailNotVerifiedException
-import com.dotcom.retail.auth.OAuth2Exception
-import com.dotcom.retail.auth.RegisterOAuthUser
-import com.dotcom.retail.security.SecurityConstants
-import com.dotcom.retail.user.UserService
+import com.dotcom.retail.domain.auth.AuthService
+import com.dotcom.retail.common.exception.OAuth2EmailNotVerifiedException
+import com.dotcom.retail.common.exception.OAuth2Exception
+import com.dotcom.retail.common.constants.SecurityConstants
+import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
+import com.dotcom.retail.domain.user.UserService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -23,7 +23,6 @@ class OAuth2SuccessHandler(
 ) : AuthenticationSuccessHandler {
 
     companion object {
-        const val DEFAULT_DISPLAY_NAME = "Shopper"
         const val INVALID_OAUTH_ERROR_MESSAGE = "Invalid OAuth2 Authentication"
         const val UNEXPECTED_OAUTH_ERROR_MESSAGE = "Unexpected OAuth2 Authentication"
     }
@@ -51,7 +50,7 @@ class OAuth2SuccessHandler(
                 user = authService.registerOAuthUser(
                     RegisterOAuthUser(
                         email,
-                        auth.fullName ?: DEFAULT_DISPLAY_NAME,
+                        auth.fullName,
                         auth.picture
                     )
                 )

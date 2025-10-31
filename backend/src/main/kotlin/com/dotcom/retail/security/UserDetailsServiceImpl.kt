@@ -1,6 +1,6 @@
 package com.dotcom.retail.security
 
-import com.dotcom.retail.user.UserRepository
+import com.dotcom.retail.domain.user.UserRepository
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
