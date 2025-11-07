@@ -26,6 +26,11 @@ class GlobalExceptionHandler {
         return createResponse(HttpStatus.CONFLICT, e.message, null)
     }
 
+    @ExceptionHandler(EmailNotFoundException::class)
+    fun handleEmailNotFoundException(e: EmailNotFoundException): ResponseEntity<Any> {
+        return createResponse(HttpStatus.NOT_FOUND, e.message, null)
+    }
+
     fun createResponse(status: HttpStatus, msg: String?, err: String?): ResponseEntity<Any> {
         val response = mapOf(
             "message" to msg,
