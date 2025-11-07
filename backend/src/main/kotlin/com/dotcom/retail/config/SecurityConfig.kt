@@ -21,6 +21,9 @@ import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
@@ -41,6 +44,7 @@ class SecurityConfig(
     fun securityFilterChain(http: HttpSecurity, restTemplateBuilder: RestTemplateBuilder): SecurityFilterChain {
         http
             .securityMatcher("/**")
+            .cors {}
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS) }
             .authorizeHttpRequests { auth -> auth
@@ -61,6 +65,21 @@ class SecurityConfig(
                 .accessDeniedHandler(accessDeniedHandler())
             }
         return http.build()
+    }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val cfg = CorsConfiguration()
+        cfg.allowedOrigins = listOf("http://localhost:3000")
+//        cfg.allowedOrigins = listOf("*")
+        cfg.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+        cfg.allowedHeaders = listOf("*")
+        cfg.allowCredentials = true
+        cfg.maxAge = 3600L
+
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", cfg)
+        return source
     }
 
     @Bean
