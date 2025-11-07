@@ -34,7 +34,7 @@ class AuthController(
         const val REFRESH_PATH_FULL = "$AUTH_BASE_PATH$REFRESH_PATH"
     }
 
-    @PostMapping(REFRESH_PATH)
+    @PostMapping(REGISTER_PATH)
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<Any> {
         val user = authService.register(registerRequest)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
