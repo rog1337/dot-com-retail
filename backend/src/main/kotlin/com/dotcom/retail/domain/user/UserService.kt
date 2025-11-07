@@ -6,7 +6,7 @@ interface UserService {
 
     fun findByEmail(email: String): User?
 
-    fun create(request: CreateUserParams): User
+    fun create(params: CreateUserParams): User
 
     fun save(user: User): User
 }
