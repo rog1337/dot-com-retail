@@ -2,7 +2,7 @@ package com.dotcom.retail.domain.user
 
 interface UserService {
 
-    fun getByEmail(email: String): User?
+    fun getByEmail(email: String): User
 
     fun findByEmail(email: String): User?
 

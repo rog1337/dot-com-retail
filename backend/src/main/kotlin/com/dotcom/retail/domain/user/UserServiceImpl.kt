@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.exception.EmailAlreadyRegisteredException
+import com.dotcom.retail.common.exception.EmailNotFoundException
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -15,8 +16,8 @@ class UserServiceImpl(
         const val DEFAULT_DISPLAY_NAME = "Shopper"
     }
 
-    override fun getByEmail(email: String): User? {
-        return userRepository.findByEmail(email) // TODO throw
+    override fun getByEmail(email: String): User {
+        return userRepository.findByEmail(email) ?: throw EmailNotFoundException(email)
     }
 
     override fun findByEmail(email: String): User? {
