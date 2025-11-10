@@ -1,11 +1,12 @@
 package com.dotcom.retail.common.exception
 
+import com.dotcom.retail.common.exception.user.EmailAlreadyRegisteredException
+import com.dotcom.retail.common.exception.user.EmailNotFoundException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.context.request.WebRequest
 
 @RestControllerAdvice
 class GlobalExceptionHandler(
@@ -20,17 +21,6 @@ class GlobalExceptionHandler(
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
     fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<String> {
         return ResponseEntity(e.message, e.statusCode)
-    }
-
-    @ExceptionHandler(EmailAlreadyRegisteredException::class)
-    fun handleEmailAlreadyRegisteredException(e: EmailAlreadyRegisteredException): ResponseEntity<Any> {
-
-        return exceptionService.createResponse(HttpStatus.CONFLICT, e.message, null)
-    }
-
-    @ExceptionHandler(EmailNotFoundException::class)
-    fun handleEmailNotFoundException(e: EmailNotFoundException): ResponseEntity<Any> {
-        return exceptionService.createResponse(HttpStatus.NOT_FOUND, e.message, null)
     }
 
 }
