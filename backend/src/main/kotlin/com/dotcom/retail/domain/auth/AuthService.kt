@@ -11,7 +11,7 @@ interface AuthService {
 
     fun register(request: RegisterRequest): User
 
-    fun login(request: LoginRequest): AuthResponse
+    fun login(request: LoginRequest): User
 
     fun createRefreshTokenCookie(refreshToken: String): ResponseCookie
 

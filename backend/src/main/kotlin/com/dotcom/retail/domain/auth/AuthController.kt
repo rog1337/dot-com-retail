@@ -4,6 +4,7 @@ import com.dotcom.retail.common.constants.ApiConstants.V1
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_HEADER_NAME
 import com.dotcom.retail.domain.auth.AuthController.Companion.AUTH_BASE_PATH
 import com.dotcom.retail.domain.auth.dto.AuthResponse
+import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.domain.user.toDto
@@ -45,21 +46,15 @@ class AuthController(
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
-    @GetMapping("/cookie")
-    fun getCookie(response: HttpServletResponse, @AuthenticationPrincipal id: String): ResponseEntity<Void> {
-        println("controller user: " + id)
-        val value = "testCookie123"
+    @PostMapping(LOGIN_PATH)
+    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<AuthResponse> {
+        val user = authService.login(loginRequest)
+        val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
 
-        val cookie: ResponseCookie = ResponseCookie.from("refresh-token", value)
-            .httpOnly(true)
-            .secure(true)
-            .maxAge(3600)
-            .sameSite("Lax")
-            .path("/")
-            .build()
-
-
-        return ResponseEntity(HttpStatus.OK)
+        return ResponseEntity
+            .ok()
+            .header(COOKIE_HEADER_NAME, cookie.toString())
+            .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
     @GetMapping(REFRESH_PATH)

@@ -12,7 +12,7 @@ class ExceptionService {
         val response = mapOf(
             "message" to msg,
             "error" to err,
-            "status" to status.toString(),
+            "status" to status.value(),
             "timestamp" to Instant.now()
         )
         return ResponseEntity(response, status)

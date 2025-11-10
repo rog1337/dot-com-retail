@@ -1,24 +1,29 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.security.jwt.JwtService
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
-import com.dotcom.retail.domain.auth.dto.AuthResponse
+import com.dotcom.retail.common.exception.EmailNotFoundException
+import com.dotcom.retail.common.exception.auth.IncorrectPasswordException
+import com.dotcom.retail.common.exception.auth.NonLocalAccountException
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
+import com.dotcom.retail.security.jwt.JwtService
 import org.springframework.http.ResponseCookie
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+
 
 @Service
 class AuthServiceImpl(
     private val userService: UserService,
     private val jwtService: JwtService,
+    private val passwordEncoder: PasswordEncoder
 ) : AuthService {
 
     override fun register(request: RegisterRequest): User {
@@ -41,8 +46,17 @@ class AuthServiceImpl(
         return userService.save(user)
     }
 
-    override fun login(request: LoginRequest): AuthResponse {
-        TODO("Not yet implemented")
+    override fun login(request: LoginRequest): User {
+        val user = userService.findByEmail(request.email) ?: throw EmailNotFoundException(request.email)
+        val userPw = user.password
+
+        if (!passwordEncoder.matches(request.password, userPw)) {
+            if (userPw.isNullOrEmpty()) throw NonLocalAccountException()
+
+            throw IncorrectPasswordException()
+        }
+
+        return user
     }
 
     override fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {

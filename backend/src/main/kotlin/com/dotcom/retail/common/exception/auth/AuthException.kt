@@ -26,9 +26,24 @@ class OAuth2Exception : AuthException {
     constructor(message: Any) : super("${AuthConstants.OAUTH2_NAME} $DEFAULT_MSG: $message")
 }
 
+class NonLocalAccountException : AuthException {
+    companion object {
+        private const val DEFAULT_MSG = "Register or log in with an authentication provider to access this account"
+    }
+    constructor() : super(DEFAULT_MSG)
+}
+
 class InvalidLoginException : AuthException {
     companion object {
         private const val DEFAULT_MSG = "Invalid email or password"
+    }
+    constructor() : super(DEFAULT_MSG)
+    constructor(message: String) : super(message)
+}
+
+class IncorrectPasswordException : AuthException {
+    companion object {
+        private const val DEFAULT_MSG = "Incorrect password"
     }
     constructor() : super(DEFAULT_MSG)
     constructor(message: String) : super(message)
