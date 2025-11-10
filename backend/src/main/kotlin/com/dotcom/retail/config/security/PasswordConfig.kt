@@ -1,4 +1,4 @@
-package com.dotcom.retail.config
+package com.dotcom.retail.config.security
 
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration

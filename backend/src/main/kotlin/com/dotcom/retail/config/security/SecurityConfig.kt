@@ -1,16 +1,15 @@
-package com.dotcom.retail.config
+package com.dotcom.retail.config.security
 
 import com.dotcom.retail.security.jwt.JwtAuthFilter
 import com.dotcom.retail.security.oauth2.OAuth2SuccessHandler
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.boot.web.client.RestTemplateBuilder
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.AuthenticationManager
+import org.springframework.security.authentication.AuthenticationProvider
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
@@ -29,10 +28,11 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity
 class SecurityConfig(
-    private val passwordEncoder: PasswordEncoder,
+//    private val passwordEncoder: PasswordEncoder,
     private val jwtAuthFilter: JwtAuthFilter,
-    private val userDetailsService: UserDetailsService,
-    private val successHandler: OAuth2SuccessHandler
+//    private val userDetailsService: UserDetailsService,
+    private val successHandler: OAuth2SuccessHandler,
+    private val authenticationProvider: AuthenticationProvider
 ) {
 
     companion object {
@@ -41,7 +41,7 @@ class SecurityConfig(
     }
 
     @Bean
-    fun securityFilterChain(http: HttpSecurity, restTemplateBuilder: RestTemplateBuilder): SecurityFilterChain {
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .securityMatcher("/**")
             .cors {}
@@ -51,7 +51,7 @@ class SecurityConfig(
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()
             }
-            .authenticationProvider(authenticationProvider())
+            .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter::class.java)
             .oauth2Login { conf -> conf
                 .authorizationEndpoint { it.baseUri("/api/v1/oauth2/authorize") }
@@ -81,16 +81,6 @@ class SecurityConfig(
         source.registerCorsConfiguration("/**", cfg)
         return source
     }
-
-    @Bean
-    fun authenticationProvider(): DaoAuthenticationProvider {
-        val authProvider = DaoAuthenticationProvider(userDetailsService)
-        authProvider.setPasswordEncoder(passwordEncoder)
-        return authProvider
-    }
-
-    @Bean
-    fun authenticationManager(config: AuthenticationConfiguration): AuthenticationManager = config.getAuthenticationManager()
 
     @Bean
     fun authenticationEntryPoint() = AuthenticationEntryPoint { _, response, _ ->
