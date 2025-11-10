@@ -43,13 +43,16 @@ class JwtAuthFilter(
 
             if (jwtService.isRefreshRequest(request)) {
 
-                val token = jwtService.extractJwtFromCookie(request)
-                if (token.isNullOrBlank()) throw Exception(INVALID_REFRESH_TOKEN_MSG)
+//                val token = jwtService.extractJwtFromCookie(request)
+//                if (token.isNullOrBlank()) throw Exception(INVALID_REFRESH_TOKEN_MSG)
+//
+//                claims = jwtService.extractClaims(token)
+//
+//                if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.REFRESH_TOKEN_TYPE))
+//                    throw Exception(INVALID_REFRESH_TOKEN_MSG)
 
-                claims = jwtService.extractClaims(token)
-
-                if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.REFRESH_TOKEN_TYPE))
-                    throw Exception(INVALID_REFRESH_TOKEN_MSG)
+                filterChain.doFilter(request, response)
+                return
 
             } else {
                 val authHeader = request.getHeader(SecurityConstants.AUTHORIZATION_HEADER)

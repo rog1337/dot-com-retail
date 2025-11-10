@@ -5,6 +5,7 @@ import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.User
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseCookie
 
 interface AuthService {
@@ -13,10 +14,12 @@ interface AuthService {
 
     fun login(request: LoginRequest): User
 
+    fun refresh(req: HttpServletRequest): User
+
     fun createRefreshTokenCookie(refreshToken: String): ResponseCookie
 
     fun registerOAuthUser(details: RegisterOAuthUser): User
 
-    fun setUserAuthenticationTokens(user: User): User
+    fun setNewJwts(user: User): User
 
 }

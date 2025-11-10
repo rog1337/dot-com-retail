@@ -9,12 +9,8 @@ import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.domain.user.toDto
 import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
-import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -24,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping(AUTH_BASE_PATH)
 class AuthController(
     private val authService: AuthService,
-    private val userService: UserService,
 ) {
 
     companion object {
@@ -57,9 +52,14 @@ class AuthController(
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
-    @GetMapping(REFRESH_PATH)
-    fun refresh(request: HttpServletRequest): ResponseEntity<Void> {
-        return ResponseEntity.ok().build()
+    @PostMapping(REFRESH_PATH)
+    fun refresh(req: HttpServletRequest): ResponseEntity<AuthResponse> {
+        val user = authService.refresh(req)
+        val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
+        return ResponseEntity
+            .ok()
+            .header(COOKIE_HEADER_NAME, cookie.toString())
+            .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
 }

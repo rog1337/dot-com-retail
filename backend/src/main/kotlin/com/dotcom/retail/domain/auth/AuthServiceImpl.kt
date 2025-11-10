@@ -1,12 +1,14 @@
 package com.dotcom.retail.domain.auth
 
+import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
-import com.dotcom.retail.common.exception.EmailNotFoundException
+import com.dotcom.retail.common.exception.user.EmailNotFoundException
 import com.dotcom.retail.common.exception.auth.IncorrectPasswordException
 import com.dotcom.retail.common.exception.auth.NonLocalAccountException
+import com.dotcom.retail.common.exception.jwt.InvalidRefreshTokenException
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
@@ -14,9 +16,11 @@ import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.security.jwt.JwtService
+import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.ResponseCookie
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 
 @Service
@@ -32,7 +36,7 @@ class AuthServiceImpl(
             request.displayName,
             request.password
         ))
-        setUserAuthenticationTokens(user)
+        setNewJwts(user)
 
         return user
     }
@@ -59,6 +63,22 @@ class AuthServiceImpl(
         return user
     }
 
+    override fun refresh(req: HttpServletRequest): User {
+        val rToken = jwtService.extractJwtFromCookie(req)
+        if (rToken.isNullOrBlank()) throw InvalidRefreshTokenException()
+
+        val claims = jwtService.extractClaims(rToken)
+        if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.REFRESH_TOKEN_TYPE))
+            throw InvalidRefreshTokenException()
+
+        val userId = claims.subject
+        val user = userService.getById(UUID.fromString(userId))
+
+        setNewJwts(user)
+
+        return user
+    }
+
     override fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {
         return ResponseCookie.from(REFRESH_TOKEN_TYPE, refreshToken)
             .httpOnly(true)
@@ -69,17 +89,17 @@ class AuthServiceImpl(
             .build()
     }
 
-    override fun setUserAuthenticationTokens(user: User): User {
-        setUserAccessToken(user)
-        return setUserRefreshToken(user)
+    override fun setNewJwts(user: User): User {
+        setNewAccessToken(user)
+        return setNewRefreshToken(user)
     }
 
-    fun setUserAccessToken(user: User): User {
+    fun setNewAccessToken(user: User): User {
         user.accessToken = jwtService.generateAccessToken(user)
         return userService.save(user)
     }
 
-    fun setUserRefreshToken(user: User): User {
+    fun setNewRefreshToken(user: User): User {
         user.refreshToken = jwtService.generateRefreshToken(user)
         return userService.save(user)
     }
