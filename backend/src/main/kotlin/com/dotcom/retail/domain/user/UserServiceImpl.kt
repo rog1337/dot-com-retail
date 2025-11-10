@@ -1,10 +1,12 @@
 package com.dotcom.retail.domain.user
 
-import com.dotcom.retail.common.exception.EmailAlreadyRegisteredException
-import com.dotcom.retail.common.exception.EmailNotFoundException
-import com.dotcom.retail.domain.auth.dto.RegisterRequest
+import com.dotcom.retail.common.exception.user.EmailAlreadyRegisteredException
+import com.dotcom.retail.common.exception.user.EmailNotFoundException
+import com.dotcom.retail.common.exception.user.UserNotFoundException
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.util.UUID
 
 @Service
 class UserServiceImpl(
@@ -14,6 +16,14 @@ class UserServiceImpl(
 
     companion object {
         const val DEFAULT_DISPLAY_NAME = "Shopper"
+    }
+
+    override fun getById(id: UUID): User {
+        return userRepository.findByIdOrNull(id) ?: throw UserNotFoundException(id.toString())
+    }
+
+    override fun findById(id: UUID): User? {
+        return userRepository.findByIdOrNull(id)
     }
 
     override fun getByEmail(email: String): User {
