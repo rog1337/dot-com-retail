@@ -5,10 +5,11 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import java.time.Instant
 
 @RestControllerAdvice
-class GlobalExceptionHandler {
+class GlobalExceptionHandler(
+    private val exceptionService: ExceptionService
+) {
 
 //    @ExceptionHandler(Exception::class)
 //    fun handleGlobalException(e: Exception, req: WebRequest): ResponseEntity<String> {
@@ -23,22 +24,12 @@ class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyRegisteredException::class)
     fun handleEmailAlreadyRegisteredException(e: EmailAlreadyRegisteredException): ResponseEntity<Any> {
 
-        return createResponse(HttpStatus.CONFLICT, e.message, null)
+        return exceptionService.createResponse(HttpStatus.CONFLICT, e.message, null)
     }
 
     @ExceptionHandler(EmailNotFoundException::class)
     fun handleEmailNotFoundException(e: EmailNotFoundException): ResponseEntity<Any> {
-        return createResponse(HttpStatus.NOT_FOUND, e.message, null)
-    }
-
-    fun createResponse(status: HttpStatus, msg: String?, err: String?): ResponseEntity<Any> {
-        val response = mapOf(
-            "message" to msg,
-            "error" to err,
-            "status" to status.toString(),
-            "timestamp" to Instant.now()
-        )
-        return ResponseEntity(response, status)
+        return exceptionService.createResponse(HttpStatus.NOT_FOUND, e.message, null)
     }
 
 }

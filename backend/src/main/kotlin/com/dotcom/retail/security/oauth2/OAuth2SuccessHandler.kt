@@ -1,8 +1,8 @@
 package com.dotcom.retail.security.oauth2
 
 import com.dotcom.retail.domain.auth.AuthService
-import com.dotcom.retail.common.exception.OAuth2EmailNotVerifiedException
-import com.dotcom.retail.common.exception.OAuth2Exception
+import com.dotcom.retail.common.exception.auth.OAuth2EmailNotVerifiedException
+import com.dotcom.retail.common.exception.auth.OAuth2Exception
 import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.user.UserService
