@@ -24,5 +24,10 @@ export interface AuthContextType {
     login: (data: LoginCredentials) => Promise<void>;
     register: (data: RegisterCredentials) => Promise<void>;
     logout: () => Promise<void>;
-    refresh: () => Promise<void>;
+    // refresh: () => Promise<void>;
+}
+
+export interface AuthResponse {
+    accessToken: string;
+    user: User;
 }

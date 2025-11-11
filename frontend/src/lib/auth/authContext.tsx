@@ -1,82 +1,79 @@
 "use client"
 
 import React, {createContext, useCallback, useContext, useEffect, useState} from "react";
-import { AuthContextType, User } from "@/src/types/auth";
-import { useRouter } from "next/router";
-import axios from "axios";
+import {AuthContextType, LoginCredentials, RegisterCredentials, User} from "@/src/types/auth";
+import { useRouter } from "next/navigation";
+import {tokenManager} from "@lib/auth/tokenManager";
+import {authService} from "@/src/services/AuthService";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(false);
-    // const router = useRouter();
+    const router = useRouter();
 
     useEffect(() => {
-        console.log(document.cookie)
-
-
-        const test = async () => {
-            const url = "http://localhost:8080"
-            const reg = url + "/api/v1/auth/register"
-
-            const res = await axios.post(reg, {
-                    // headers: { "Content-Type": "application/json" },
-                        email: "tstemail@email.com",
-                        // password: "password",
-                        displayName: "test name",
-                    })
-
-
-            console.log(res)
-        }
-
-        const login = async () => {
-            const url = "http://localhost:8080"
-            const log = url + "/api/v1/auth/login"
-
-
-            try {
-                const res = await axios.post(log, {
-                    // headers: { "Content-Type": "application/json" },
-                    email: "email@email.com",
-                    password: "passwor",
-                    // displayName: "test name",
-                })
-
-                console.log(res)
-
-            } catch(e) {
-                // console.error(e?.response?.data)
-            }
-
-
-        }
-
-        // test()
-        login()
+        authService.refresh()
+        // login(dummyLogin())
 
     }, [])
 
-    const login = async () => {
-
-}
-
-    const register = async () => {
-
+    const register = async (data: RegisterCredentials) => {
+        await authService.register(data)
     }
 
     const logout = async () => {
 
     }
 
-    const refresh = useCallback(async () => {
-        try {
+    const login = async (data: LoginCredentials) => {
+        await authService.login(data)
+        router.push("/")
+    }
 
-        } catch (e) {
-
+    const dummyLogin = (): LoginCredentials => {
+        const creds: LoginCredentials = {
+            email: "email@email.com",
+            password: "password",
         }
-    }, [])
+        return creds;
+    }
+
+    // const login = async () => {
+    //     const url = "http://localhost:8080"
+    //     const log = url + "/api/v1/auth/login"
+    //     try {
+    //         const res = await axios.post(log, {
+    //             // headers: { "Content-Type": "application/json" },
+    //             email: "email@email.com",
+    //             password: "",
+    //             // displayName: "test name",
+    //         })
+    //
+    //         console.log(res)
+    //
+    //     } catch (e: any) {
+    //         console.error(e.response.data)
+    //     }
+    // }
+
+
+
+    // const test = async () => {
+    //     const url = "http://localhost:8080"
+    //     const reg = url + "/api/v1/auth/register"
+    //
+    //     const res = await axios.post(reg, {
+    //         // headers: { "Content-Type": "application/json" },
+    //         email: "tstemail@email.com",
+    //         // password: "password",
+    //         displayName: "test name",
+    //     })
+    //
+    //
+    //     console.log(res)
+    // }
 
     const value: AuthContextType = {
         user,
@@ -85,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
-        refresh,
+        // refresh,
     }
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

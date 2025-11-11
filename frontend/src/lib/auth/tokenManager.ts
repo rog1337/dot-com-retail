@@ -14,4 +14,13 @@ class TokenManager {
         this.accessToken = null;
     }
 
+    hasValidAccessToken(): boolean {
+        return this.accessToken !== null;
+    }
+
+    clearAll() {
+        this.accessToken = null;
+    }
 }
+
+export const tokenManager = new TokenManager();
