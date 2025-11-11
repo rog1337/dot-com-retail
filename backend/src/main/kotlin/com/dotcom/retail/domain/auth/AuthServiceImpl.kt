@@ -47,7 +47,7 @@ class AuthServiceImpl(
             displayName = details.displayName,
         )
 
-        return userService.save(user)
+        return setNewJwts(user)
     }
 
     override fun login(request: LoginRequest): User {
@@ -60,6 +60,7 @@ class AuthServiceImpl(
             throw IncorrectPasswordException()
         }
 
+        setNewJwts(user)
         return user
     }
 
@@ -90,8 +91,9 @@ class AuthServiceImpl(
     }
 
     override fun setNewJwts(user: User): User {
-        setNewAccessToken(user)
-        return setNewRefreshToken(user)
+        user.accessToken = jwtService.generateAccessToken(user)
+        user.refreshToken = jwtService.generateRefreshToken(user)
+        return userService.save(user)
     }
 
     fun setNewAccessToken(user: User): User {

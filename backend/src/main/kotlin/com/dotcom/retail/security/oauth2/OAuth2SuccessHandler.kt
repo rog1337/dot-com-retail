@@ -56,8 +56,6 @@ class OAuth2SuccessHandler(
                 )
             }
 
-            authService.setNewJwts(user)
-
             val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
             response.addHeader(SecurityConstants.COOKIE_HEADER_NAME, cookie.toString())
             response.sendRedirect(oauth2Service.FRONTEND_URL)

@@ -1,6 +1,7 @@
 package com.dotcom.retail.security.jwt
 
 import com.dotcom.retail.common.constants.SecurityConstants
+import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
 import com.dotcom.retail.domain.auth.AuthController
 import com.dotcom.retail.domain.user.User
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -54,7 +55,7 @@ class JwtService(
     }
 
     fun extractJwtFromCookie(request: HttpServletRequest): String? {
-        return request.cookies?.firstOrNull { it.name == "refresh-token" }?.value
+        return request.cookies?.firstOrNull { it.name == REFRESH_TOKEN_TYPE }?.value
     }
 
     fun sendResponse(response: HttpServletResponse, status: HttpStatus, message: String? = null, details: String? = null) {
