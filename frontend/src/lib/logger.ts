@@ -17,17 +17,14 @@ interface LogContext {
 
 class Logger {
     private readonly isDev: boolean;
-    private readonly isClient: boolean;
 
     constructor() {
         this.isDev = process.env.NODE_ENV === Environment.DEVELOPMENT;
-        this.isClient = typeof window !== "undefined";
     }
 
     private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
         const timestamp = new Date().toISOString();
-        const env = this.isClient ? "client" : "server";
-        return `[${timestamp}] [${level.toUpperCase()}] [${env}] ${message}`;
+        return `[${timestamp}] [${level.toUpperCase()}] ${message}`;
     }
 
     private shouldLog(level: LogLevel): boolean {
@@ -60,6 +57,17 @@ class Logger {
                 stack: error?.stack,
                 ...context,
             });
+        }
+    }
+
+    api(method: string, url: string, status: number) {
+        const message = `[API] ${method.toUpperCase()} ${url} - ${status}`;
+        const context = { method, url, status };
+
+        if (status >= 400) {
+            this.error(message,undefined,context);
+        } else if (this.isDev) {
+            this.info(message, context);
         }
     }
 
