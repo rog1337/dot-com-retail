@@ -6,7 +6,8 @@ open class AuthException : RuntimeException {
     companion object {
         private const val DEFAULT_MSG = "Authentication error"
     }
-    constructor(message: String?) : super(message ?: DEFAULT_MSG)
+    constructor() : super(DEFAULT_MSG)
+    constructor(message: String?) : super(message)
 }
 
 class OAuth2EmailNotVerifiedException : AuthException {
@@ -44,6 +45,14 @@ class InvalidLoginException : AuthException {
 class IncorrectPasswordException : AuthException {
     companion object {
         private const val DEFAULT_MSG = "Incorrect password"
+    }
+    constructor() : super(DEFAULT_MSG)
+    constructor(message: String) : super(message)
+}
+
+class IncorrectCaptchaException : AuthException {
+    companion object {
+        private const val DEFAULT_MSG = "Incorrect captcha"
     }
     constructor() : super(DEFAULT_MSG)
     constructor(message: String) : super(message)

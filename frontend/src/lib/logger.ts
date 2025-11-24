@@ -54,7 +54,6 @@ class Logger {
         if (this.shouldLog(LogLevel.ERROR)) {
             console.error(this.formatMessage(LogLevel.ERROR, message), {
                 error: error?.message,
-                stack: error?.stack,
                 ...context,
             });
         }
@@ -64,11 +63,15 @@ class Logger {
         const message = `[API] ${method.toUpperCase()} ${url} - ${status}`;
         const context = { method, url, status };
 
-        if (status >= 400) {
-            this.error(message,undefined,context);
-        } else if (this.isDev) {
+        if (this.isDev) {
             this.info(message, context);
         }
+
+        // if (status >= 400) {
+        //     this.error(message,undefined,context);
+        // } else if (this.isDev) {
+        //     this.info(message, context);
+        // }
     }
 
     d(message: string, context?: LogContext) { this.debug(message, context) }

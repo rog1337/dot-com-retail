@@ -19,7 +19,7 @@ export default function OAuth() {
 
             <button
                 type="button"
-                className="w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-lg hover:bg-gray-50 transition"
+                className="w-full flex items-center justify-center gap-3 border border-gray-300 py-3 rounded-lg hover:bg-gray-50 hover:text-black cursor-pointer transition"
                 onClick={() => login()}
             >
                 <svg className="w-5 h-5" viewBox="0 0 24 24">

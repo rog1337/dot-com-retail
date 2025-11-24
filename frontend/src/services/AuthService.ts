@@ -1,6 +1,7 @@
-import {AuthResponse, LoginCredentials, RegisterCredentials} from "@/src/types/auth";
+import {AuthResponse, LoginCredentials, RegisterData} from "@/src/types/auth";
 import {authApi} from "@lib/api/authApi";
 import {tokenManager} from "@lib/auth/tokenManager";
+import {logger as log} from "@lib/logger";
 
 class AuthService {
     async login(data: LoginCredentials) {
@@ -8,16 +9,30 @@ class AuthService {
         console.log(res)
     }
 
-    async register(data: RegisterCredentials) {
-        const res = await authApi.register(data)
-        tokenManager.setAccessToken(res.data.accessToken)
+    async register(data: RegisterData) {
+        try {
+            const res = await authApi.register(data)
+            tokenManager.setAccessToken(res.data.accessToken)
+        } catch (e: any) {
+            log.d("Failed to register", e?.response?.data);
+            return Promise.reject(e);
+        }
+
     }
 
-    async logout() {}
+    async logout() {
+
+    }
 
     async refresh() {
-        const res = await authApi.refresh();
-        tokenManager.setAccessToken(res.data.accessToken);
+        try {
+            const res = await authApi.refresh();
+            tokenManager.setAccessToken(res.data.accessToken);
+            return res;
+        } catch (e) {
+            tokenManager.clearAccessToken();
+            return Promise.reject(e);
+        }
     }
 
 

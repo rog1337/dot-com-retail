@@ -1,10 +1,10 @@
 "use client"
 
 import React, {createContext, useCallback, useContext, useEffect, useState} from "react";
-import {AuthContextType, LoginCredentials, RegisterCredentials, User} from "@/src/types/auth";
+import {AuthContextType, LoginCredentials, RegisterData, User} from "@/src/types/auth";
 import { useRouter } from "next/navigation";
-import {tokenManager} from "@lib/auth/tokenManager";
 import {authService} from "@/src/services/AuthService";
+import {logger as log} from "@/src/lib/logger"
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -14,12 +14,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter();
 
     useEffect(() => {
-        authService.refresh()
-        // login(dummyLogin())
-
+        // try {
+        //     authService.refresh()
+        // } catch (e) {
+        //     console.log("eee", e)
+        // }
+        refresh()
     }, [])
 
-    const register = async (data: RegisterCredentials) => {
+    const refresh = async () => {
+        try {
+            const a = await authService.refresh();
+            console.log(a)
+        } catch (e: any) {
+            console.log("ss")
+            if (e?.status === 401) {
+
+            }
+        }
+    }
+
+    const register = async (data: RegisterData) => {
         await authService.register(data)
     }
 

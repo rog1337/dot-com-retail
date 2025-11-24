@@ -1,15 +1,20 @@
 import {useAuth} from "@lib/auth/authContext";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useForm} from "react-hook-form";
 import {RegisterFormData, registerSchema} from "@lib/validation/authSchemas";
 import {zodResolver} from "@hookform/resolvers/zod";
 import Link from "next/link";
 import OAuth from "@components/auth/OAuth";
+import { logger as log} from "@lib/logger";
+import { Turnstile } from "@marsidev/react-turnstile";
+import {TURNSTILE_SITE_KEY} from "@constants/auth";
 
 export default function RegisterForm() {
     const { register: registerUser } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+    const [captchaToken, setCaptchaToken] = useState("");
+    const [captchaError, setCaptchaError] = useState("");
 
     const {
         register,
@@ -25,12 +30,22 @@ export default function RegisterForm() {
     const onSubmit = async (data: RegisterFormData) => {
         setIsLoading(true);
         setError("");
+        console.log("captcha token:", captchaToken);
+
+        if (!captchaToken) {
+            log.d("No captcha token")
+            setCaptchaError("Please complete the captcha");
+            setIsLoading(false);
+            return;
+        }
 
         try {
             await registerUser({
                 ...data,
+                captchaToken,
             });
         } catch (err: any) {
+            console.log("we have error", err)
             if (err?.response?.data?.message) {
                 setError(err?.response?.data?.message);
             } else {
@@ -58,7 +73,7 @@ export default function RegisterForm() {
                         Email Address
                     </label>
                     <input
-                        {...register('email')}
+                        {...register("email")}
                         id="email"
                         type="email"
                         autoComplete="email"
@@ -76,7 +91,7 @@ export default function RegisterForm() {
                         Name
                     </label>
                     <input
-                        {...register('displayName')}
+                        {...register("displayName")}
                         id="displayName"
                         type="text"
                         autoComplete="given-name"
@@ -92,7 +107,7 @@ export default function RegisterForm() {
                         Password
                     </label>
                     <input
-                        {...register('password')}
+                        {...register("password")}
                         id="password"
                         type="password"
                         autoComplete="new-password"
@@ -110,7 +125,7 @@ export default function RegisterForm() {
                         Confirm Password
                     </label>
                     <input
-                        {...register('confirmPassword')}
+                        {...register("confirmPassword")}
                         id="confirmPassword"
                         type="password"
                         autoComplete="new-password"
@@ -122,15 +137,32 @@ export default function RegisterForm() {
                     )}
                 </div>
 
+                <Turnstile
+                    siteKey={TURNSTILE_SITE_KEY}
+                    onSuccess={(token) => {
+                        setCaptchaToken(token)
+                        setCaptchaError("")
+                    }}
+                    onError={(error) => {
+                        setCaptchaError(error)
+                        setCaptchaToken("")
+                    }}
+                    className="mb-0"
+                />
+
+                {captchaError && (
+                    <p className="mb-0 text-sm text-red-600">{captchaError}</p>
+                )}
+
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed transition"
+                    className="mt-3 w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 cursor-pointer disabled:bg-blue-300 disabled:cursor-not-allowed transition"
                 >
                     {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
 
-                <p className="text-center text-sm text-gray-600 mb-2">
+                <p className="text-center text-sm text-gray-600 mb-2X">
                     Already have an account?{' '}
                     <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
                         Sign in

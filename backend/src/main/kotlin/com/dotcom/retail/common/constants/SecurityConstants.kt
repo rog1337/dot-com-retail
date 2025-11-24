@@ -1,8 +1,5 @@
 package com.dotcom.retail.common.constants
 
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
-
 object SecurityConstants {
     var ACCESS_TOKEN_EXPIRATION_MS: Long = 15 * 60 * 1000 // 15 minutes, fallback value
     var REFRESH_TOKEN_EXPIRATION_MS: Long = 4 * 24 * 60 * 60 * 1000 // 4 days, fallback value
@@ -16,4 +13,5 @@ object SecurityConstants {
     const val COOKIE_SAME_SITE_LAX = "Lax"
     const val COOKIE_PATH = "/"
     const val COOKIE_HEADER_NAME = "Set-Cookie"
+    var TURNSTILE_VERIFY_URL: String = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 }

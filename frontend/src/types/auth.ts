@@ -11,10 +11,12 @@ export interface LoginCredentials {
     password: string;
 }
 
-export interface RegisterCredentials {
+export interface RegisterData {
     email: string;
     password: string;
+    confirmPassword: string;
     displayName: string;
+    captchaToken: string;
 }
 
 export interface AuthContextType {
@@ -22,7 +24,7 @@ export interface AuthContextType {
     isAuthenticated: boolean;
     isLoading: boolean;
     login: (data: LoginCredentials) => Promise<void>;
-    register: (data: RegisterCredentials) => Promise<void>;
+    register: (data: RegisterData) => Promise<void>;
     logout: () => Promise<void>;
     // refresh: () => Promise<void>;
 }

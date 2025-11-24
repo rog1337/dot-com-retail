@@ -1,5 +1,5 @@
 import api from "./api";
-import {LoginCredentials, RegisterCredentials} from "@/src/types/auth";
+import {LoginCredentials, RegisterData} from "@/src/types/auth";
 
 export const authPaths = {
     login: "/auth/login",
@@ -10,7 +10,7 @@ export const authPaths = {
 
 export const authApi = {
     login: (data: LoginCredentials) => api.post(authPaths.login, data),
-    register: (data: RegisterCredentials) => api.post(authPaths.register, data),
+    register: (data: RegisterData) => api.post(authPaths.register, data),
     logout: () => api.post(authPaths.logout),
     refresh: () => api.post(authPaths.refresh),
 }

@@ -7,12 +7,14 @@ import org.springframework.stereotype.Component
 @Component
 class Injector(
     @Value("\${jwt.access.exp.ms}") private val jwtAccessExp: Long,
-    @Value("\${jwt.refresh.exp.ms}") private val jwtRefreshExp: Long
+    @Value("\${jwt.refresh.exp.ms}") private val jwtRefreshExp: Long,
+    @Value("\${cloudflare.turnstile.verify-url}") private val turnstileVerifyUrl: String,
 ) {
 
     @PostConstruct
     fun inject() {
         SecurityConstants.ACCESS_TOKEN_EXPIRATION_MS = jwtAccessExp
         SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS = jwtRefreshExp
+        SecurityConstants.TURNSTILE_VERIFY_URL = turnstileVerifyUrl
     }
 }
