@@ -1,12 +1,10 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.constants.ApiConstants.V1
+import com.dotcom.retail.common.constants.ApiRoutes.Auth
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_HEADER_NAME
-import com.dotcom.retail.domain.auth.AuthController.Companion.AUTH_BASE_PATH
 import com.dotcom.retail.domain.auth.dto.AuthResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
-import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.domain.user.toDto
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.HttpStatus
@@ -17,20 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping(AUTH_BASE_PATH)
+@RequestMapping(Auth.BASE)
 class AuthController(
     private val authService: AuthService,
 ) {
 
-    companion object {
-        const val AUTH_BASE_PATH = "$V1/auth"
-        const val REGISTER_PATH = "/register"
-        const val LOGIN_PATH = "/login"
-        const val REFRESH_PATH = "/refresh"
-        const val REFRESH_PATH_FULL = "$AUTH_BASE_PATH$REFRESH_PATH"
-    }
-
-    @PostMapping(REGISTER_PATH)
+    @PostMapping(Auth.REGISTER)
     fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<Any> {
         val user = authService.register(registerRequest)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
@@ -41,7 +31,7 @@ class AuthController(
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
-    @PostMapping(LOGIN_PATH)
+    @PostMapping(Auth.LOGIN)
     fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<AuthResponse> {
         val user = authService.login(loginRequest)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
@@ -52,7 +42,7 @@ class AuthController(
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
-    @PostMapping(REFRESH_PATH)
+    @PostMapping(Auth.REFRESH)
     fun refresh(req: HttpServletRequest): ResponseEntity<AuthResponse> {
         val user = authService.refresh(req)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())

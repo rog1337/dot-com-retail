@@ -3,7 +3,6 @@ package com.dotcom.retail.domain.auth
 import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
-import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
 import com.dotcom.retail.common.constants.SecurityConstants.TURNSTILE_VERIFY_URL
 import com.dotcom.retail.common.exception.auth.IncorrectCaptchaException
@@ -11,6 +10,8 @@ import com.dotcom.retail.common.exception.user.EmailNotFoundException
 import com.dotcom.retail.common.exception.auth.IncorrectPasswordException
 import com.dotcom.retail.common.exception.auth.NonLocalAccountException
 import com.dotcom.retail.common.exception.jwt.InvalidRefreshTokenException
+import com.dotcom.retail.config.properties.JwtProperties
+import com.dotcom.retail.config.properties.TurnstileProperties
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
@@ -20,7 +21,6 @@ import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -35,7 +35,8 @@ class AuthServiceImpl(
     private val userService: UserService,
     private val jwtService: JwtService,
     private val passwordEncoder: PasswordEncoder,
-    @Value("\${cloudflare.turnstile.secret-key}") private val turnstileSecret: String,
+    private val jwtProperties: JwtProperties,
+    private val turnstileProperties: TurnstileProperties,
     private val restClientBuilder: RestClient.Builder,
 ) : AuthService {
 
@@ -52,21 +53,27 @@ class AuthServiceImpl(
         return user
     }
 
-    fun verifyCaptcha(token: String): Boolean {
+    override fun verifyCaptcha(token: String): Boolean {
         val formData = LinkedMultiValueMap<String, String>()
-        formData.add("secret", turnstileSecret)
+        formData.add("secret", turnstileProperties.secretKey)
         formData.add("response", token)
 
         val request = restClientBuilder.baseUrl(TURNSTILE_VERIFY_URL).build()
 
-        val response = request.post()
-            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-            .body(formData)
-            .retrieve()
-            .toEntity(TurnstileResponse::class.java)
+        try {
+            val response = request.post()
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(formData)
+                .retrieve()
+                .toEntity(TurnstileResponse::class.java)
+            val body = response.body
+            return body != null && body.success
+        } catch (e: Exception) {
+            return false
+        }
 
-        val body = response.body
-        return body != null && body.success
+//        val body = response.body
+//        return body != null && body.success
     }
 
     override fun registerOAuthUser(details: RegisterOAuthUser): User {
@@ -112,7 +119,7 @@ class AuthServiceImpl(
         return ResponseCookie.from(REFRESH_TOKEN_TYPE, refreshToken)
             .httpOnly(true)
             .secure(true)
-            .maxAge(REFRESH_TOKEN_EXPIRATION_MS / 1000.toLong())
+            .maxAge(jwtProperties.refresh.exp / 1000.toLong())
             .sameSite(COOKIE_SAME_SITE_STRICT)
             .path(COOKIE_PATH)
             .build()

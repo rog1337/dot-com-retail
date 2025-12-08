@@ -1,8 +1,6 @@
 package com.dotcom.retail.common.constants
 
 object SecurityConstants {
-    var ACCESS_TOKEN_EXPIRATION_MS: Long = 15 * 60 * 1000 // 15 minutes, fallback value
-    var REFRESH_TOKEN_EXPIRATION_MS: Long = 4 * 24 * 60 * 60 * 1000 // 4 days, fallback value
     const val BEARER_PREFIX = "Bearer "
     const val BEARER_TOKEN_START_INDEX = 7
     const val TOKEN_TYPE_CLAIM = "type"

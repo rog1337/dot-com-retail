@@ -1,8 +1,9 @@
 package com.dotcom.retail.security.jwt
 
+import com.dotcom.retail.common.constants.ApiRoutes.Auth.REFRESH_FULL
 import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
-import com.dotcom.retail.domain.auth.AuthController
+import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.domain.user.User
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
@@ -16,13 +17,13 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import java.util.Date
+import javax.crypto.SecretKey
 
 @Service
 class JwtService(
-    @Value("\${jwt.secret}") private val secret: String,
+    private val jwtProperties: JwtProperties,
+    private val KEY: SecretKey = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray(Charsets.UTF_8))
 ) {
-
-    private val KEY = Keys.hmacShaKeyFor(secret.toByteArray(Charsets.UTF_8))
 
     fun generateAccessToken(user: User): String {
         return Jwts
@@ -30,7 +31,7 @@ class JwtService(
             .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
             .subject(user.id.toString())
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + SecurityConstants.ACCESS_TOKEN_EXPIRATION_MS))
+            .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
             .signWith(KEY)
             .compact()
     }
@@ -41,7 +42,7 @@ class JwtService(
             .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.REFRESH_TOKEN_TYPE)
             .subject(user.id.toString())
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + SecurityConstants.REFRESH_TOKEN_EXPIRATION_MS))
+            .expiration(Date(System.currentTimeMillis() + jwtProperties.refresh.exp))
             .signWith(KEY)
             .compact()
     }
@@ -72,7 +73,7 @@ class JwtService(
     }
 
     fun isRefreshRequest(request: HttpServletRequest): Boolean {
-        return request.requestURI.equals(AuthController.REFRESH_PATH_FULL) && request.method == HttpMethod.GET.toString()
+        return request.requestURI.equals(REFRESH_FULL) && request.method == HttpMethod.GET.toString()
     }
 
     // for testing
@@ -82,7 +83,7 @@ class JwtService(
             .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
             .subject("55e62730-36a8-46f9-9d06-e7677254d0fa")
             .issuedAt(Date(System.currentTimeMillis()))
-            .expiration(Date(System.currentTimeMillis() + SecurityConstants.ACCESS_TOKEN_EXPIRATION_MS))
+            .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
             .signWith(KEY)
             .compact()
     }

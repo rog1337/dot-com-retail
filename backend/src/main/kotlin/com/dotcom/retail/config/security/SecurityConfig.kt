@@ -7,15 +7,11 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
-import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.AuthenticationProvider
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
-import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.AuthenticationEntryPoint
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.access.AccessDeniedHandler
@@ -28,17 +24,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 @EnableMethodSecurity
 class SecurityConfig(
-//    private val passwordEncoder: PasswordEncoder,
     private val jwtAuthFilter: JwtAuthFilter,
-//    private val userDetailsService: UserDetailsService,
     private val successHandler: OAuth2SuccessHandler,
     private val authenticationProvider: AuthenticationProvider
 ) {
-
-    companion object {
-        const val API_URI = "/api"
-//        private val PUBLIC_ENDPOINTS: List<String> = listOf("api/v1/auth/register", "/api/v1/auth/login")
-    }
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -46,8 +35,9 @@ class SecurityConfig(
             .securityMatcher("/**")
             .cors {}
             .csrf { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.ALWAYS) }
+            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth -> auth
+                .requestMatchers(*SecurityMatchers.PUBLIC_ENDPOINTS).permitAll()
 //                .anyRequest().authenticated()
                 .anyRequest().permitAll()
             }

@@ -1,6 +1,5 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.domain.auth.dto.AuthResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
@@ -21,5 +20,7 @@ interface AuthService {
     fun registerOAuthUser(details: RegisterOAuthUser): User
 
     fun setNewJwts(user: User): User
+
+    fun verifyCaptcha(token: String): Boolean
 
 }
