@@ -1,4 +1,4 @@
-package com.dotcom.retail.domain.catalogue.product
+package com.dotcom.retail.domain.catalogue.product.dto
 
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
@@ -24,12 +24,6 @@ data class ProductDto (
     var weightKg: Double?,
     var weightLbs: Double?,
     var listed: Boolean = false,
-)
-
-data class ProductAttributeDto(
-    val name: String?,
-    val value: Any?,
-    val unit: String?
 )
 
 data class CreateProductDto (
