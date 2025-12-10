@@ -8,10 +8,10 @@ import jakarta.validation.constraints.NotBlank
 import java.math.BigDecimal
 
 data class ProductDto (
-    val serverId: Long,
-    val productId: String?,
+    val id: Long,
+//    val productId: String?,
     val slug: String,
-    val name: String,
+    val name: String?,
     val productDescription: String?,
     val storeDescription: String?,
     var price: BigDecimal?,
@@ -27,7 +27,7 @@ data class ProductDto (
 )
 
 data class CreateProductDto (
-    val productId: String? = null,
+//    val productId: String? = null,
 
     @field:NotBlank(message = "Product name cannot be blank")
     val name: String,
@@ -42,5 +42,22 @@ data class CreateProductDto (
     var attributes: List<ProductAttributeDto>?,
     var dimensions: Dimension?,
     var weightKg: Double?,
+    var listed: Boolean = false,
+)
+
+data class EditProductDto (
+    val id: Long,
+    val name: String?,
+    val productDescription: String?,
+    val storeDescription: String?,
+    var price: BigDecimal?,
+    var stock: Int = 0,
+    var brand: Brand?,
+    var category: Category?,
+    var images: List<ProductImageDto>?,
+    var attributes: List<ProductAttributeDto>?,
+    var dimensions: Dimension?,
+    var weightKg: Double?,
+    var weightLbs: Double?,
     var listed: Boolean = false,
 )

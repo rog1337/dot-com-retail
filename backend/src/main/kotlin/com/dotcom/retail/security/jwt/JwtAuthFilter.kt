@@ -2,25 +2,24 @@ package com.dotcom.retail.security.jwt
 
 import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.config.security.SecurityMatchers
-import io.jsonwebtoken.ExpiredJwtException
-import io.jsonwebtoken.UnsupportedJwtException
-import io.jsonwebtoken.security.SignatureException
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.lang.NonNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.authentication.WebAuthenticationDetails
 import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
 import org.springframework.web.filter.OncePerRequestFilter
+import org.springframework.web.servlet.HandlerExceptionResolver
 
 @Component
 class JwtAuthFilter(
     private val jwtService: JwtService,
+    @Qualifier("handlerExceptionResolver")
+    private val resolver: HandlerExceptionResolver
 ) : OncePerRequestFilter() {
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {
@@ -62,24 +61,8 @@ class JwtAuthFilter(
             SecurityContextHolder.getContext().authentication = authToken
 
             filterChain.doFilter(request, response)
-
-        } catch (e: ExpiredJwtException) {
-            jwtService.sendResponse(response, HttpStatus.UNAUTHORIZED, "Authentication token expired")
-        } catch (e: SignatureException) {
-            jwtService.sendResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT signature")
-        } catch (e: UsernameNotFoundException) {
-            jwtService.sendResponse(response, HttpStatus.UNAUTHORIZED, e.message ?: "User not found")
-        } catch (e: UnsupportedJwtException) {
-            jwtService.sendResponse(response, HttpStatus.UNAUTHORIZED, "Unsupported JWT")
         } catch (e: Exception) {
-            e.printStackTrace()
-
-            jwtService.sendResponse(
-                response,
-                HttpStatus.UNAUTHORIZED,
-                "Token authentication failure",
-                "Invalid JWT"
-            )
+            resolver.resolveException(request, response, null, e)
         }
     }
 

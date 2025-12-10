@@ -5,11 +5,10 @@ import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
 import com.dotcom.retail.common.constants.SecurityConstants.TURNSTILE_VERIFY_URL
-import com.dotcom.retail.common.exception.auth.IncorrectCaptchaException
-import com.dotcom.retail.common.exception.user.EmailNotFoundException
-import com.dotcom.retail.common.exception.auth.IncorrectPasswordException
-import com.dotcom.retail.common.exception.auth.NonLocalAccountException
-import com.dotcom.retail.common.exception.jwt.InvalidRefreshTokenException
+import com.dotcom.retail.common.exception.CaptchaVerificationException
+import com.dotcom.retail.common.exception.EmailNotFoundException
+import com.dotcom.retail.common.exception.IncorrectPasswordException
+import com.dotcom.retail.common.exception.NonLocalAccountException
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
 import com.dotcom.retail.domain.auth.dto.LoginRequest
@@ -20,6 +19,7 @@ import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.security.jwt.JwtService
+import io.jsonwebtoken.JwtException
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
@@ -41,7 +41,7 @@ class AuthServiceImpl(
 ) : AuthService {
 
     override fun register(request: RegisterRequest): User {
-        if (!verifyCaptcha(request.captchaToken)) throw IncorrectCaptchaException()
+        if (!verifyCaptcha(request.captchaToken)) throw CaptchaVerificationException()
 
         val user = userService.create(CreateUserParams(
             request.email,
@@ -101,11 +101,11 @@ class AuthServiceImpl(
 
     override fun refresh(req: HttpServletRequest): User {
         val rToken = jwtService.extractJwtFromCookie(req)
-        if (rToken.isNullOrBlank()) throw InvalidRefreshTokenException()
+        if (rToken.isNullOrBlank()) throw JwtException("")
 
         val claims = jwtService.extractClaims(rToken)
         if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.REFRESH_TOKEN_TYPE))
-            throw InvalidRefreshTokenException()
+            throw JwtException("")
 
         val userId = claims.subject
         val user = userService.getById(UUID.fromString(userId))

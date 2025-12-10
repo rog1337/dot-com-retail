@@ -1,8 +1,8 @@
 package com.dotcom.retail.domain.user
 
-import com.dotcom.retail.common.exception.user.EmailAlreadyRegisteredException
-import com.dotcom.retail.common.exception.user.EmailNotFoundException
-import com.dotcom.retail.common.exception.user.UserNotFoundException
+import com.dotcom.retail.common.exception.EmailAlreadyRegisteredException
+import com.dotcom.retail.common.exception.EmailNotFoundException
+import com.dotcom.retail.common.exception.UserNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
