@@ -1,5 +1,6 @@
 package com.dotcom.retail.domain.catalogue.category
 
+import com.dotcom.retail.common.BaseEntity
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
@@ -16,7 +17,6 @@ class Category(
     val id: Long = 0,
 
     var name: String,
-    var slug: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
@@ -24,4 +24,10 @@ class Category(
 
     @OneToMany(mappedBy = "parent", cascade = [CascadeType.ALL])
     val children: MutableList<Category> = mutableListOf()
-)
+
+) : BaseEntity() {
+
+    override fun toString(): String {
+        return "Category(id=$id, name='$name', parent=$parent, children=$children, ${super.toString()})"
+    }
+}

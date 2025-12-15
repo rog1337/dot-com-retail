@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.category
 
-import com.dotcom.retail.common.exception.catalogue.BrandNotFoundException
+import com.dotcom.retail.common.exception.CategoryNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
@@ -12,6 +12,6 @@ class CategoryService(private val categoryRepository: CategoryRepository) {
     }
 
     fun get(id: Long): Category {
-        return categoryRepository.findById(id).orElseThrow { BrandNotFoundException(id) }
+        return categoryRepository.findById(id).orElseThrow { CategoryNotFoundException(id) }
     }
 }
