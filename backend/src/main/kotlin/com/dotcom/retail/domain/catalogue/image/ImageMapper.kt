@@ -1,5 +1,5 @@
 package com.dotcom.retail.domain.catalogue.image
 
-fun ProductImage.toDto(): ProductImageDto = ProductImageDto(
+fun Image.toDto(): ImageDto = ImageDto(
     url = url
 )

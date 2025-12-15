@@ -4,29 +4,20 @@ import jakarta.persistence.Column
 import jakarta.persistence.MappedSuperclass
 import org.hibernate.annotations.CreationTimestamp
 import org.hibernate.annotations.UpdateTimestamp
-import java.time.LocalDateTime
+import java.time.Instant
 
 @MappedSuperclass
 abstract class BaseEntity {
 
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
-    open val createdAt: LocalDateTime? = null
+    val createdAt: Instant = Instant.now()
 
     @UpdateTimestamp
     @Column(nullable = false)
-    open var updatedAt: LocalDateTime? = null
+    var updatedAt: Instant = Instant.now()
 
     override fun toString(): String {
-        val fields: Map<String, Any?> = mapOf(
-            "createdAt" to createdAt,
-            "updatedAt" to updatedAt,
-        )
-
-        return "${this::class.simpleName.toString()}()${formatToString(fields)}"
-    }
-
-    fun formatToString(fields: Map<String, Any?>): String {
-       return fields.entries.joinToString(" ") { entry -> " ${entry.key}=${entry.value?.toString() ?: "null"}" }
+        return "createdAt=$createdAt, updatedAt=$updatedAt"
     }
 }
