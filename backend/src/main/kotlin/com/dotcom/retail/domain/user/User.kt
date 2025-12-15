@@ -28,18 +28,9 @@ class User(
     ) : BaseEntity(), UserDetails {
 
     override fun toString(): String {
-        return super.toString() + formatToString(mapOf(
-            "id" to id,
-            "email" to email,
-            "displayName" to displayName,
-            "accessToken" to accessToken,
-            "refreshToken" to refreshToken,
-        ))
+        return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', accessToken=$accessToken, refreshToken=$refreshToken, ${super.toString()})"
     }
-
     override fun getAuthorities(): Collection<GrantedAuthority?> = emptyList()
     override fun getUsername(): String = email
     override fun getPassword(): String? = passwordHash
-
-    companion object
 }
