@@ -4,16 +4,20 @@ import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
+import org.springframework.http.ResponseEntity
+import org.springframework.web.HttpRequestMethodNotSupportedException
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
 @RestControllerAdvice
-class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
+class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGlobalException(e: Exception): ProblemDetail {
-        logger.error("Exception: ${e.printStackTrace()}")
+        println("Exception: ${e.printStackTrace()}")
+//        logger.error("Exception: ${e.printStackTrace()}")
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.")
     }
 
@@ -42,9 +46,14 @@ class GlobalExceptionHandler : ResponseEntityExceptionHandler() {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.message)
     }
 
-//    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-//    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ResponseEntity<String> {
-//        return ResponseEntity(e.message, e.statusCode)
-//    }
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    fun methodArgumentNotValidException(e: MethodArgumentNotValidException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(e.statusCode, e.message)
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
+    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(e.statusCode, e.message)
+    }
 
 }
