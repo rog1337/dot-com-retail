@@ -1,5 +1,6 @@
 package com.dotcom.retail.domain.catalogue.image
 
-data class ProductImageDto(
-    var url: String?,
+data class ImageDto(
+    val id: Long,
+    val url: String,
 )
