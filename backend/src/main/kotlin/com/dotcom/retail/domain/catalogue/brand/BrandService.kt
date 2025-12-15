@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.brand
 
-import com.dotcom.retail.common.exception.catalogue.BrandNotFoundException
+import com.dotcom.retail.common.exception.BrandNotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
