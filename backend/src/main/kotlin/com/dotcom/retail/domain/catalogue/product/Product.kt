@@ -2,21 +2,22 @@ package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
-import com.dotcom.retail.domain.catalogue.dimension.Dimension
-import com.dotcom.retail.domain.catalogue.image.ProductImage
+import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.common.BaseEntity
 import jakarta.persistence.CascadeType
-import jakarta.persistence.Embedded
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
+import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 
 @Entity
@@ -30,37 +31,45 @@ class Product(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    var productId: String? = null,
     var name: String,
+    var sku: String,
     var slug: String,
 
-    var productDescription: String? = null,
-    var storeDescription: String? = null,
+    var description: String? = null,
 
-    var price: BigDecimal? = BigDecimal.ZERO,
+    var price: BigDecimal = BigDecimal.ZERO,
+    var salePrice: BigDecimal = BigDecimal.ZERO,
 
     var stock: Int = 0,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "brand_id")
     var brand: Brand? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "category_id")
     var category: Category? = null,
 
-    @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var images: MutableList<ProductImage> = mutableListOf(),
+    @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JoinTable(
+        name = "product_images",
+        joinColumns = [JoinColumn(name = "product_id")],
+        inverseJoinColumns = [JoinColumn(name = "image_id")]
+    )
+    var images: MutableList<Image> = mutableListOf(),
 
-    @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var attributes: MutableList<ProductAttribute> = mutableListOf(),
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    var attributes: Map<String, Any>? = null,
 
-    @Embedded
-    var dimensions: Dimension? = null,
+    var isActive: Boolean = false
 
-    var weightKg: Double? = null,
-    var weightLbs: Double? = null,
+) : BaseEntity() {
+    override fun toString(): String {
+        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, brand=$brand, category=$category, images=$images, attributes=$attributes, isActive=$isActive, ${super.toString()})"
+    }
 
-    var listed: Boolean = false,
-
-    ) : BaseEntity()
+//    override fun toString(): String {
+//        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive)"
+//    }
+}
