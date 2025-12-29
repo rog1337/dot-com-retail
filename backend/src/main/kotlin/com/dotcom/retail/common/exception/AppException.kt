@@ -1,11 +1,10 @@
 package com.dotcom.retail.common.exception
 
 import org.springframework.http.HttpStatus
-import org.springframework.http.HttpStatusCode
 
 abstract class AppException(
     override val message: String = "Error",
-    val status: HttpStatus,
+    val status: HttpStatus = HttpStatus.BAD_REQUEST,
     cause: Throwable? = null
 ) : RuntimeException(message, cause)
 

@@ -6,4 +6,18 @@ data class BrandDto(
     val id: Long,
     val name: String,
     val image: ImageDto?,
+    val isActive: Boolean
+)
+
+data class CreateBrand(
+    val name: String,
+    val image: Long,
+    val isActive: Boolean
+)
+
+data class EditBrand(
+    val id: Long,
+    val name: String,
+    val image: Long?,
+    val isActive: Boolean,
 )

@@ -12,7 +12,6 @@ import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
-import jakarta.persistence.JoinTable
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
@@ -51,11 +50,11 @@ class Product(
     var category: Category? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinTable(
-        name = "product_images",
-        joinColumns = [JoinColumn(name = "product_id")],
-        inverseJoinColumns = [JoinColumn(name = "image_id")]
-    )
+//    @JoinTable(
+//        name = "product_images",
+//        joinColumns = [JoinColumn(name = "product_id")],
+//        inverseJoinColumns = [JoinColumn(name = "image_id")]
+//    )
     var images: MutableList<Image> = mutableListOf(),
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -68,8 +67,4 @@ class Product(
     override fun toString(): String {
         return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, brand=$brand, category=$category, images=$images, attributes=$attributes, isActive=$isActive, ${super.toString()})"
     }
-
-//    override fun toString(): String {
-//        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive)"
-//    }
 }

@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: 8080
 app:
   url: http://localhost:${server.port}
 frontend:
@@ -45,6 +45,15 @@ jwt:
     exp: 900000 # 15 minutes
   refresh:
     exp: 345600000 # 4 days
+
+file:
+  dir: ${user.dir}/uploads
+  image:
+    dir: ${file.dir}/images
+    product:
+      dir: ${file.image.dir}/product
+    brand:
+      dir: ${file.image.dir}/brand
 
 cloudflare:
   turnstile:

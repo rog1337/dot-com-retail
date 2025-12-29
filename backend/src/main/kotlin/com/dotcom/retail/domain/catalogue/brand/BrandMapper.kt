@@ -5,5 +5,6 @@ import com.dotcom.retail.domain.catalogue.image.toDto
 fun Brand.toDto(): BrandDto = BrandDto(
     id = id,
     name = name,
-    image = image?.toDto()
+    image = image?.toDto(),
+    isActive = isActive,
 )

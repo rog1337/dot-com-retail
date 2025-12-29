@@ -11,11 +11,13 @@ class Image(
 
     @Id @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Long = 0,
-    var url: String,
+    var filePath: String,
+    var contentType: String,
+    var sortOrder: Int,
 
-) : BaseEntity() {
+    ) : BaseEntity() {
 
     override fun toString(): String {
-        return "Image(id=$id, url='$url')"
+        return "Image(id=$id, filePath='$filePath', contentType='$contentType', sortOrder=$sortOrder) ${super.toString()}"
     }
 }

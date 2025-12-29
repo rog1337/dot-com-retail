@@ -2,22 +2,23 @@ package com.dotcom.retail.common.exception
 
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
-import org.springframework.http.ResponseEntity
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
+    val logger: Logger = LoggerFactory.getLogger(this.javaClass)
+
     @ExceptionHandler(Exception::class)
     fun handleGlobalException(e: Exception): ProblemDetail {
-        println("Exception: ${e.printStackTrace()}")
-//        logger.error("Exception: ${e.printStackTrace()}")
+        logger.error("Exception: ${e.printStackTrace()}")
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.")
     }
 
@@ -38,7 +39,7 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException::class)
     fun handleAppException(e: AppException): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.message)
+        return ProblemDetail.forStatusAndDetail(e.status, e.message)
     }
 
     @ExceptionHandler(AuthException::class)

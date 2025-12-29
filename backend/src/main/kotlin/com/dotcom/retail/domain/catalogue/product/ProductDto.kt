@@ -48,7 +48,7 @@ data class EditProductDto (
     val stock: Int,
     val brandId: Long?,
     val categoryId: Long?,
-    val images: List<ImageDto>?,
+    val imageIds: List<Long>?,
     val attributes: Map<String, Any>?,
     val isActive: Boolean = false,
 )
