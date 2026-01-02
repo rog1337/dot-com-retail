@@ -16,24 +16,27 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping(Brand.BASE)
-class BrandController(private val brandService: BrandService) {
+class BrandController(
+    private val brandService: BrandService,
+    private val brandMapper: BrandMapper
+) {
 
     @GetMapping("{id}")
     fun get(@PathVariable id: Long): ResponseEntity<BrandDto> {
         val brand = brandService.get(id)
-        return ResponseEntity.ok(brand.toDto())
+        return ResponseEntity.ok(brandMapper.toDto(brand))
     }
 
     @PostMapping
     fun create(@RequestBody brand: CreateBrand): ResponseEntity<BrandDto> {
         val brand = brandService.create(brand)
-        return ResponseEntity<BrandDto>(brand.toDto(), HttpStatus.CREATED)
+        return ResponseEntity<BrandDto>(brandMapper.toDto(brand), HttpStatus.CREATED)
     }
 
     @PutMapping("{id}")
     fun edit(@RequestBody brand: EditBrand): ResponseEntity<BrandDto> {
         val brand = brandService.edit(brand)
-        return ResponseEntity.ok(brand.toDto())
+        return ResponseEntity.ok(brandMapper.toDto(brand))
     }
 
     @DeleteMapping("{id}")

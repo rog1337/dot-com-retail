@@ -1,6 +1,11 @@
 package com.dotcom.retail.domain.catalogue.category
 
-fun Category.toDto(): CategoryDto = CategoryDto (
-    id = id,
-    name = name,
-)
+import org.springframework.stereotype.Component
+
+@Component
+class CategoryMapper {
+    fun toDto(category: Category): CategoryDto = CategoryDto(
+        id = category.id,
+        name = category.name,
+    )
+}
