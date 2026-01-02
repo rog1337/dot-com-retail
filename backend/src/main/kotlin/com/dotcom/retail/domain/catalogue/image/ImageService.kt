@@ -10,6 +10,7 @@ import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
 import java.nio.file.Files
@@ -62,28 +63,46 @@ class ImageService(
         return imageRepository.existsById(id)
     }
 
-    fun createProductImage(imageFile: MultipartFile, data: CreateImage): Image {
-        val path = write(imageFile, productFilePath).toString()
-        val image = create(path, MediaType.IMAGE_JPEG, data.sortOrder)
-        return save(image)
-    }
+//    fun createProductImage(imageFile: MultipartFile, data: CreateImage): Image {
+//        val path = write(imageFile, productFilePath).toString()
+//        val image = create(path, MediaType.IMAGE_JPEG, data.sortOrder)
+//        return save(image)
+//    }
+//
+//    fun createBrandImage(imageFile: MultipartFile, data: CreateImage = CreateImage()): Image {
+//        val path = write(imageFile, brandFilePath).toString()
+//        val image = create(path, MediaType.IMAGE_JPEG, data.sortOrder)
+//        return save(image)
+//    }
 
-    fun createBrandImage(imageFile: MultipartFile, data: CreateImage = CreateImage()): Image {
-        val path = write(imageFile, brandFilePath).toString()
-        val image = create(path, MediaType.IMAGE_JPEG, data.sortOrder)
-        return save(image)
-    }
+    @Transactional
+    fun create(imageFile: MultipartFile, metaData: ImageMetadata, directory: Path): Image {
 
-    fun create(filePath: String, contentType: MediaType = MediaType.IMAGE_JPEG, sortOrder: Int = 0): Image {
-        val image = Image(
-            filePath = filePath,
-            contentType = contentType.toString(),
-            sortOrder = sortOrder,
+        val uniqueName = UUID.randomUUID().toString() + metaData.fileName
+        val filePath = directory.resolve(uniqueName)
+
+        var image = Image(
+            filePath = filePath.toString(),
+            sortOrder = metaData.sortOrder,
+            contentType = MediaType.IMAGE_JPEG_VALUE
         )
-        return save(image)
+
+        image = imageRepository.save(image)
+        write(imageFile, filePath)
+
+        return image
     }
 
-    fun write(file: MultipartFile, path: Path): Path {
+//    fun create(filePath: String, contentType: MediaType = MediaType.IMAGE_JPEG, sortOrder: Int = 0): Image {
+//        val image = Image(
+//            filePath = filePath,
+//            contentType = contentType.toString(),
+//            sortOrder = sortOrder,
+//        )
+//        return save(image)
+//    }
+
+    fun write(file: MultipartFile, pathToFile: Path): Boolean {
         if (file.isEmpty) throw ImageIsEmptyException(file)
 
         val contentType = file.contentType ?: throw FileIsNotAnImageException(file)
@@ -91,13 +110,13 @@ class ImageService(
             throw FileIsNotAnImageException(file)
         }
 
-        val uniqueName = "${UUID.randomUUID()}.${file.originalFilename}"
-        val resolve = path.resolve(uniqueName)
+//        val uniqueName = "${UUID.randomUUID()}.${file.originalFilename}"
+//        val resolve = path.resolve(uniqueName)
 
-        Files.copy(file.inputStream, resolve)
-        logger.info("Wrote image $uniqueName to $path")
+        Files.copy(file.inputStream, pathToFile)
+        logger.info("Wrote image to $pathToFile")
 
-        return resolve
+        return true
     }
 
     fun findFile(path: String): Resource? {

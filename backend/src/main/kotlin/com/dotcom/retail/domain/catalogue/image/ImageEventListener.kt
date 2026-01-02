@@ -11,4 +11,9 @@ class ImageEventListener(val imageService: ImageService) {
     fun handleImageDeletion(event: ImageDeletionEvent) {
         event.filePaths.forEach(imageService::deleteFile)
     }
+
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    fun handleImageStoring(event: ImageStoringEvent) {
+        imageService.write(event.file, event.filePath)
+    }
 }

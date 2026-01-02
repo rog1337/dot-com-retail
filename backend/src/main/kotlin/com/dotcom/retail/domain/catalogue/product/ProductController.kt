@@ -6,35 +6,44 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import org.springframework.web.multipart.MultipartFile
 
 @RestController
 @RequestMapping(Product.BASE)
 class ProductController(
-    private val productService: ProductService
+    private val productService: ProductService,
+    private val productMapper: ProductMapper
 ) {
 
     @GetMapping("{id}")
-    fun getProductById(@PathVariable id: Long): ResponseEntity<ProductDto> {
+    fun getById(@PathVariable id: Long): ResponseEntity<ProductDto> {
         val product = productService.get(id)
-        return ResponseEntity.ok(product.toDto())
+        return ResponseEntity.ok(productMapper.toDto(product))
     }
 
     @GetMapping("${Product.SLUG}/{slug}")
-    fun getProductBySlug(@PathVariable slug: String): ResponseEntity<ProductDto> {
+    fun getBySlug(@PathVariable slug: String): ResponseEntity<ProductDto> {
         val product = productService.getBySlug(slug)
-        return ResponseEntity.ok(product.toDto())
+        return ResponseEntity.ok(productMapper.toDto(product))
     }
 
     @PostMapping
-    fun createProduct(@RequestBody dto: CreateProductDto): ResponseEntity<ProductDto> {
-        val product = productService.create(dto)
-        return ResponseEntity<ProductDto>(product.toDto(), HttpStatus.CREATED)
+    fun create(
+        @RequestPart("product") product: CreateProduct,
+        @RequestPart("images") imageFiles: List<MultipartFile>,
+    ): ResponseEntity<ProductDto> {
+        val product = productService.create(product, imageFiles)
+        return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.CREATED)
     }
 
-    @PutMapping("/{id}")
-    fun edit(@PathVariable id: Long, @RequestBody dto: EditProductDto): ResponseEntity<ProductDto> {
-        val product = productService.edit(id, dto)
-        return ResponseEntity<ProductDto>(product.toDto(), HttpStatus.OK)
+    @PutMapping("/{id}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun edit(
+        @PathVariable id: Long,
+        @RequestPart("product") dto: EditProductDto,
+        @RequestPart("images") imageFiles: List<MultipartFile>,
+    ): ResponseEntity<ProductDto> {
+        val product = productService.edit(id, dto, imageFiles)
+        return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.OK)
     }
 
     @GetMapping("{productId}${Product.IMAGE}/{imageId}")

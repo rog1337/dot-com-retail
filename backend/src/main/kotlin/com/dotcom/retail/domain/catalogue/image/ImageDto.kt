@@ -3,10 +3,11 @@ package com.dotcom.retail.domain.catalogue.image
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Path
 
-data class ImageDto(
+open class ImageDto(
     val id: Long,
     val url: String,
     val sortOrder: Int,
+    val altText: String?,
 )
 
 data class CreateImage(
@@ -27,8 +28,9 @@ data class ImageStoringEvent(
     val filePath: Path,
 )
 
-data class ImageMetadata(
-    val fileName: String,
+open class ImageMetadata(
+    val id: Long? = null,
+    val fileName: String? = null,
     val sortOrder: Int = 0,
     val altText: String? = null,
 )

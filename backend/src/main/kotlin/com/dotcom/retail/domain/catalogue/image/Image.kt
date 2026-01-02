@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.catalogue.image
 
 import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.config.properties.AppProperties
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
@@ -14,6 +15,7 @@ class Image(
     var filePath: String,
     var contentType: String,
     var sortOrder: Int,
+    var altText: String? = null,
 
     ) : BaseEntity() {
 
