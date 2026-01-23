@@ -13,6 +13,10 @@ import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import com.dotcom.retail.domain.catalogue.image.ImageService
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.io.Resource
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,7 +30,8 @@ class ProductService(
     private val categoryService: CategoryService,
     private val imageService: ImageService,
     private val fileProperties: FileProperties,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val productMapper: ProductMapper
 ) {
 
     private val productImagePath = Paths.get(fileProperties.image.product.dir)
@@ -47,6 +52,20 @@ class ProductService(
         return productRepository.findBySlug(slug) ?: throw ProductNotFoundException(slug)
     }
 
+    fun findAll(specification: Specification<Product>, pageable: Pageable): Page<Product> {
+        return productRepository.findAll(specification, pageable)
+    }
+
+//    fun getAll(pageable: Pageable, sort: Sort, categoryId: Long): Page<ProductDto> {
+    fun query(params: ProductQueryParams): Page<ProductDto> {
+        val spec = ProductSpecifications.fromParams(params)
+        val pageable = PageRequest.of(params.page, params.pageSize)
+        val products = findAll(spec, pageable)
+
+        return products.map { product -> productMapper.toDto(product) }
+    }
+
+
     @Transactional
     fun create(dto: CreateProduct, imageFiles: List<MultipartFile>): Product {
         val product = Product(
@@ -59,7 +78,8 @@ class ProductService(
             stock = dto.stock,
             brand = dto.brandId?.let(brandService::get),
             category = dto.categoryId?.let(categoryService::get),
-            attributes = dto.attributes,
+//            attributes = dto.attributes?.associate { it.name to it.values },
+            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }},
             images = mutableListOf(),
             isActive = dto.isActive
         )
@@ -111,7 +131,7 @@ class ProductService(
             stock = dto.stock
             brand = dto.brandId?.let(brandService::get)
             category = dto.categoryId?.let(categoryService::get)
-            attributes = dto.attributes
+            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }}
             isActive = dto.isActive
         }
 
@@ -201,33 +221,12 @@ class ProductService(
         return imageService.findFile(imagePath) ?: throw ImageNotFoundException(imageId)
     }
 
-    private fun getImages(imageIds: List<Long>?): MutableList<Image> {
-        if (imageIds == null || imageIds.isEmpty()) return mutableListOf()
-
-        val images = imageService.findAllById(imageIds)
-        val notFound = imageIds.filterNot { id -> id in images.map { it.id }.toSet() }
-        if (notFound.isNotEmpty()) throw ImageNotFoundException(notFound[0])
-
-        return images.toMutableList()
+    fun getAttributeCounts(categoryId: Long, attrKey: String): List<ProductAttributeValueCount> {
+        return productRepository.getAttributeCounts(categoryId, attrKey)
     }
 
-    fun handleImages(currentImages: MutableList<Image>, newImages: MutableList<Image>): MutableList<Image> {
-        val newImageIds = newImages.map { it.id }.toSet()
-        val orphans = currentImages.filter { it.id !in newImageIds }
-
-        val currentImageIds = currentImages.map { it.id }.toSet()
-        val toAdd = newImages.filter { it.id !in currentImageIds }.toMutableList()
-
-//        println("current: $currentImageIds")
-//        println("newImages: ${newImageIds}")
-//        println("orphans: ${orphans.map { it.id }}")
-//        println("toadd: ${toAdd.map { it.id }}")
-
-        currentImages.removeAll(orphans)
-        currentImages.addAll(toAdd)
-
-        eventPublisher.publishEvent(ImageDeletionEvent(orphans.map { it.filePath }))
-        return toAdd
+    fun getBrandCounts(categoryId: Long): List<ProductBrandCount> {
+        return productRepository.getBrandCounts(categoryId)
     }
 
 }

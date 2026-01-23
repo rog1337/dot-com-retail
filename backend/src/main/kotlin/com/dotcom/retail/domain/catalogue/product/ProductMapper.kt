@@ -22,7 +22,7 @@ class ProductMapper(
         stock = product.stock,
         brand = product.brand?.let { brandMapper.toDto(it) },
         category = product.category?.let { categoryMapper.toDto(it) },
-        attributes = product.attributes,
+        attributes = product.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
         images = product.images.map { image -> imageMapper.toProductImageDto(image, product.id) },
         isActive = product.isActive,
     )

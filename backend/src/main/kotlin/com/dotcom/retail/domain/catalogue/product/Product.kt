@@ -4,6 +4,7 @@ import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.common.BaseEntity
+import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -43,6 +44,7 @@ class Product(
 
     @ManyToOne
     @JoinColumn(name = "brand_id")
+    @JsonManagedReference
     var brand: Brand? = null,
 
     @ManyToOne
@@ -59,7 +61,7 @@ class Product(
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    var attributes: Map<String, Any>? = null,
+    var attributes: Map<String, List<Any>>? = null,
 
     var isActive: Boolean = false
 

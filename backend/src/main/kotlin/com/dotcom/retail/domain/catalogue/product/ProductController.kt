@@ -1,7 +1,8 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.constants.ApiRoutes.Product
+import com.dotcom.retail.common.constants.ApiRoutes
 import org.springframework.core.io.Resource
+import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -9,11 +10,19 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
 @RestController
-@RequestMapping(Product.BASE)
+@RequestMapping(ApiRoutes.Product.BASE)
 class ProductController(
     private val productService: ProductService,
     private val productMapper: ProductMapper
 ) {
+
+    @GetMapping
+    fun getProducts(
+        params: ProductQueryParams,
+    ): ResponseEntity<Page<ProductDto>> {
+        val products = productService.query(params)
+        return ResponseEntity.ok(products)
+    }
 
     @GetMapping("{id}")
     fun getById(@PathVariable id: Long): ResponseEntity<ProductDto> {
@@ -21,7 +30,7 @@ class ProductController(
         return ResponseEntity.ok(productMapper.toDto(product))
     }
 
-    @GetMapping("${Product.SLUG}/{slug}")
+    @GetMapping("${ApiRoutes.Product.SLUG}/{slug}")
     fun getBySlug(@PathVariable slug: String): ResponseEntity<ProductDto> {
         val product = productService.getBySlug(slug)
         return ResponseEntity.ok(productMapper.toDto(product))
@@ -46,7 +55,7 @@ class ProductController(
         return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.OK)
     }
 
-    @GetMapping("{productId}${Product.IMAGE}/{imageId}")
+    @GetMapping("{productId}${ApiRoutes.Product.IMAGE}/{imageId}")
     fun getImage(@PathVariable productId: Long, @PathVariable imageId: Long): ResponseEntity<Resource> {
         val image = productService.getImage(productId, imageId)
         return ResponseEntity<Resource>.ok().contentType(MediaType.IMAGE_JPEG).body(image)
