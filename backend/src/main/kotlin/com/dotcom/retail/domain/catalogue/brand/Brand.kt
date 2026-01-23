@@ -3,6 +3,7 @@ package com.dotcom.retail.domain.catalogue.brand
 import com.dotcom.retail.common.BaseEntity
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.product.Product
+import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.GeneratedValue
@@ -23,6 +24,7 @@ class Brand(
     var image: Image? = null,
 
     @OneToMany(mappedBy = "brand", cascade = [CascadeType.ALL], orphanRemoval = true)
+    @JsonBackReference
     var products: MutableList<Product> = mutableListOf(),
 
     var isActive: Boolean = false
