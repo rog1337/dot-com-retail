@@ -17,7 +17,7 @@ open class ResourceNotFoundException(
 )
 
 open class AlreadyExistsException(
-    resourceName: String,
+    resourceName: String = "Resource",
     identifier: Any? = null
 ) : AppException(
     if (identifier != null) "$resourceName already exists: $identifier" else "$resourceName already exists",
