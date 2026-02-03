@@ -1,5 +1,8 @@
 package com.dotcom.retail.domain.catalogue.product
 
+import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
+import com.dotcom.retail.domain.catalogue.filter.ValueCount
+import jakarta.persistence.Tuple
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
@@ -7,35 +10,18 @@ import org.springframework.data.jpa.repository.Query
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     fun findBySlug(slug: String): Product?
 
-    //    @Query(
-//        value = """
-//        SELECT value, COUNT(*) AS count
-//            FROM (
-//            SELECT p.attributes ->> :attrKey AS value
-//            FROM product p
-//            WHERE p.category_id = :categoryId
-//                AND is_active = TRUE
-//        ) AS t
-//        WHERE value IS NOT NULL
-//        GROUP BY value
-//    """, nativeQuery = true
-//    )
-    @Query(
-        value = """
-    SELECT value, COUNT(*) AS count
-    FROM (
-        SELECT jsonb_array_elements_text(p.attributes -> :attrKey) AS value
+    @Query("""
+        SELECT
+            elem as value,
+            COUNT(p.id) as count
         FROM product p
+        CROSS JOIN LATERAL jsonb_array_elements_text(p.attributes -> :attrKey) as elem
         WHERE p.category_id = :categoryId
-        AND p.is_active = TRUE
-        AND (p.attributes -> :attrKey) IS NOT NULL
-    ) AS t
-    WHERE value IS NOT NULL
-    GROUP BY value
-    """,
-        nativeQuery = true
-    )
-    fun getAttributeCounts(categoryId: Long, attrKey: String): List<ProductAttributeValueCount>
+          AND p.is_active = true
+        GROUP BY elem
+    """, nativeQuery = true)
+    fun findAttributeCounts(categoryId: Long, attrKey: String): List<ValueCount>
+
 
     @Query(
         """

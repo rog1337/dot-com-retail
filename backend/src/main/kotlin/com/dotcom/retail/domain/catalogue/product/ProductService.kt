@@ -4,13 +4,17 @@ import com.dotcom.retail.common.exception.DuplicateImageSortOrderException
 import com.dotcom.retail.common.exception.ImageMetadataNotFoundException
 import com.dotcom.retail.common.exception.ImageNotFoundException
 import com.dotcom.retail.common.exception.ProductNotFoundException
+import com.dotcom.retail.common.util.pagination.PageMapper
+import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.config.properties.FileProperties
 import com.dotcom.retail.domain.catalogue.brand.BrandService
 import com.dotcom.retail.domain.catalogue.category.CategoryService
+import com.dotcom.retail.domain.catalogue.filter.ValueCount
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
 import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import com.dotcom.retail.domain.catalogue.image.ImageService
+import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.core.io.Resource
 import org.springframework.data.domain.Page
@@ -31,9 +35,11 @@ class ProductService(
     private val imageService: ImageService,
     private val fileProperties: FileProperties,
     private val eventPublisher: ApplicationEventPublisher,
-    private val productMapper: ProductMapper
+    private val productMapper: ProductMapper,
+    private val productSpecifications: ProductSpecifications,
 ) {
 
+    private val logger = LoggerFactory.getLogger(this.javaClass)
     private val productImagePath = Paths.get(fileProperties.image.product.dir)
 
     fun find(id: Long): Product? {
@@ -56,13 +62,12 @@ class ProductService(
         return productRepository.findAll(specification, pageable)
     }
 
-//    fun getAll(pageable: Pageable, sort: Sort, categoryId: Long): Page<ProductDto> {
-    fun query(params: ProductQueryParams): Page<ProductDto> {
-        val spec = ProductSpecifications.fromParams(params)
+    fun query(params: ProductQueryParams): PagedResponse<ProductDto> {
+        val spec = productSpecifications.fromParams(params)
         val pageable = PageRequest.of(params.page, params.pageSize)
-        val products = findAll(spec, pageable)
+        val productPage = findAll(spec, pageable)
 
-        return products.map { product -> productMapper.toDto(product) }
+        return PageMapper.toPagedResponse(productPage.map { product -> productMapper.toDto(product)})
     }
 
 
@@ -78,8 +83,7 @@ class ProductService(
             stock = dto.stock,
             brand = dto.brandId?.let(brandService::get),
             category = dto.categoryId?.let(categoryService::get),
-//            attributes = dto.attributes?.associate { it.name to it.values },
-            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }},
+            // attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values } } as MutableMap<String, MutableList<Any>>,
             images = mutableListOf(),
             isActive = dto.isActive
         )
@@ -131,7 +135,7 @@ class ProductService(
             stock = dto.stock
             brand = dto.brandId?.let(brandService::get)
             category = dto.categoryId?.let(categoryService::get)
-            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }}
+//            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }} as MutableMap<String, MutableList<Any>>
             isActive = dto.isActive
         }
 
@@ -221,12 +225,12 @@ class ProductService(
         return imageService.findFile(imagePath) ?: throw ImageNotFoundException(imageId)
     }
 
-    fun getAttributeCounts(categoryId: Long, attrKey: String): List<ProductAttributeValueCount> {
-        return productRepository.getAttributeCounts(categoryId, attrKey)
-    }
-
     fun getBrandCounts(categoryId: Long): List<ProductBrandCount> {
         return productRepository.getBrandCounts(categoryId)
+    }
+
+    fun findAttributeCounts(categoryId: Long, attribute: String): List<ValueCount> {
+        return productRepository.findAttributeCounts(categoryId, attribute)
     }
 
 }

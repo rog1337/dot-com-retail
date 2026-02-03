@@ -1,8 +1,8 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.common.constants.ApiRoutes
+import com.dotcom.retail.common.util.pagination.PagedResponse
 import org.springframework.core.io.Resource
-import org.springframework.data.domain.Page
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
@@ -19,7 +19,7 @@ class ProductController(
     @GetMapping
     fun getProducts(
         params: ProductQueryParams,
-    ): ResponseEntity<Page<ProductDto>> {
+    ): ResponseEntity<PagedResponse<ProductDto>> {
         val products = productService.query(params)
         return ResponseEntity.ok(products)
     }

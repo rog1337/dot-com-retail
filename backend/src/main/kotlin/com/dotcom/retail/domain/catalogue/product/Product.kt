@@ -52,21 +52,16 @@ class Product(
     var category: Category? = null,
 
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
-//    @JoinTable(
-//        name = "product_images",
-//        joinColumns = [JoinColumn(name = "product_id")],
-//        inverseJoinColumns = [JoinColumn(name = "image_id")]
-//    )
     var images: MutableList<Image> = mutableListOf(),
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    var attributes: Map<String, List<Any>>? = null,
+    var attributes: MutableMap<String, MutableList<Any>>? = mutableMapOf(),
 
     var isActive: Boolean = false
 
 ) : BaseEntity() {
     override fun toString(): String {
-        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, brand=$brand, category=$category, images=$images, attributes=$attributes, isActive=$isActive, ${super.toString()})"
+        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive, ${super.toString()})"
     }
 }
