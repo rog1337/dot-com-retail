@@ -14,9 +14,11 @@ object PageMapper {
         return PageDto(
             page = page.number,
             size = page.size,
+            elements = page.numberOfElements,
             totalElements = page.totalElements,
             totalPages = page.totalPages,
-            isLast = page.isLast
+            isLast = page.isLast,
+            isFirst = page.isFirst,
         )
     }
 }
