@@ -13,7 +13,7 @@ class FilterController(private val filterService: FilterService) {
 
     @GetMapping
     fun getFilters(
-        @RequestParam(value = "category") categoryId: Long,
+        @RequestParam(value = "categoryId") categoryId: Long,
     ): ResponseEntity<Filter> {
         val filters = filterService.getPublicFilters(categoryId)
         return ResponseEntity.ok(filters)
