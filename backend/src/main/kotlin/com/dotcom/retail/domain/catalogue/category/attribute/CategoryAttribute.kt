@@ -17,7 +17,8 @@ class CategoryAttribute(
 
     val attribute: String,
     val label: String,
-    val type: FilterType,
+    val dataType: AttributeDataType,
+    val filterType: FilterType,
     val displayOrder: Int,
     val isPublic: Boolean,
 
@@ -28,10 +29,14 @@ class CategoryAttribute(
     ) : BaseEntity() {
 
     override fun toString(): String {
-        return "CategoryAttribute(id=$id, attribute='$attribute', label='$label', type=$type, displayOrder=$displayOrder), ${super.toString()}"
+        return "CategoryAttribute(id=$id, attribute='$attribute', label='$label', type=$filterType, displayOrder=$displayOrder), ${super.toString()}"
     }
 }
 
 enum class FilterType {
-    CHECKBOX, DROPDOWN, SLIDER, RANGE
+    CHECKBOX, DROPDOWN, SLIDER
+}
+
+enum class AttributeDataType {
+    TEXT, NUMBER, BOOLEAN
 }

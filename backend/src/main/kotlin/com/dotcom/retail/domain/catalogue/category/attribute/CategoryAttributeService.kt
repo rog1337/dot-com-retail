@@ -9,4 +9,8 @@ class CategoryAttributeService(
     fun save(it: CategoryAttribute): CategoryAttribute {
         return categoryAttributeRepository.save(it)
     }
+
+    fun findAll(): List<CategoryAttribute> {
+        return categoryAttributeRepository.findAll()
+    }
 }
