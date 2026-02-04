@@ -7,8 +7,10 @@ import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.toDto
 import jakarta.servlet.http.HttpServletRequest
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -21,7 +23,7 @@ class AuthController(
 ) {
 
     @PostMapping(Auth.REGISTER)
-    fun register(@RequestBody registerRequest: RegisterRequest): ResponseEntity<Any> {
+    fun register(@Valid @RequestBody registerRequest: RegisterRequest): ResponseEntity<Any> {
         val user = authService.register(registerRequest)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
 
@@ -42,7 +44,7 @@ class AuthController(
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
-    @PostMapping(Auth.REFRESH)
+    @GetMapping(Auth.REFRESH)
     fun refresh(req: HttpServletRequest): ResponseEntity<AuthResponse> {
         val user = authService.refresh(req)
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())

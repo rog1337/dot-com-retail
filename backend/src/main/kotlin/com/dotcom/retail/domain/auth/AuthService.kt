@@ -4,7 +4,6 @@ import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
 import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
 import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
-import com.dotcom.retail.common.constants.SecurityConstants.TURNSTILE_VERIFY_URL
 import com.dotcom.retail.common.exception.CaptchaVerificationException
 import com.dotcom.retail.common.exception.EmailNotFoundException
 import com.dotcom.retail.common.exception.IncorrectPasswordException
@@ -27,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
+import org.springframework.web.client.toEntity
 import java.util.UUID
 
 
@@ -58,22 +58,19 @@ class AuthService(
         formData.add("secret", turnstileProperties.secretKey)
         formData.add("response", token)
 
-        val request = restClientBuilder.baseUrl(TURNSTILE_VERIFY_URL).build()
+        val request = restClientBuilder.baseUrl(turnstileProperties.verifyUrl).build()
 
         try {
             val response = request.post()
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(formData)
                 .retrieve()
-                .toEntity(TurnstileResponse::class.java)
+                .toEntity<TurnstileResponse>()
             val body = response.body
             return body != null && body.success
         } catch (e: Exception) {
             return false
         }
-
-//        val body = response.body
-//        return body != null && body.success
     }
 
      fun registerOAuthUser(details: RegisterOAuthUser): User {
@@ -130,18 +127,4 @@ class AuthService(
         user.refreshToken = jwtService.generateRefreshToken(user)
         return userService.save(user)
     }
-
-    fun setNewAccessToken(user: User): User {
-        user.accessToken = jwtService.generateAccessToken(user)
-        return userService.save(user)
-    }
-
-    fun setNewRefreshToken(user: User): User {
-        user.refreshToken = jwtService.generateRefreshToken(user)
-        return userService.save(user)
-    }
-
-
-    fun blacklistOldAccessToken(token: String) {}
-
 }

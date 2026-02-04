@@ -11,5 +11,4 @@ object SecurityConstants {
     const val COOKIE_SAME_SITE_LAX = "Lax"
     const val COOKIE_PATH = "/"
     const val COOKIE_HEADER_NAME = "Set-Cookie"
-    var TURNSTILE_VERIFY_URL: String = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
 }
