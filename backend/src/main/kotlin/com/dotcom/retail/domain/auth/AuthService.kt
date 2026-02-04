@@ -28,6 +28,7 @@ import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
 import java.util.UUID
+import java.util.concurrent.TimeUnit
 
 
 @Service
@@ -40,6 +41,10 @@ class AuthService(
     private val restClientBuilder: RestClient.Builder
 ) {
 
+    private val turnstileClient: RestClient by lazy {
+        restClientBuilder.baseUrl(turnstileProperties.verifyUrl).build()
+    }
+
      fun register(request: RegisterRequest): User {
         if (!verifyCaptcha(request.captchaToken)) throw CaptchaVerificationException()
 
@@ -48,29 +53,28 @@ class AuthService(
             request.displayName,
             request.password
         ))
-        setNewJwts(user)
+        issueNewTokens(user)
 
         return user
     }
 
      fun verifyCaptcha(token: String): Boolean {
-        val formData = LinkedMultiValueMap<String, String>()
-        formData.add("secret", turnstileProperties.secretKey)
-        formData.add("response", token)
+         val formData = LinkedMultiValueMap<String, String>().apply {
+             add("secret", turnstileProperties.secretKey)
+             add("response", token)
+         }
 
-        val request = restClientBuilder.baseUrl(turnstileProperties.verifyUrl).build()
+         return try {
+             val response = turnstileClient.post()
+                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                 .body(formData)
+                 .retrieve()
+                 .toEntity<TurnstileResponse>()
 
-        try {
-            val response = request.post()
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(formData)
-                .retrieve()
-                .toEntity<TurnstileResponse>()
-            val body = response.body
-            return body != null && body.success
-        } catch (e: Exception) {
-            return false
-        }
+             response.body?.success == true
+         } catch (_: Exception) {
+             false
+         }
     }
 
      fun registerOAuthUser(details: RegisterOAuthUser): User {
@@ -79,7 +83,7 @@ class AuthService(
             displayName = details.displayName,
         )
 
-        return setNewJwts(user)
+        return issueNewTokens(user)
     }
 
      fun login(request: LoginRequest): User {
@@ -92,7 +96,7 @@ class AuthService(
             throw IncorrectPasswordException()
         }
 
-        setNewJwts(user)
+        issueNewTokens(user)
         return user
     }
 
@@ -101,28 +105,29 @@ class AuthService(
         if (rToken.isNullOrBlank()) throw JwtException("")
 
         val claims = jwtService.extractClaims(rToken)
-        if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.REFRESH_TOKEN_TYPE))
+        if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(REFRESH_TOKEN_TYPE))
             throw JwtException("")
 
         val userId = claims.subject
         val user = userService.getById(UUID.fromString(userId))
 
-        setNewJwts(user)
+        issueNewTokens(user)
 
         return user
     }
 
      fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {
-        return ResponseCookie.from(REFRESH_TOKEN_TYPE, refreshToken)
+         val maxAgeSeconds = TimeUnit.MILLISECONDS.toSeconds(jwtProperties.refresh.exp)
+         return ResponseCookie.from(REFRESH_TOKEN_TYPE, refreshToken)
             .httpOnly(true)
             .secure(true)
-            .maxAge(jwtProperties.refresh.exp / 1000.toLong())
+            .maxAge(maxAgeSeconds)
             .sameSite(COOKIE_SAME_SITE_STRICT)
             .path(COOKIE_PATH)
             .build()
     }
 
-     fun setNewJwts(user: User): User {
+     fun issueNewTokens(user: User): User {
         user.accessToken = jwtService.generateAccessToken(user)
         user.refreshToken = jwtService.generateRefreshToken(user)
         return userService.save(user)
