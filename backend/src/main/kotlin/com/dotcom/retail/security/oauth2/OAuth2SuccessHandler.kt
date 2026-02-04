@@ -1,10 +1,10 @@
 package com.dotcom.retail.security.oauth2
 
-import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.exception.OAuthEmailNotVerifiedException
 import com.dotcom.retail.common.exception.OAuthException
 import com.dotcom.retail.common.exception.UnknownOAuthProviderException
+import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.user.UserService
 import jakarta.servlet.http.HttpServletRequest
