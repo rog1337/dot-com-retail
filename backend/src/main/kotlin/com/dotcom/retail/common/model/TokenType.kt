@@ -1,6 +1,6 @@
 package com.dotcom.retail.common.model
 
-enum class TokenType(val value: String) {
-    ACCESS("access"),
-    REFRESH("refresh")
+object TokenType {
+    const val ACCESS = "access"
+    const val REFRESH = "refresh"
 }

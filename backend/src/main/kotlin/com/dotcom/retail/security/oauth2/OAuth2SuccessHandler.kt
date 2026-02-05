@@ -4,6 +4,7 @@ import com.dotcom.retail.common.exception.OAuthException
 import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.user.UserService
+import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
@@ -18,6 +19,7 @@ class OAuth2SuccessHandler(
     private val oauth2Service: OAuth2Service,
     private val userService: UserService,
     private val authService: AuthService,
+    private val jwtService: JwtService,
 ) : AuthenticationSuccessHandler {
     val logger = LoggerFactory.getLogger(javaClass)
 
@@ -48,7 +50,7 @@ class OAuth2SuccessHandler(
                 )
             }
 
-            val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
+            val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id))
             response.addHeader(AuthService.COOKIE_HEADER_NAME, cookie.toString())
             response.sendRedirect(oauth2Service.FRONTEND_URL)
 

@@ -1,5 +1,6 @@
 package com.dotcom.retail.common.exception
 
+import com.dotcom.retail.common.model.TokenType
 import org.springframework.http.HttpStatus
 
 open class AuthException(
@@ -14,6 +15,7 @@ open class AuthException(
         fun nonLocalAccount() = AuthException("Register or log in with an authentication provider to access this account")
 
         fun captchaFailed() = AuthException("Captcha verification failed")
+        fun jwtMissing() = AuthException("Missing JWT")
     }
 }
 
@@ -28,7 +30,12 @@ open class OAuthException(
     }
 }
 
-
-
-
-
+open class JwtException(
+    message: String = "Invalid JWT token"
+) : AuthException(message) {
+    companion object {
+        fun expired(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} expired")
+        fun revoked(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} revoked")
+        fun missing(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} missing")
+    }
+}

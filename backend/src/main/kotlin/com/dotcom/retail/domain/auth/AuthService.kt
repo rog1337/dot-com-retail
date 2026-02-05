@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.auth
 
 import com.dotcom.retail.common.exception.AuthException
+import com.dotcom.retail.common.exception.JwtException
 import com.dotcom.retail.common.exception.NotFoundException
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
@@ -13,8 +14,8 @@ import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.security.jwt.JwtService
-import io.jsonwebtoken.JwtException
 import jakarta.servlet.http.HttpServletRequest
+import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -46,15 +47,16 @@ class AuthService(
         restClientBuilder.baseUrl(turnstileProperties.verifyUrl).build()
     }
 
-     fun register(request: RegisterRequest): User {
+    fun register(request: RegisterRequest): User {
         if (!verifyCaptcha(request.captchaToken)) throw AuthException.captchaFailed()
 
-        val user = userService.create(CreateUserParams(
-            request.email,
-            request.displayName,
-            request.password
-        ))
-        issueNewTokens(user)
+        val user = userService.create(
+            CreateUserParams(
+                request.email,
+                request.displayName,
+                request.password
+            )
+        )
 
         return user
     }
@@ -78,13 +80,13 @@ class AuthService(
          }
     }
 
-     fun registerOAuthUser(details: RegisterOAuthUser): User {
+    fun registerOAuthUser(details: RegisterOAuthUser): User {
         val user = User(
             email = details.email,
             displayName = details.displayName,
         )
 
-        return issueNewTokens(user)
+        return userService.save(user)
     }
 
      fun login(request: LoginRequest): User {
@@ -97,40 +99,37 @@ class AuthService(
             throw AuthException.incorrectPassword()
         }
 
-        issueNewTokens(user)
         return user
     }
 
-     fun refresh(req: HttpServletRequest): User {
-        val refreshToken = jwtService.extractJwtFromCookie(req)
-        if (refreshToken.isNullOrBlank()) throw JwtException("")
+    fun refresh(request: HttpServletRequest): UUID {
+        val refreshToken = jwtService.extractJwtFromCookie(request) ?: throw JwtException.missing(TokenType.REFRESH)
+        val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION) ?: throw JwtException.missing(TokenType.ACCESS)
 
-        val claims = jwtService.extractAndValidateClaims(refreshToken)
-        if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.REFRESH.value))
-            throw JwtException("")
+        val refreshClaims = jwtService.validateTokenAndExtractClaims(refreshToken)
+        if (!refreshClaims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.REFRESH)) throw JwtException()
 
-        val userId = claims.subject
-        val user = userService.getById(UUID.fromString(userId))
+        if (jwtService.isBlacklisted(refreshClaims.id)) throw JwtException.revoked(TokenType.REFRESH)
 
-        issueNewTokens(user)
+        val accessToken = jwtService.extractBearerToken(authHeader)
+        val accessClaims = jwtService.validateTokenAndExtractClaims(accessToken)
+        if (!accessClaims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS)) throw JwtException()
 
-        return user
+        jwtService.blacklistToken(refreshClaims.id, refreshClaims.expiration)
+        jwtService.blacklistToken(accessClaims.id, accessClaims.expiration)
+
+        val userId = refreshClaims.subject
+        return UUID.fromString(userId)
     }
 
      fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {
          val maxAgeSeconds = TimeUnit.MILLISECONDS.toSeconds(jwtProperties.refresh.exp)
-         return ResponseCookie.from(TokenType.REFRESH.value, refreshToken)
+         return ResponseCookie.from(TokenType.REFRESH, refreshToken)
             .httpOnly(true)
             .secure(true)
             .maxAge(maxAgeSeconds)
             .sameSite(COOKIE_SAME_SITE_STRICT)
             .path(COOKIE_PATH)
             .build()
-    }
-
-     fun issueNewTokens(user: User): User {
-        user.accessToken = jwtService.generateAccessToken(user)
-        user.refreshToken = jwtService.generateRefreshToken(user)
-        return userService.save(user)
     }
 }

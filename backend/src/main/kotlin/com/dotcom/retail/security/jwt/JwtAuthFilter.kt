@@ -46,12 +46,12 @@ class JwtAuthFilter(
                 return
             }
 
-            val token = authHeader.substring(JwtService.BEARER_PREFIX_LENGTH).trim()
+            val token = jwtService.extractBearerToken(authHeader)
             if (token.isBlank()) throw Exception()
 
-            val claims = jwtService.extractAndValidateClaims(token)
+            val claims = jwtService.validateTokenAndExtractClaims(token)
 
-            if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS.value))
+            if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS))
                 throw Exception()
 
             val id = claims.subject

@@ -14,21 +14,18 @@ import java.util.UUID
 @Entity
 class User(
 
-    @Id @GeneratedValue(strategy = GenerationType.UUID)
-    val id: UUID? = null,
+    @Id
+    val id: UUID = UUID.randomUUID(),
 
     var email: String,
     private var passwordHash: String? = null,
 
     var displayName: String,
 
-    var accessToken: String? = null,
-    var refreshToken: String? = null,
-
     ) : BaseEntity(), UserDetails {
 
     override fun toString(): String {
-        return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', accessToken=$accessToken, refreshToken=$refreshToken, ${super.toString()})"
+        return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', ${super.toString()})"
     }
     override fun getAuthorities(): Collection<GrantedAuthority?> = emptyList()
     override fun getUsername(): String = email

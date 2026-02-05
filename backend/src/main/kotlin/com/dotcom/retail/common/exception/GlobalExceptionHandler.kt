@@ -22,7 +22,7 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception::class)
     fun handleGlobalException(e: Exception): ProblemDetail {
-        logger.error("Exception: $e")
+        logger.error("Exception: ${e.printStackTrace()}")
         return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred.")
     }
 
