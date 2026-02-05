@@ -35,6 +35,7 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.security:spring-security-oauth2-client:6.5.6")
     implementation("org.springframework.security:spring-security-oauth2-jose:6.5.6")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

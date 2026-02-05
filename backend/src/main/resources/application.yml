@@ -18,6 +18,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/shopping
     username: postgres
     password: postgres
+  data:
+    redis:
+      host: localhost
+      port: 6379
   jpa:
     hibernate:
       ddl-auto: update
