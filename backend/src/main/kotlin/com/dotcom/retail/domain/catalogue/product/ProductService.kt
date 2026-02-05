@@ -1,9 +1,7 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.exception.DuplicateImageSortOrderException
-import com.dotcom.retail.common.exception.ImageMetadataNotFoundException
-import com.dotcom.retail.common.exception.ImageNotFoundException
-import com.dotcom.retail.common.exception.ProductNotFoundException
+import com.dotcom.retail.common.exception.BadRequestException
+import com.dotcom.retail.common.exception.NotFoundException
 import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.config.properties.FileProperties
@@ -47,7 +45,7 @@ class ProductService(
     }
 
     fun get(id: Long): Product {
-        return productRepository.findByIdOrNull(id) ?: throw ProductNotFoundException(id)
+        return productRepository.findByIdOrNull(id) ?: throw NotFoundException(Product::class.simpleName, id)
     }
 
     fun findBySlug(slug: String): Product? {
@@ -55,7 +53,7 @@ class ProductService(
     }
 
     fun getBySlug(slug: String): Product {
-        return productRepository.findBySlug(slug) ?: throw ProductNotFoundException(slug)
+        return productRepository.findBySlug(slug) ?: throw NotFoundException(Product::class.simpleName, slug)
     }
 
     fun findAll(specification: Specification<Product>, pageable: Pageable): Page<Product> {
@@ -94,7 +92,7 @@ class ProductService(
                 val imageMetaMap = dto.images.associateBy { it.fileName }
                 imageFiles.forEach { file ->
                     val meta = imageMetaMap[file.originalFilename]
-                        ?: throw ImageMetadataNotFoundException(file.originalFilename)
+                        ?: throw NotFoundException(ImageMetadata::class.simpleName, file.originalFilename)
 
                     val image = imageService.create(file, meta, productImagePath)
                     processedImages.add(image)
@@ -167,7 +165,7 @@ class ProductService(
             .keys
 
         if (duplicateSortOrder.isNotEmpty()) {
-            throw DuplicateImageSortOrderException()
+            throw BadRequestException("Duplicate image sort order")
         }
 
         val currentImages = product.images
@@ -178,7 +176,7 @@ class ProductService(
             imageMetadata.forEach { meta ->
                 if (meta.id != null) {
                     val existingImage = currentImages.find { it.id == meta.id }
-                        ?: throw ImageNotFoundException(meta.id)
+                        ?: throw NotFoundException(Image::class.simpleName, meta.id)
 
                     existingImage.apply {
                         sortOrder = meta.sortOrder
@@ -188,7 +186,7 @@ class ProductService(
                     newExistingImages.add(existingImage)
                 } else {
                     val file = imageFiles.find { it.originalFilename == meta.fileName }
-                        ?: throw ImageMetadataNotFoundException(meta.fileName)
+                        ?: throw NotFoundException(ImageMetadata::class.simpleName, meta.fileName)
 
                     val image = imageService.create(file, meta, productImagePath)
                     newImages.add(image)
@@ -222,7 +220,7 @@ class ProductService(
 
     fun getImage(productId: Long, imageId: Long): Resource {
         val imagePath = imageService.getActiveProductImagePath(productId, imageId)
-        return imageService.findFile(imagePath) ?: throw ImageNotFoundException(imageId)
+        return imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, imageId)
     }
 
     fun getBrandCounts(categoryId: Long): List<ProductBrandCount> {

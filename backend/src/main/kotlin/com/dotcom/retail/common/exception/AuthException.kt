@@ -6,22 +6,27 @@ open class AuthException(
     message: String = "Authentication failed",
     status: HttpStatus = HttpStatus.UNAUTHORIZED,
     cause: Throwable? = null
-) : AppException(message, status, cause)
+) : AppException(message, status, cause) {
 
-class IncorrectPasswordException : AuthException("Incorrect password")
-class NonLocalAccountException : AuthException("Register or log in with an authentication provider to access this account")
-class InvalidLoginException : AuthException("Invalid email or password")
+    companion object {
+        fun invalidLogin() = AuthException("Invalid email or password")
+        fun incorrectPassword() = AuthException("Incorrect password")
+        fun nonLocalAccount() = AuthException("Register or log in with an authentication provider to access this account")
+
+        fun captchaFailed() = AuthException("Captcha verification failed")
+    }
+}
 
 open class OAuthException(
     provider: String = "OAuth2",
     details: String = "Unexpected error occurred"
-) : AuthException("Login with $provider failed: $details")
+) : AuthException("Login with $provider failed: $details") {
 
-class UnknownOAuthProviderException : OAuthException(details = "Unknown provider")
-class OAuthEmailNotVerifiedException(provider: String) : OAuthException(provider, "Email is not verified")
-
-class CaptchaVerificationException() : AuthException("Captcha verification failed")
-
+    companion object {
+        fun unknownProvider() = OAuthException(details = "Unknown provider")
+        fun emailNotVerified(provider: String) = OAuthException(provider, "Email is not verified")
+    }
+}
 
 
 

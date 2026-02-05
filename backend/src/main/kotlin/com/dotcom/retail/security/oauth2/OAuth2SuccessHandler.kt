@@ -1,8 +1,6 @@
 package com.dotcom.retail.security.oauth2
 
-import com.dotcom.retail.common.exception.OAuthEmailNotVerifiedException
 import com.dotcom.retail.common.exception.OAuthException
-import com.dotcom.retail.common.exception.UnknownOAuthProviderException
 import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.user.UserService
@@ -29,7 +27,7 @@ class OAuth2SuccessHandler(
         authentication: Authentication
     ) {
         try {
-            val auth = authentication.principal as? OidcUser ?: throw UnknownOAuthProviderException()
+            val auth = authentication.principal as? OidcUser ?: throw OAuthException.unknownProvider()
 
             val email = auth.email
             var user = userService.findByEmail(email)
@@ -38,7 +36,7 @@ class OAuth2SuccessHandler(
                 if (!auth.emailVerified) {
                     authentication as? OAuth2AuthenticationToken ?: throw OAuthException()
                     val provider = authentication.authorizedClientRegistrationId
-                    throw OAuthEmailNotVerifiedException(provider)
+                    throw OAuthException.emailNotVerified(provider)
                 }
 
                 user = authService.registerOAuthUser(
@@ -55,8 +53,6 @@ class OAuth2SuccessHandler(
             response.sendRedirect(oauth2Service.FRONTEND_URL)
 
         } catch (e: OAuthException) {
-            oauth2Service.errorRedirect(response, e.message)
-        } catch (e: OAuthEmailNotVerifiedException) {
             oauth2Service.errorRedirect(response, e.message)
         } catch (e: Exception) {
             oauth2Service.errorRedirect(response, "Unexpected error occurred")

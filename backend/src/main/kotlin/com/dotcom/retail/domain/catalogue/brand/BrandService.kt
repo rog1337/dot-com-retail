@@ -1,7 +1,7 @@
 package com.dotcom.retail.domain.catalogue.brand
 
-import com.dotcom.retail.common.exception.BrandNotFoundException
-import com.dotcom.retail.common.exception.ImageNotFoundException
+import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
 import com.dotcom.retail.domain.catalogue.image.ImageService
 import org.springframework.context.ApplicationEventPublisher
@@ -22,7 +22,7 @@ class BrandService(
     }
 
     fun get(id: Long): Brand {
-        return brandRepository.findById(id).orElseThrow { BrandNotFoundException(id) }
+        return brandRepository.findById(id).orElseThrow { NotFoundException(Brand::class.simpleName, id) }
     }
 
     fun save(brand: Brand): Brand {
@@ -77,7 +77,7 @@ class BrandService(
 
     fun getImage(id: Long): Resource {
         val imagePath = imageService.getActiveBrandImagePath(id)
-        val imageFile = imageService.findFile(imagePath) ?: throw ImageNotFoundException()
+        val imageFile = imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, id)
         return imageFile
     }
 }

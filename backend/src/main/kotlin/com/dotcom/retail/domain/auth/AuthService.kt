@@ -1,9 +1,7 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.exception.CaptchaVerificationException
-import com.dotcom.retail.common.exception.EmailNotFoundException
-import com.dotcom.retail.common.exception.IncorrectPasswordException
-import com.dotcom.retail.common.exception.NonLocalAccountException
+import com.dotcom.retail.common.exception.AuthException
+import com.dotcom.retail.common.exception.NotFoundException
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
@@ -49,7 +47,7 @@ class AuthService(
     }
 
      fun register(request: RegisterRequest): User {
-        if (!verifyCaptcha(request.captchaToken)) throw CaptchaVerificationException()
+        if (!verifyCaptcha(request.captchaToken)) throw AuthException.captchaFailed()
 
         val user = userService.create(CreateUserParams(
             request.email,
@@ -90,13 +88,13 @@ class AuthService(
     }
 
      fun login(request: LoginRequest): User {
-        val user = userService.findByEmail(request.email) ?: throw EmailNotFoundException(request.email)
+        val user = userService.findByEmail(request.email) ?: throw NotFoundException(User::class.simpleName, request.email)
         val userPw = user.password
 
         if (!passwordEncoder.matches(request.password, userPw)) {
-            if (userPw.isNullOrEmpty()) throw NonLocalAccountException()
+            if (userPw.isNullOrEmpty()) throw AuthException.nonLocalAccount()
 
-            throw IncorrectPasswordException()
+            throw AuthException.incorrectPassword()
         }
 
         issueNewTokens(user)

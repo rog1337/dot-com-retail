@@ -2,7 +2,7 @@ package com.dotcom.retail.domain.catalogue.image
 
 import com.dotcom.retail.common.exception.FileIsNotAnImageException
 import com.dotcom.retail.common.exception.ImageIsEmptyException
-import com.dotcom.retail.common.exception.ImageNotFoundException
+import com.dotcom.retail.common.exception.NotFoundException
 import com.dotcom.retail.config.properties.FileProperties
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
@@ -46,7 +46,7 @@ class ImageService(
     }
 
     fun get(id: Long): Image {
-        return imageRepository.findById(id).orElseThrow { ImageNotFoundException(id) }
+        return imageRepository.findById(id).orElseThrow { NotFoundException(Image::class.simpleName, id) }
     }
 
 //    fun getByName(name: String): Image {
@@ -128,11 +128,11 @@ class ImageService(
     }
 
     fun getActiveProductImagePath(productId: Long, imageId: Long): String {
-        return imageRepository.findActiveProductImagePath(productId, imageId) ?: throw ImageNotFoundException(imageId)
+        return imageRepository.findActiveProductImagePath(productId, imageId) ?: throw NotFoundException(Image::class.simpleName, imageId)
     }
 
     fun getActiveBrandImagePath(brandId: Long): String {
-        return imageRepository.findActiveBrandImagePath(brandId) ?: throw ImageNotFoundException()
+        return imageRepository.findActiveBrandImagePath(brandId) ?: throw NotFoundException(Image::class.simpleName)
     }
 
     fun edit(data: EditImage): Image {

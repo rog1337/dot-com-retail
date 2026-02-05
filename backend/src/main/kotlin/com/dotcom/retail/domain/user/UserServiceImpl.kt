@@ -1,8 +1,7 @@
 package com.dotcom.retail.domain.user
 
-import com.dotcom.retail.common.exception.EmailAlreadyRegisteredException
-import com.dotcom.retail.common.exception.EmailNotFoundException
-import com.dotcom.retail.common.exception.UserNotFoundException
+import com.dotcom.retail.common.exception.AlreadyExistsException
+import com.dotcom.retail.common.exception.NotFoundException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -19,7 +18,7 @@ class UserServiceImpl(
     }
 
     override fun getById(id: UUID): User {
-        return userRepository.findByIdOrNull(id) ?: throw UserNotFoundException(id.toString())
+        return userRepository.findByIdOrNull(id) ?: throw NotFoundException(User::class.simpleName, id)
     }
 
     override fun findById(id: UUID): User? {
@@ -27,7 +26,7 @@ class UserServiceImpl(
     }
 
     override fun getByEmail(email: String): User {
-        return userRepository.findByEmail(email) ?: throw EmailNotFoundException(email)
+        return userRepository.findByEmail(email) ?: throw NotFoundException(User::class.simpleName, email)
     }
 
     override fun findByEmail(email: String): User? {
@@ -36,7 +35,7 @@ class UserServiceImpl(
 
     override fun create(params: CreateUserParams): User {
         val email = params.email
-        if (userRepository.existsByEmail(email)) throw EmailAlreadyRegisteredException(email)
+        if (userRepository.existsByEmail(email)) throw AlreadyExistsException(User::class.simpleName, email)
 
         val hashedPasswordOrNull =
             if (params.password != null )

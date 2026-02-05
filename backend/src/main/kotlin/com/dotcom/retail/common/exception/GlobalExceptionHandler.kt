@@ -36,34 +36,24 @@ class GlobalExceptionHandler {
         return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Expired JWT")
     }
 
-    @ExceptionHandler(ResourceNotFoundException::class)
-    fun handleResourceNotFoundException(e: ResourceNotFoundException): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(e.status, e.message)
-    }
-
     @ExceptionHandler(AppException::class)
     fun handleAppException(e: AppException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(e.status, e.message)
     }
 
-    @ExceptionHandler(AuthException::class)
-    fun handleAuthException(e: AuthException): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, e.message)
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException::class)
-    fun methodArgumentNotValidException(e: MethodArgumentNotValidException): ProblemDetail {
+    fun handleValidationError(e: MethodArgumentNotValidException): ProblemDetail {
         val message = e.bindingResult.fieldErrors[0].defaultMessage
         return ProblemDetail.forStatusAndDetail(e.statusCode, message)
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
-    fun handleHttpMessageNotReadableException(e: HttpMessageNotReadableException): ProblemDetail {
+    fun handleJsonError(e: HttpMessageNotReadableException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body")
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
-    fun handleHttpRequestMethodNotSupportedException(e: HttpRequestMethodNotSupportedException): ProblemDetail {
+    fun handleMethodNotSupported(e: HttpRequestMethodNotSupportedException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(e.statusCode, e.message)
     }
 

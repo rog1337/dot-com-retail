@@ -8,18 +8,20 @@ abstract class AppException(
     cause: Throwable? = null
 ) : RuntimeException(message, cause)
 
-open class ResourceNotFoundException(
-    resourceName: String,
+open class NotFoundException(
+    resourceName: String?,
     identifier: Any? = null
 ) : AppException(
-    if (identifier != null) "$resourceName not found: $identifier" else "$resourceName not found",
+    message = "$resourceName not found${identifier?.let { ": $it" } ?: ""}",
     status = HttpStatus.NOT_FOUND
 )
 
 open class AlreadyExistsException(
-    resourceName: String = "Resource",
+    resourceName: String?,
     identifier: Any? = null
 ) : AppException(
-    if (identifier != null) "$resourceName already exists: $identifier" else "$resourceName already exists",
+    message = "$resourceName already exists${identifier?.let { ": $it" } ?: ""}",
     status = HttpStatus.CONFLICT
 )
+
+open class BadRequestException(message: String = "Bad request") : AppException(message, HttpStatus.BAD_REQUEST)
