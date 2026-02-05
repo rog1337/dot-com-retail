@@ -1,6 +1,5 @@
 package com.dotcom.retail.security.oauth2
 
-import com.dotcom.retail.common.constants.SecurityConstants
 import com.dotcom.retail.common.exception.OAuthEmailNotVerifiedException
 import com.dotcom.retail.common.exception.OAuthException
 import com.dotcom.retail.common.exception.UnknownOAuthProviderException
@@ -52,7 +51,7 @@ class OAuth2SuccessHandler(
             }
 
             val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
-            response.addHeader(SecurityConstants.COOKIE_HEADER_NAME, cookie.toString())
+            response.addHeader(AuthService.COOKIE_HEADER_NAME, cookie.toString())
             response.sendRedirect(oauth2Service.FRONTEND_URL)
 
         } catch (e: OAuthException) {

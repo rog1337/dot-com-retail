@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.constants.SortOrder
+import com.dotcom.retail.common.model.SortOrder
 import com.dotcom.retail.domain.catalogue.brand.BrandDto
 import com.dotcom.retail.domain.catalogue.category.CategoryDto
 import com.dotcom.retail.domain.catalogue.image.ImageDto

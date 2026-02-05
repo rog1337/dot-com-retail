@@ -1,7 +1,6 @@
 package com.dotcom.retail.domain.auth
 
 import com.dotcom.retail.common.constants.ApiRoutes.Auth
-import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_HEADER_NAME
 import com.dotcom.retail.domain.auth.dto.AuthResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
@@ -29,7 +28,7 @@ class AuthController(
 
         return ResponseEntity
             .status(HttpStatus.CREATED)
-            .header(COOKIE_HEADER_NAME, cookie.toString())
+            .header(AuthService.COOKIE_HEADER_NAME, cookie.toString())
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
@@ -40,7 +39,7 @@ class AuthController(
 
         return ResponseEntity
             .ok()
-            .header(COOKIE_HEADER_NAME, cookie.toString())
+            .header(AuthService.COOKIE_HEADER_NAME, cookie.toString())
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 
@@ -50,7 +49,7 @@ class AuthController(
         val cookie = authService.createRefreshTokenCookie(user.refreshToken.toString())
         return ResponseEntity
             .ok()
-            .header(COOKIE_HEADER_NAME, cookie.toString())
+            .header(AuthService.COOKIE_HEADER_NAME, cookie.toString())
             .body(AuthResponse(user.accessToken.toString(), user.toDto()))
     }
 

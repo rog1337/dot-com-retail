@@ -1,6 +1,5 @@
 package com.dotcom.retail.domain.catalogue.image
 
-import com.dotcom.retail.common.constants.FileConstants.CONTENT_TYPE_IMAGE_PREFIX
 import com.dotcom.retail.common.exception.FileIsNotAnImageException
 import com.dotcom.retail.common.exception.ImageIsEmptyException
 import com.dotcom.retail.common.exception.ImageNotFoundException
@@ -23,8 +22,11 @@ class ImageService(
     private val imageRepository: ImageRepository,
     private val fileProperties: FileProperties,
 ) {
+    companion object {
+        const val CONTENT_TYPE_IMAGE_PREFIX = "image/"
+    }
+
     private val logger = LoggerFactory.getLogger(ImageService::class.java)
-    private val imagePath = Paths.get(fileProperties.image.dir)
     private val productFilePath = Paths.get(fileProperties.image.product.dir)
     private val brandFilePath = Paths.get(fileProperties.image.brand.dir)
 

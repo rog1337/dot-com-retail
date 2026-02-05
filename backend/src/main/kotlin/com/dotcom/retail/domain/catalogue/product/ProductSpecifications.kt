@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.constants.SortOrder
+import com.dotcom.retail.common.model.SortOrder
 import com.dotcom.retail.domain.catalogue.category.attribute.AttributeMetadataService
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.criteria.Predicate

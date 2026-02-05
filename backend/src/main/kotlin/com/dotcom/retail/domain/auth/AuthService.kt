@@ -1,13 +1,10 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.constants.SecurityConstants
-import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_PATH
-import com.dotcom.retail.common.constants.SecurityConstants.COOKIE_SAME_SITE_STRICT
-import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
 import com.dotcom.retail.common.exception.CaptchaVerificationException
 import com.dotcom.retail.common.exception.EmailNotFoundException
 import com.dotcom.retail.common.exception.IncorrectPasswordException
 import com.dotcom.retail.common.exception.NonLocalAccountException
+import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
 import com.dotcom.retail.domain.auth.dto.LoginRequest
@@ -40,6 +37,12 @@ class AuthService(
     private val turnstileProperties: TurnstileProperties,
     private val restClientBuilder: RestClient.Builder
 ) {
+
+    companion object {
+        const val COOKIE_SAME_SITE_STRICT = "Strict"
+        const val COOKIE_PATH = "/"
+        const val COOKIE_HEADER_NAME = "Set-Cookie"
+    }
 
     private val turnstileClient: RestClient by lazy {
         restClientBuilder.baseUrl(turnstileProperties.verifyUrl).build()
@@ -101,11 +104,11 @@ class AuthService(
     }
 
      fun refresh(req: HttpServletRequest): User {
-        val rToken = jwtService.extractJwtFromCookie(req)
-        if (rToken.isNullOrBlank()) throw JwtException("")
+        val refreshToken = jwtService.extractJwtFromCookie(req)
+        if (refreshToken.isNullOrBlank()) throw JwtException("")
 
-        val claims = jwtService.extractClaims(rToken)
-        if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(REFRESH_TOKEN_TYPE))
+        val claims = jwtService.extractAndValidateClaims(refreshToken)
+        if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.REFRESH.value))
             throw JwtException("")
 
         val userId = claims.subject
@@ -118,7 +121,7 @@ class AuthService(
 
      fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {
          val maxAgeSeconds = TimeUnit.MILLISECONDS.toSeconds(jwtProperties.refresh.exp)
-         return ResponseCookie.from(REFRESH_TOKEN_TYPE, refreshToken)
+         return ResponseCookie.from(TokenType.REFRESH.value, refreshToken)
             .httpOnly(true)
             .secure(true)
             .maxAge(maxAgeSeconds)

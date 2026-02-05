@@ -1,11 +1,12 @@
 package com.dotcom.retail.security.jwt
 
-import com.dotcom.retail.common.constants.SecurityConstants
+import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.security.SecurityMatchers
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.http.HttpHeaders
 import org.springframework.lang.NonNull
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
@@ -39,18 +40,18 @@ class JwtAuthFilter(
             val generatedToken = jwtService.generateDevToken()
             println("generated token: \n$generatedToken")
 
-            val authHeader = request.getHeader(SecurityConstants.AUTHORIZATION_HEADER)
-            if (authHeader.isNullOrBlank() || !authHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
+            val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
+            if (authHeader.isNullOrBlank() || !authHeader.startsWith(JwtService.BEARER_PREFIX)) {
                 filterChain.doFilter(request, response)
                 return
             }
 
-            val token = authHeader.substring(SecurityConstants.BEARER_TOKEN_START_INDEX)
+            val token = authHeader.substring(JwtService.BEARER_PREFIX_LENGTH).trim()
             if (token.isBlank()) throw Exception()
 
-            val claims = jwtService.extractClaims(token)
+            val claims = jwtService.extractAndValidateClaims(token)
 
-            if (!claims.getValue(SecurityConstants.TOKEN_TYPE_CLAIM).equals(SecurityConstants.ACCESS_TOKEN_TYPE))
+            if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS.value))
                 throw Exception()
 
             val id = claims.subject

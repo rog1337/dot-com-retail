@@ -1,8 +1,7 @@
 package com.dotcom.retail.security.jwt
 
 import com.dotcom.retail.common.constants.ApiRoutes.Auth.REFRESH_FULL
-import com.dotcom.retail.common.constants.SecurityConstants
-import com.dotcom.retail.common.constants.SecurityConstants.REFRESH_TOKEN_TYPE
+import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.domain.user.User
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -11,7 +10,6 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -22,13 +20,20 @@ import javax.crypto.SecretKey
 @Service
 class JwtService(
     private val jwtProperties: JwtProperties,
-    private val KEY: SecretKey = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray(Charsets.UTF_8))
+    private val KEY: SecretKey = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray(Charsets.UTF_8)),
 ) {
+
+    companion object {
+        private const val BLACKLIST_PREFIX: String = "blacklist:"
+        const val TOKEN_TYPE_CLAIM = "type"
+        const val BEARER_PREFIX = "Bearer "
+        const val BEARER_PREFIX_LENGTH = BEARER_PREFIX.length
+    }
 
     fun generateAccessToken(user: User): String {
         return Jwts
             .builder()
-            .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
+            .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS.value)
             .subject(user.id.toString())
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
@@ -39,7 +44,7 @@ class JwtService(
     fun generateRefreshToken(user: User): String {
         return Jwts
             .builder()
-            .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.REFRESH_TOKEN_TYPE)
+            .claim(TOKEN_TYPE_CLAIM, TokenType.REFRESH.value)
             .subject(user.id.toString())
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.refresh.exp))
@@ -47,7 +52,7 @@ class JwtService(
             .compact()
     }
 
-    fun extractClaims(token: String): Claims {
+    fun extractAndValidateClaims(token: String): Claims {
         return Jwts.parser()
             .verifyWith(KEY)
             .build()
@@ -56,7 +61,7 @@ class JwtService(
     }
 
     fun extractJwtFromCookie(request: HttpServletRequest): String? {
-        return request.cookies?.firstOrNull { it.name == REFRESH_TOKEN_TYPE }?.value
+        return request.cookies?.firstOrNull { it.name == TokenType.REFRESH.value }?.value
     }
 
     fun sendResponse(response: HttpServletResponse, status: HttpStatus, message: String? = null, details: String? = null) {
@@ -80,7 +85,7 @@ class JwtService(
     fun generateDevToken(): String {
         return Jwts
             .builder()
-            .claim(SecurityConstants.TOKEN_TYPE_CLAIM, SecurityConstants.ACCESS_TOKEN_TYPE)
+            .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS.value)
             .subject("55e62730-36a8-46f9-9d06-e7677254d0fa")
             .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
