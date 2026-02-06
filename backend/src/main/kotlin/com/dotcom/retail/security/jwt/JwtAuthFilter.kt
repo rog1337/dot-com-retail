@@ -1,5 +1,6 @@
 package com.dotcom.retail.security.jwt
 
+import com.dotcom.retail.common.exception.JwtException
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.security.SecurityMatchers
 import jakarta.servlet.FilterChain
@@ -53,6 +54,8 @@ class JwtAuthFilter(
 
             if (!claims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS))
                 throw Exception()
+
+            if (jwtService.isBlacklisted(claims.id)) throw JwtException.revoked(TokenType.ACCESS)
 
             val id = claims.subject
             if (id.isNullOrBlank()) throw Exception()
