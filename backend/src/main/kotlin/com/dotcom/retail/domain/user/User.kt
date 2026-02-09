@@ -2,8 +2,6 @@ package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.BaseEntity
 import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.security.core.GrantedAuthority
@@ -21,6 +19,10 @@ class User(
     private var passwordHash: String? = null,
 
     var displayName: String,
+
+    var twoFactorSecret: String? = null,
+    var twoFactorEnabled: Boolean = false
+
 
     ) : BaseEntity(), UserDetails {
 

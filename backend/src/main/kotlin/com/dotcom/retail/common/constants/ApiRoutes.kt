@@ -14,7 +14,14 @@ object ApiRoutes {
         const val REGISTER = "/register"
         const val LOGIN = "/login"
         const val REFRESH = "/refresh"
+        const val LOGOUT = "/logout"
         const val REFRESH_FULL = "$BASE$REFRESH"
+    }
+
+    object TwoFactorAuth {
+        const val BASE = "$V1/2fa"
+        const val SETUP = "/setup"
+        const val VERIFY = "/verify"
     }
 
     object OAuth {

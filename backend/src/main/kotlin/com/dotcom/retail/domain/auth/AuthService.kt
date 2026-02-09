@@ -9,13 +9,13 @@ import com.dotcom.retail.config.properties.TurnstileProperties
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
+import com.dotcom.retail.domain.auth.dto.TokenPair
 import com.dotcom.retail.domain.auth.dto.TurnstileResponse
 import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
-import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -40,7 +40,6 @@ class AuthService(
     companion object {
         const val COOKIE_SAME_SITE_STRICT = "Strict"
         const val COOKIE_PATH = "/"
-        const val COOKIE_HEADER_NAME = "Set-Cookie"
     }
 
     private val turnstileClient: RestClient by lazy {
@@ -102,24 +101,18 @@ class AuthService(
         return user
     }
 
-    fun refresh(request: HttpServletRequest): UUID {
+    fun refreshTokens(request: HttpServletRequest): TokenPair {
         val refreshToken = jwtService.extractJwtFromCookie(request) ?: throw JwtException.missing(TokenType.REFRESH)
-        val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION) ?: throw JwtException.missing(TokenType.ACCESS)
+        val claims = jwtService.validateTokenAndExtractClaims(refreshToken)
 
-        val refreshClaims = jwtService.validateTokenAndExtractClaims(refreshToken)
-        if (!refreshClaims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.REFRESH)) throw JwtException()
+        val type = claims.getValue(JwtService.TOKEN_TYPE_CLAIM).toString()
+        if (!jwtService.isRefreshToken(type)) throw JwtException()
 
-        if (jwtService.isBlacklisted(refreshClaims.id)) throw JwtException.revoked(TokenType.REFRESH)
+        val userId = claims.subject
+        val version = claims.getValue(JwtService.TOKEN_VERSION_CLAIM).toString()
+        if (!jwtService.isValidTokenVersion(userId, version)) throw JwtException.revoked(TokenType.REFRESH)
 
-        val accessToken = jwtService.extractBearerToken(authHeader)
-        val accessClaims = jwtService.validateTokenAndExtractClaims(accessToken)
-        if (!accessClaims.getValue(JwtService.TOKEN_TYPE_CLAIM).equals(TokenType.ACCESS)) throw JwtException()
-
-        jwtService.blacklistToken(refreshClaims.id, refreshClaims.expiration)
-        jwtService.blacklistToken(accessClaims.id, accessClaims.expiration)
-
-        val userId = refreshClaims.subject
-        return UUID.fromString(userId)
+        return TokenPair(jwtService.rotateTokens(UUID.fromString(userId)).accessToken, jwtService.rotateTokens(UUID.fromString(userId)).refreshToken)
     }
 
      fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {
@@ -128,6 +121,20 @@ class AuthService(
             .httpOnly(true)
             .secure(true)
             .maxAge(maxAgeSeconds)
+            .sameSite(COOKIE_SAME_SITE_STRICT)
+            .path(COOKIE_PATH)
+            .build()
+    }
+
+    fun logout(userId: UUID) {
+        jwtService.revokeTokens(userId)
+    }
+
+    fun removeRefreshTokenCookie(): ResponseCookie {
+        return ResponseCookie.from(TokenType.REFRESH, "")
+            .httpOnly(true)
+            .secure(true)
+            .maxAge(0)
             .sameSite(COOKIE_SAME_SITE_STRICT)
             .path(COOKIE_PATH)
             .build()

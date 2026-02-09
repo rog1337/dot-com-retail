@@ -8,6 +8,7 @@ import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpHeaders
 import org.springframework.security.core.Authentication
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken
 import org.springframework.security.oauth2.core.oidc.user.OidcUser
@@ -50,8 +51,9 @@ class OAuth2SuccessHandler(
                 )
             }
 
-            val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id))
-            response.addHeader(AuthService.COOKIE_HEADER_NAME, cookie.toString())
+            val version = jwtService.updateTokenVersion(user.id)
+            val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, version))
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
             response.sendRedirect(oauth2Service.FRONTEND_URL)
 
         } catch (e: OAuthException) {

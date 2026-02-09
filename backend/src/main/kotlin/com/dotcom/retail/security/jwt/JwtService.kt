@@ -1,8 +1,8 @@
 package com.dotcom.retail.security.jwt
 
-import com.dotcom.retail.common.constants.ApiRoutes.Auth.REFRESH_FULL
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
+import com.dotcom.retail.domain.auth.dto.TokenPair
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
@@ -10,11 +10,10 @@ import io.jsonwebtoken.security.Keys
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.data.redis.core.StringRedisTemplate
-import org.springframework.http.HttpMethod
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
-import java.time.Duration
+import java.time.Instant
 import java.util.Date
 import java.util.UUID
 import javax.crypto.SecretKey
@@ -27,44 +26,52 @@ class JwtService(
 ) {
 
     companion object {
-        private const val BLACKLIST_PREFIX: String = "blacklist:"
-        const val TOKEN_TYPE_CLAIM = "type"
+        private const val USER_PREFIX: String = "u:"
+        const val TOKEN_TYPE_CLAIM = "typ"
+        const val TOKEN_VERSION_CLAIM = "ver"
         const val BEARER_PREFIX = "Bearer "
         const val BEARER_PREFIX_LENGTH = BEARER_PREFIX.length
     }
 
-    fun blacklistToken(jti: String, expiration: Date) {
-        val expirationTime = expiration.time
-        val ttlMs = expirationTime - System.currentTimeMillis()
-
-        if (ttlMs > 0) {
-            redisTemplate.opsForValue().set("$BLACKLIST_PREFIX$jti", expirationTime.toString(), Duration.ofMillis(ttlMs))
-        }
+    fun revokeTokens(userId: UUID) {
+        redisTemplate.delete("$USER_PREFIX$userId")
     }
 
-    fun isBlacklisted(jti: String): Boolean {
-        return redisTemplate.hasKey("$BLACKLIST_PREFIX$jti") == true
+    fun rotateTokens(userId: UUID): TokenPair {
+        val version = updateTokenVersion(userId)
+        val refreshToken = generateRefreshToken(userId, version)
+        val accessToken = generateAccessToken(userId, version)
+        return TokenPair(accessToken, refreshToken)
     }
 
-    fun generateAccessToken(userId: UUID): String {
+    fun isValidTokenVersion(userId: String, version: String): Boolean {
+        val storedVersion = redisTemplate.opsForValue().get("$USER_PREFIX$userId")
+        return storedVersion == version
+    }
+
+    fun updateTokenVersion(userId: UUID): String {
+        val version = Instant.now().epochSecond.toString()
+        redisTemplate.opsForValue().set("$USER_PREFIX$userId", version)
+        return version
+    }
+
+    fun generateAccessToken(userId: UUID, version: String): String {
         return Jwts
             .builder()
-            .id(UUID.randomUUID().toString())
             .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS)
+            .claim(TOKEN_VERSION_CLAIM, version)
             .subject(userId.toString())
-            .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
             .signWith(KEY)
             .compact()
     }
 
-    fun generateRefreshToken(userId: UUID): String {
+    fun generateRefreshToken(userId: UUID, version: String?): String {
         return Jwts
             .builder()
-            .id(UUID.randomUUID().toString())
             .claim(TOKEN_TYPE_CLAIM, TokenType.REFRESH)
+            .claim(TOKEN_VERSION_CLAIM, version)
             .subject(userId.toString())
-            .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.refresh.exp))
             .signWith(KEY)
             .compact()
@@ -99,14 +106,21 @@ class JwtService(
         ObjectMapper().writeValue(response.outputStream, body)
     }
 
+    fun isRefreshToken(type: String): Boolean {
+        return TokenType.REFRESH == type
+    }
+
+    fun isAccessToken(type: String): Boolean {
+        return TokenType.ACCESS == type
+    }
+
     // for testing
     fun generateDevToken(): String {
         return Jwts
             .builder()
-            .id(UUID.randomUUID().toString())
             .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS)
+            .claim(TOKEN_VERSION_CLAIM, Instant.now().epochSecond)
             .subject("55e62730-36a8-46f9-9d06-e7677254d0fa")
-            .issuedAt(Date(System.currentTimeMillis()))
             .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
             .signWith(KEY)
             .compact()
