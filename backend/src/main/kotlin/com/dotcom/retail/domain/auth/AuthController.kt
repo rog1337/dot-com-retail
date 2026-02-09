@@ -6,6 +6,8 @@ import com.dotcom.retail.domain.auth.dto.RegisterResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.LoginResponse
 import com.dotcom.retail.domain.auth.dto.LoginResult
+import com.dotcom.retail.domain.auth.dto.PasswordResetRequest
+import com.dotcom.retail.domain.auth.dto.PasswordResetVerification
 import com.dotcom.retail.domain.auth.dto.RefreshResponse
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.toDto
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -28,6 +31,7 @@ import java.util.UUID
 class AuthController(
     private val authService: AuthService,
     private val jwtService: JwtService,
+    private val passwordResetService: PasswordResetService,
 ) {
 
     @PostMapping(Auth.REGISTER)
@@ -78,6 +82,18 @@ class AuthController(
         return ResponseEntity.ok()
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
             .build()
+    }
+
+    @PostMapping(Auth.RESET_PASSWORD)
+    fun resetPassword(@RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
+        passwordResetService.initiatePasswordReset(request)
+        return ResponseEntity.accepted().build()
+    }
+
+    @PostMapping(Auth.RESET_PASSWORD_VERIFY)
+    fun resetPasswordVerify(@RequestBody data: PasswordResetVerification): ResponseEntity<Void> {
+        passwordResetService.resetPassword(data)
+        return ResponseEntity.noContent().build()
     }
 
 }

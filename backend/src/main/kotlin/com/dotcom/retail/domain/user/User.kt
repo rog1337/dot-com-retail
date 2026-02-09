@@ -16,7 +16,7 @@ class User(
     val id: UUID = UUID.randomUUID(),
 
     var email: String,
-    private var passwordHash: String? = null,
+    var passwordHash: String? = null,
 
     var displayName: String,
 

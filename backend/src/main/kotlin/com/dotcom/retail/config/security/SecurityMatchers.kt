@@ -8,6 +8,8 @@ object SecurityMatchers {
         "${Auth.BASE}${Auth.LOGIN}",
         "${Auth.BASE}${Auth.REGISTER}",
         "${Auth.BASE}${Auth.REFRESH}",
+        "${Auth.BASE}${Auth.RESET_PASSWORD}",
+        "${Auth.BASE}${Auth.RESET_PASSWORD_VERIFY}",
 
         "/error"
     )

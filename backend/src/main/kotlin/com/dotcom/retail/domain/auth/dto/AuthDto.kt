@@ -55,3 +55,4 @@ data class RegisterRequest(
     @field:NotBlank(message = "Captcha is required")
     val captchaToken: String,
 )
+

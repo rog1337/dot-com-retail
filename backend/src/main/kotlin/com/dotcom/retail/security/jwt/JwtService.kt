@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.Instant
 import java.util.Date
 import java.util.UUID
@@ -51,7 +52,7 @@ class JwtService(
 
     fun updateTokenVersion(userId: UUID): String {
         val version = Instant.now().epochSecond.toString()
-        redisTemplate.opsForValue().set("$USER_PREFIX$userId", version)
+        redisTemplate.opsForValue().set("$USER_PREFIX$userId", version, Duration.ofMillis(jwtProperties.refresh.exp))
         return version
     }
 

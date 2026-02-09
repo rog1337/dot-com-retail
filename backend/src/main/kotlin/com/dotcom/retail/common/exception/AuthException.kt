@@ -50,3 +50,11 @@ open class TwoFactorAuthException(
         fun secretNotSet() = TwoFactorAuthException("2FA secret is not set")
     }
 }
+
+open class PasswordResetException(
+    message: String = "Password reset failed"
+) : AuthException(message) {
+    companion object {
+        fun invalid() = PasswordResetException("Password reset token is invalid or expired")
+    }
+}

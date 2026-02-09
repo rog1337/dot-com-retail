@@ -15,6 +15,8 @@ object ApiRoutes {
         const val LOGIN = "/login"
         const val REFRESH = "/refresh"
         const val LOGOUT = "/logout"
+        const val RESET_PASSWORD = "/reset-password"
+        const val RESET_PASSWORD_VERIFY = "/reset-password-verify"
         const val REFRESH_FULL = "$BASE$REFRESH"
     }
 
