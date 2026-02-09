@@ -2,7 +2,7 @@ package com.dotcom.retail.security.jwt
 
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
-import com.dotcom.retail.domain.auth.dto.TokenPair
+import com.dotcom.retail.security.jwt.TokenPair
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts

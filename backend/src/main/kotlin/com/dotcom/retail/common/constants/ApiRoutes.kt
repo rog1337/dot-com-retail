@@ -22,6 +22,7 @@ object ApiRoutes {
         const val BASE = "$V1/2fa"
         const val SETUP = "/setup"
         const val VERIFY = "/verify"
+        const val DISABLE = "/disable"
     }
 
     object OAuth {

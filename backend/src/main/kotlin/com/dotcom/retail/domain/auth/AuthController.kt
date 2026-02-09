@@ -1,8 +1,11 @@
 package com.dotcom.retail.domain.auth
 
+import com.dotcom.retail.common.annotation.RequiresTwoFactorAuth
 import com.dotcom.retail.common.constants.ApiRoutes.Auth
-import com.dotcom.retail.domain.auth.dto.AuthResponse
+import com.dotcom.retail.domain.auth.dto.RegisterResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
+import com.dotcom.retail.domain.auth.dto.LoginResponse
+import com.dotcom.retail.domain.auth.dto.LoginResult
 import com.dotcom.retail.domain.auth.dto.RefreshResponse
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.domain.user.toDto
@@ -28,7 +31,7 @@ class AuthController(
 ) {
 
     @PostMapping(Auth.REGISTER)
-    fun register(@Valid @RequestBody registerRequest: RegisterRequest): ResponseEntity<Any> {
+    fun register(@Valid @RequestBody registerRequest: RegisterRequest): ResponseEntity<RegisterResponse> {
         val user = authService.register(registerRequest)
         val tokenPair = jwtService.rotateTokens(user.id)
         val cookie = authService.createRefreshTokenCookie(tokenPair.refreshToken)
@@ -36,19 +39,25 @@ class AuthController(
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(AuthResponse(tokenPair.accessToken, user.toDto()))
+            .body(RegisterResponse(tokenPair.accessToken, user.toDto()))
     }
 
     @PostMapping(Auth.LOGIN)
-    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<AuthResponse> {
-        val user = authService.login(loginRequest)
-        val tokenPair = jwtService.rotateTokens(user.id)
-        val cookie = authService.createRefreshTokenCookie(tokenPair.refreshToken)
+    fun login(@RequestBody loginRequest: LoginRequest): ResponseEntity<Any> {
+        return when (val loginResult = authService.login(loginRequest)) {
+            is LoginResult.Success -> {
+                val cookie = authService.createRefreshTokenCookie(loginResult.refreshToken)
+                ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(LoginResponse(loginResult.accessToken, loginResult.user))
+            }
 
-        return ResponseEntity
-            .ok()
-            .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(AuthResponse(tokenPair.accessToken, user.toDto()))
+            is LoginResult.TwoFactorRequired -> {
+                ResponseEntity
+                    .status(HttpStatus.ACCEPTED)
+                    .build()
+            }
+        }
     }
 
     @GetMapping(Auth.REFRESH)
@@ -61,6 +70,7 @@ class AuthController(
             .body(RefreshResponse(tokenPair.accessToken))
     }
 
+    @RequiresTwoFactorAuth
     @GetMapping(Auth.LOGOUT)
     fun logout(@AuthenticationPrincipal userId: UUID): ResponseEntity<Void> {
         authService.logout(userId)

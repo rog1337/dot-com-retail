@@ -1,4 +1,4 @@
-package com.dotcom.retail.domain.auth.dto
+package com.dotcom.retail.security.jwt
 
 data class TokenPair(
     val accessToken: String,

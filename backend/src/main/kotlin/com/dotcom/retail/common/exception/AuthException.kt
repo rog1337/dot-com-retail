@@ -13,6 +13,7 @@ open class AuthException(
         fun invalidLogin() = AuthException("Invalid email or password")
         fun incorrectPassword() = AuthException("Incorrect password")
         fun nonLocalAccount() = AuthException("Register or log in with an authentication provider to access this account")
+        fun notAuthenticated() = AuthException("Not authenticated")
 
         fun captchaFailed() = AuthException("Captcha verification failed")
         fun jwtMissing() = AuthException("Missing JWT")
@@ -37,5 +38,15 @@ open class JwtException(
         fun expired(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} expired")
         fun revoked(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} revoked")
         fun missing(type: String? = null) = JwtException("${type?.let { "$it token" } ?: "JWT"} missing")
+    }
+}
+
+open class TwoFactorAuthException(
+    message: String = "2FA verification required"
+) : AuthException(message, HttpStatus.FORBIDDEN) {
+
+    companion object {
+        fun invalidCode() = TwoFactorAuthException("Invalid code")
+        fun secretNotSet() = TwoFactorAuthException("2FA secret is not set")
     }
 }

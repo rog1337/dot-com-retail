@@ -3,17 +3,20 @@ package com.dotcom.retail.domain.auth
 import com.dotcom.retail.common.exception.AuthException
 import com.dotcom.retail.common.exception.JwtException
 import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.TwoFactorAuthException
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
 import com.dotcom.retail.domain.auth.dto.LoginRequest
+import com.dotcom.retail.domain.auth.dto.LoginResult
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
-import com.dotcom.retail.domain.auth.dto.TokenPair
+import com.dotcom.retail.security.jwt.TokenPair
 import com.dotcom.retail.domain.auth.dto.TurnstileResponse
 import com.dotcom.retail.domain.user.CreateUserParams
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
+import com.dotcom.retail.domain.user.toDto
 import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
@@ -34,7 +37,8 @@ class AuthService(
     private val passwordEncoder: PasswordEncoder,
     private val jwtProperties: JwtProperties,
     private val turnstileProperties: TurnstileProperties,
-    private val restClientBuilder: RestClient.Builder
+    private val restClientBuilder: RestClient.Builder,
+    private val twoFactorAuthService: TwoFactorAuthService
 ) {
 
     companion object {
@@ -88,18 +92,35 @@ class AuthService(
         return userService.save(user)
     }
 
-     fun login(request: LoginRequest): User {
-        val user = userService.findByEmail(request.email) ?: throw NotFoundException(User::class.simpleName, request.email)
-        val userPw = user.password
+     fun login(request: LoginRequest): LoginResult {
+         val user = userService.findByEmail(request.email) ?: throw NotFoundException(User::class.simpleName, request.email)
+         val storedPassword = user.password
 
-        if (!passwordEncoder.matches(request.password, userPw)) {
-            if (userPw.isNullOrEmpty()) throw AuthException.nonLocalAccount()
+         if (!passwordEncoder.matches(request.password, storedPassword)) {
+             if (storedPassword.isNullOrEmpty()) throw AuthException.nonLocalAccount()
 
-            throw AuthException.incorrectPassword()
-        }
+             throw AuthException.incorrectPassword()
+         }
 
-        return user
-    }
+         if (user.twoFactorEnabled) {
+             if (request.twoFactorCode.isNullOrBlank()) {
+                 return LoginResult.TwoFactorRequired()
+             }
+
+             val secret = user.twoFactorSecret ?: throw TwoFactorAuthException.secretNotSet()
+
+             if (!twoFactorAuthService.verifyCode(secret, request.twoFactorCode))
+                 throw TwoFactorAuthException.invalidCode()
+         }
+
+         val tokenPair = jwtService.rotateTokens(user.id)
+
+         return LoginResult.Success(
+             accessToken = tokenPair.accessToken,
+             refreshToken = tokenPair.refreshToken,
+             user = user.toDto()
+         )
+     }
 
     fun refreshTokens(request: HttpServletRequest): TokenPair {
         val refreshToken = jwtService.extractJwtFromCookie(request) ?: throw JwtException.missing(TokenType.REFRESH)
