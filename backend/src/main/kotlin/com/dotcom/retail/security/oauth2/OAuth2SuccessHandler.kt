@@ -54,8 +54,10 @@ class OAuth2SuccessHandler(
             val version = jwtService.updateTokenVersion(user.id)
             val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, version))
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
-            response.sendRedirect(oauth2Service.FRONTEND_URL)
 
+//            response.sendRedirect(oauth2Service.FRONTEND_URL)
+            //temporary
+            response.writer.write("Successfully authenticated via oauth")
         } catch (e: OAuthException) {
             oauth2Service.errorRedirect(response, e.message)
         } catch (e: Exception) {
