@@ -1,11 +1,14 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.common.constants.ApiRoutes
+import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import org.springframework.core.io.Resource
+import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -13,12 +16,13 @@ import org.springframework.web.multipart.MultipartFile
 @RequestMapping(ApiRoutes.Product.BASE)
 class ProductController(
     private val productService: ProductService,
-    private val productMapper: ProductMapper
+    private val productMapper: ProductMapper,
+    private val productRepository: ProductRepository
 ) {
 
     @GetMapping
     fun getProducts(
-        params: ProductQueryParams,
+        @Validated params: ProductQueryParams,
     ): ResponseEntity<PagedResponse<ProductDto>> {
         val products = productService.query(params)
         return ResponseEntity.ok(products)
@@ -59,5 +63,13 @@ class ProductController(
     fun getImage(@PathVariable productId: Long, @PathVariable imageId: Long): ResponseEntity<Resource> {
         val image = productService.getImage(productId, imageId)
         return ResponseEntity<Resource>.ok().contentType(MediaType.IMAGE_JPEG).body(image)
+    }
+
+    @GetMapping(ApiRoutes.Product.SEARCH)
+    fun search(query: String): ResponseEntity<PagedResponse<ProductDto>> {
+        val pageable = PageRequest.of(0, 10)
+        val products = productRepository.searchByText(query, pageable)
+        val mapped = PageMapper.toPagedResponse(products.map { productMapper.toDto(it) })
+        return ResponseEntity.ok(mapped)
     }
 }

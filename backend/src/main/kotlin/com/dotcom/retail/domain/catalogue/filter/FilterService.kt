@@ -1,22 +1,18 @@
-package com.dotcom.retail.domain.catalogue.filter;
+package com.dotcom.retail.domain.catalogue.filter
 
-import com.dotcom.retail.domain.catalogue.category.CategoryRepository
 import com.dotcom.retail.domain.catalogue.category.CategoryService
 import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
-import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeRepository
-import com.dotcom.retail.domain.catalogue.product.ProductRepository
 import com.dotcom.retail.domain.catalogue.product.ProductService
-import jakarta.annotation.PostConstruct
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service
 
 @Service
 class FilterService(
     private val categoryService: CategoryService,
     private val productService: ProductService,
-    private val categoryAttributeRepository: CategoryAttributeRepository
+    private val filterMapper: FilterMapper
 ) {
 
-    fun getPublicFilters(categoryId: Long): Filter {
+    fun getFilters(categoryId: Long): Filter {
         val category = categoryService.get(categoryId)
         val categoryAttributes = category.attributes
 
@@ -35,15 +31,17 @@ class FilterService(
                 id = attr.id,
                 attribute = attrKey,
                 label = attr.label,
+                unit = attr.unit,
                 filterType = attr.filterType,
                 displayOrder = attr.displayOrder,
                 values = values,
             )
         }
-        return Filter(
-            categoryId = categoryId,
-            attributes = attributes,
-            brands = productService.getBrandCounts(categoryId),
-        )
-    }
+
+        val brands = productService.getBrandCounts(categoryId)
+        val price = productService.findPriceRange(categoryId).let {
+            filterMapper.toRangeData(it.min.toDouble(), it.max.toDouble())
+        }
+
+        return filterMapper.toDto(categoryId, attributes, brands,  price) }
 }

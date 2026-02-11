@@ -17,6 +17,7 @@ class CategoryAttribute(
 
     val attribute: String,
     val label: String,
+    val unit: String? = null,
     val dataType: AttributeDataType,
     val filterType: FilterType,
     val displayOrder: Int,

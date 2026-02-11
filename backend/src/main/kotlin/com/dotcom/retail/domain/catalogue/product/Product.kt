@@ -4,6 +4,7 @@ import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.common.BaseEntity
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
@@ -15,6 +16,8 @@ import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.PrePersist
+import jakarta.persistence.PreUpdate
 import jakarta.persistence.Table
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -58,9 +61,26 @@ class Product(
     @Column(columnDefinition = "jsonb")
     var attributes: MutableMap<String, MutableList<Any>>? = mutableMapOf(),
 
-    var isActive: Boolean = false
+    var isActive: Boolean = false,
+
+    @JsonIgnore
+    var searchContent: String? = null
 
 ) : BaseEntity() {
+
+    @PrePersist
+    @PreUpdate
+    fun updateSearchContent() {
+        val attributeText = attributes?.values?.flatten()?.joinToString(" ") { it.toString() } ?: ""
+
+        this.searchContent = """
+            $name 
+            $sku 
+            ${description ?: ""} 
+            $attributeText
+        """.trimIndent().lowercase().replace("\\s+".toRegex(), " ")
+    }
+
     override fun toString(): String {
         return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive, ${super.toString()})"
     }

@@ -1,14 +1,52 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
 import com.dotcom.retail.domain.catalogue.filter.ValueCount
-import jakarta.persistence.Tuple
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
+import java.math.BigDecimal
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
     fun findBySlug(slug: String): Product?
+
+    @Query("""
+    SELECT p.* FROM product p
+    LEFT JOIN brand b ON p.brand_id = b.id
+    WHERE p.is_active = true
+      AND (
+          p.search_content ILIKE ALL(
+              SELECT '%' || word || '%' 
+              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
+          )
+          OR 
+          b.name ILIKE ALL(
+              SELECT '%' || word || '%' 
+              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
+          )
+      )
+    ORDER BY 
+        similarity(p.search_content, lower(:query)) DESC,
+        similarity(coalesce(b.name, ''), :query) DESC
+""",
+        countQuery = """
+    SELECT count(*) FROM product p
+    LEFT JOIN brand b ON p.brand_id = b.id
+    WHERE p.is_active = true
+      AND (
+          p.search_content ILIKE ALL(
+              SELECT '%' || word || '%' 
+              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
+          )
+          OR 
+          b.name ILIKE ALL(
+              SELECT '%' || word || '%' 
+              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
+          )
+      )
+""", nativeQuery = true)
+    fun searchByText(query: String, pageable: Pageable): Page<Product>
 
     @Query("""
         SELECT
@@ -38,4 +76,16 @@ interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExec
     """, nativeQuery = true
     )
     fun getBrandCounts(categoryId: Long): List<ProductBrandCount>
+
+    @Query("""
+        SELECT MIN(p.price) as min, MAX(p.price) as max 
+        FROM Product p 
+        WHERE p.isActive = true
+    """)
+    fun findPriceRange(categoryId: Long): PriceRange
 }
+
+data class PriceRange(
+    val min: BigDecimal = BigDecimal.ZERO,
+    val max: BigDecimal = BigDecimal.ZERO
+)

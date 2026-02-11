@@ -43,7 +43,12 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidationError(e: MethodArgumentNotValidException): ProblemDetail {
-        val message = e.bindingResult.fieldErrors[0].defaultMessage
+        val error = e.bindingResult.fieldErrors.firstOrNull() ?:
+            return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body")
+
+        val message =
+            if (error.isBindingFailure) "Field is missing or has incorrect type: ${error.field}"
+            else "${error.field}: ${error.defaultMessage}"
         return ProblemDetail.forStatusAndDetail(e.statusCode, message)
     }
 

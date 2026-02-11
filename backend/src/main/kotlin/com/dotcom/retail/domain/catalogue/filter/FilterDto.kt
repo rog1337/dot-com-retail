@@ -2,17 +2,20 @@ package com.dotcom.retail.domain.catalogue.filter
 
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 import com.dotcom.retail.domain.catalogue.product.ProductBrandCount
+import java.math.BigDecimal
 
 data class Filter(
     val categoryId: Long,
     val attributes: List<FilterAttribute>,
     val brands: List<ProductBrandCount>,
+    val price: RangeData
 )
 
 data class FilterAttribute(
     val id: Long,
     val attribute: String,
     val label: String,
+    val unit: String? = null,
     val filterType: FilterType,
     val displayOrder: Int,
     val values: List<FilterAttributeData>

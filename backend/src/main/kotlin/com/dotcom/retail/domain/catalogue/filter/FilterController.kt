@@ -15,19 +15,7 @@ class FilterController(private val filterService: FilterService) {
     fun getFilters(
         @RequestParam(value = "categoryId") categoryId: Long,
     ): ResponseEntity<Filter> {
-        val filters = filterService.getPublicFilters(categoryId)
+        val filters = filterService.getFilters(categoryId)
         return ResponseEntity.ok(filters)
     }
-}
-
-@RestController
-@RequestMapping(ApiRoutes.Admin.BASE + ApiRoutes.Filter.FILTER)
-class AdminFilterController(private val filterService: FilterService) {
-
-//    @GetMapping
-//    fun getFilters(
-//        @RequestParam(value = "category") categoryId: Long,
-//    ) {
-//        val filters = filterService.getAllFilters
-//    }
 }

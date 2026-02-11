@@ -26,30 +26,56 @@ class ProductSpecifications(
             }
 
             params.attributes?.forEach { attr ->
-                val orPredicates = attr.values.mapNotNull { value ->
-                    val checkedValue = if (attributeMetadataService.isNumeric(attr.name)) {
-                        value.toString().toDoubleOrNull() ?: return@mapNotNull null
-                    } else value.toString()
+                if (attributeMetadataService.isSlider(attr.name)) {
+                    val min = attr.values.firstOrNull()?.toString()?.toDoubleOrNull()
+                    val max = attr.values.lastOrNull()?.toString()?.toDoubleOrNull()
 
-                    val json = objectMapper.writeValueAsString(mapOf(attr.name to listOf(checkedValue)))
-                    cb.isTrue(
-                        cb.function(
-                            "jsonb_contains",
-                            Boolean::class.java,
-                            root.get<Any>("attributes"),
-                            cb.literal(json)
+                    if (min != null || max != null) {
+                        val predicatesString = mutableListOf<String>()
+                        if (min != null) predicatesString.add("@ >= $min")
+                        if (max != null) predicatesString.add("@ <= $max")
+
+                        val rangePred = predicatesString.joinToString(" && ")
+                        val jsonPath = "$.\"${attr.name}\"[*] ? ($rangePred)"
+
+                        predicates.add(
+                            cb.isTrue(
+                                cb.function(
+                                    "jsonb_path_exists",
+                                    Boolean::class.java,
+                                    root.get<Any>("attributes"),
+                                    cb.literal(jsonPath)
+                                )
+                            )
                         )
-                    )
-                }.toTypedArray()
+                    } else {
+                        val orPredicates = attr.values.mapNotNull { value ->
+                            val checkedValue = if (attributeMetadataService.isNumeric(attr.name)) {
+                                value.toString().toDoubleOrNull() ?: return@mapNotNull null
+                            } else value.toString()
 
-                if (orPredicates.isNotEmpty()) {
-                    predicates.add(cb.or(*orPredicates))
+                            val json = objectMapper.writeValueAsString(mapOf(attr.name to listOf(checkedValue)))
+                            cb.isTrue(
+                                cb.function(
+                                    "jsonb_contains",
+                                    Boolean::class.java,
+                                    root.get<Any>("attributes"),
+                                    cb.literal(json)
+                                )
+                            )
+                        }.toTypedArray()
+
+
+                        if (orPredicates.isNotEmpty()) {
+                            predicates.add(cb.or(*orPredicates))
+                        }
+                    }
                 }
             }
 
             predicates.add(cb.isTrue(root.get<Boolean>("isActive")))
 
-            params.sort?.let { sortOrder ->
+            params.sort.let { sortOrder ->
                 if (sortOrder == SortOrder.TOP) return@let
 
                 val effectivePrice = cb.coalesce(
@@ -64,6 +90,16 @@ class ProductSpecifications(
                 }
 
                 query?.orderBy(order)
+            }
+
+            params.price?.let {
+                val effectivePrice = cb.coalesce(
+                    root.get<BigDecimal>("salePrice"),
+                    root.get<BigDecimal>("price")
+                )
+                it.min.let { min -> predicates.add(cb.greaterThanOrEqualTo(effectivePrice, BigDecimal.valueOf(min))) }
+                it.max.let { max -> predicates.add(cb.lessThanOrEqualTo(effectivePrice, BigDecimal.valueOf(max))) }
+
             }
 
             cb.and(*predicates.toTypedArray())

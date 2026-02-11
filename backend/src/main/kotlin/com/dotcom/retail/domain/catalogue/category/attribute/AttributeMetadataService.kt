@@ -18,6 +18,10 @@ class AttributeMetadataService(private val categoryAttributeService: CategoryAtt
         return attributes.get()[attribute]?.dataType == AttributeDataType.NUMBER
     }
 
+    fun isSlider(attribute: String): Boolean {
+        return attributes.get()[attribute]?.filterType == FilterType.SLIDER
+    }
+
     fun refresh() {
         val attrs = categoryAttributeService.findAll().associateBy { it.attribute }.toMutableMap()
         attributes.set(attrs)

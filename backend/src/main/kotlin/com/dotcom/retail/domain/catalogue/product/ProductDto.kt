@@ -1,8 +1,10 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.common.model.SortOrder
+import com.dotcom.retail.common.util.pagination.PageConstants
 import com.dotcom.retail.domain.catalogue.brand.BrandDto
 import com.dotcom.retail.domain.catalogue.category.CategoryDto
+import com.dotcom.retail.domain.catalogue.filter.RangeData
 import com.dotcom.retail.domain.catalogue.image.ImageDto
 import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import jakarta.validation.constraints.NotBlank
@@ -67,10 +69,11 @@ data class ProductBrandCount(
 )
 
 data class ProductQueryParams(
-    val categoryId: Long,
+    val categoryId: Long?,
     val brands: List<Long> = emptyList(),
     val attributes: List<ProductAttributeDto>? = emptyList(),
-    val page: Int,
-    val pageSize: Int,
-    val sort: SortOrder,
+    val page: Int = PageConstants.DEFAULT_PAGE,
+    val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
+    val sort: SortOrder = SortOrder.TOP,
+    val price: RangeData? = null
 )

@@ -31,7 +31,7 @@ class ProductService(
     private val brandService: BrandService,
     private val categoryService: CategoryService,
     private val imageService: ImageService,
-    private val fileProperties: FileProperties,
+    fileProperties: FileProperties,
     private val eventPublisher: ApplicationEventPublisher,
     private val productMapper: ProductMapper,
     private val productSpecifications: ProductSpecifications,
@@ -87,7 +87,7 @@ class ProductService(
         )
 
         val processedImages = mutableListOf<Image>()
-        if (dto.images != null && dto.images.isNotEmpty()) {
+        if (!dto.images.isNullOrEmpty()) {
             try {
                 val imageMetaMap = dto.images.associateBy { it.fileName }
                 imageFiles.forEach { file ->
@@ -106,8 +106,9 @@ class ProductService(
         }
 
         product.images.addAll(processedImages)
-
-        return productRepository.save(product)
+        val saved = productRepository.save(product)
+        logger.debug("Saved product: {}", saved)
+        return saved
     }
 
     //TODO
@@ -137,7 +138,7 @@ class ProductService(
             isActive = dto.isActive
         }
 
-        if (dto.images != null && dto.images.isNotEmpty()) {
+        if (!dto.images.isNullOrEmpty()) {
             handleImageUpdates(product, dto.images, imageFiles)
         }
         return save(product)
@@ -149,9 +150,9 @@ class ProductService(
      * 1. Updates existing images based on ID.
      * 2. Uploads and attaches new image files.
      * 3. Removes images that are no longer present in the metadata.
-     * @throws ImageNotFoundException if a provided ID does not exist.
-     * @throws ImageMetadataNotFoundException if a file is missing for new metadata.
-     * @throws DuplicateImageSortOrderException if metadata contains duplicate sortOrders.
+     * @throws NotFoundException if a provided ID does not exist.
+     * @throws NotFoundException if a file is missing for new metadata.
+     * @throws BadRequestException if metadata contains duplicate sortOrders.
      */
     private fun handleImageUpdates(
         product: Product,
@@ -231,4 +232,7 @@ class ProductService(
         return productRepository.findAttributeCounts(categoryId, attribute)
     }
 
+    fun findPriceRange(categoryId: Long): PriceRange {
+        return productRepository.findPriceRange(categoryId)
+    }
 }
