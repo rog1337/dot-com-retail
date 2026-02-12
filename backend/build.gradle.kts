@@ -1,3 +1,13 @@
+import org.springframework.boot.gradle.tasks.run.BootRun
+import java.util.Properties
+
+tasks.named<BootRun>("bootRun") {
+	val props = Properties()
+	file("../.env").reader().use { props.load(it) }
+	val keys = props.keys.map { it.toString() }.toSet()
+	environment = keys.associateWith { props.getProperty(it) }
+}
+
 plugins {
 	kotlin("jvm") version "2.0.20"
 	kotlin("plugin.spring") version "2.0.20"
