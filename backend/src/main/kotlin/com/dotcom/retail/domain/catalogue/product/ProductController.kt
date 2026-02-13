@@ -72,4 +72,10 @@ class ProductController(
         val mapped = PageMapper.toPagedResponse(products.map { productMapper.toDto(it) })
         return ResponseEntity.ok(mapped)
     }
+
+    @DeleteMapping("/{id}")
+    fun delete(@PathVariable id: Long): ResponseEntity<Void> {
+        productService.delete(id)
+        return ResponseEntity.noContent().build()
+    }
 }
