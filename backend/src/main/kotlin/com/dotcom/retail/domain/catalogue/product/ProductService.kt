@@ -68,7 +68,7 @@ class ProductService(
 
 
     @Transactional
-    fun create(dto: CreateProduct, imageFiles: List<MultipartFile>): Product {
+    fun create(dto: CreateProduct, imageFiles: List<MultipartFile>?): Product {
         val product = Product(
             name = dto.name,
             sku = dto.sku,
@@ -79,13 +79,13 @@ class ProductService(
             stock = dto.stock,
             brand = dto.brandId?.let(brandService::get),
             category = dto.categoryId?.let(categoryService::get),
-            // attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values } } as MutableMap<String, MutableList<Any>>,
+            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values } } as MutableMap<String, MutableList<Any>>,
             images = mutableListOf(),
             isActive = dto.isActive
         )
 
         val processedImages = mutableListOf<Image>()
-        if (!dto.images.isNullOrEmpty()) {
+        if (!dto.images.isNullOrEmpty() && !imageFiles.isNullOrEmpty()) {
             try {
                 val imageMetaMap = dto.images.associateBy { it.fileName }
                 imageFiles.forEach { file ->
@@ -121,7 +121,7 @@ class ProductService(
     }
 
     @Transactional
-    fun edit(id: Long, dto: EditProductDto, imageFiles: List<MultipartFile>): Product {
+    fun edit(id: Long, dto: EditProductDto, imageFiles: List<MultipartFile>?): Product {
         val product = get(id)
 
         product.apply {
@@ -134,11 +134,11 @@ class ProductService(
             stock = dto.stock
             brand = dto.brandId?.let(brandService::get)
             category = dto.categoryId?.let(categoryService::get)
-//            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }} as MutableMap<String, MutableList<Any>>
+            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }} as MutableMap<String, MutableList<Any>>
             isActive = dto.isActive
         }
 
-        if (!dto.images.isNullOrEmpty()) {
+        if (!dto.images.isNullOrEmpty() && !imageFiles.isNullOrEmpty()) {
             handleImageUpdates(product, dto.images, imageFiles)
         }
         return save(product)

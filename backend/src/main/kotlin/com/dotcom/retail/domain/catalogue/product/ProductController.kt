@@ -43,7 +43,7 @@ class ProductController(
     @PostMapping
     fun create(
         @RequestPart("product") product: CreateProduct,
-        @RequestPart("images") imageFiles: List<MultipartFile>,
+        @RequestPart("images") imageFiles: List<MultipartFile>?,
     ): ResponseEntity<ProductDto> {
         val product = productService.create(product, imageFiles)
         return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.CREATED)
@@ -53,7 +53,7 @@ class ProductController(
     fun edit(
         @PathVariable id: Long,
         @RequestPart("product") dto: EditProductDto,
-        @RequestPart("images") imageFiles: List<MultipartFile>,
+        @RequestPart("images") imageFiles: List<MultipartFile>?,
     ): ResponseEntity<ProductDto> {
         val product = productService.edit(id, dto, imageFiles)
         return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.OK)
