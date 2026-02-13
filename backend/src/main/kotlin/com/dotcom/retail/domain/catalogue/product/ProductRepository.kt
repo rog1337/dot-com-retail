@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.Query
 import java.math.BigDecimal
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
-    fun findBySlug(slug: String): Product?
 
     @Query("""
     SELECT p.* FROM product p

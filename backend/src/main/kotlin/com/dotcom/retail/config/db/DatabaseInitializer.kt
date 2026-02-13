@@ -124,7 +124,6 @@ class DatabaseInitializer(
             Product(
                 name = fullName,
                 sku = "TYRE-${UUID.randomUUID().toString().substring(0, 8).uppercase()}",
-                slug = fullName.lowercase().replace(" ", "-").replace("/", "-"),
                 description = "Premium ${data.type} tyre from ${data.brand}.",
                 price = BigDecimal.valueOf(data.price),
                 salePrice = BigDecimal.valueOf(data.price * 0.9),

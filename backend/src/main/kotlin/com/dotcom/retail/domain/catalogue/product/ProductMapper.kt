@@ -15,7 +15,6 @@ class ProductMapper(
         id = product.id,
         name = product.name,
         sku = product.sku,
-        slug = product.slug,
         description = product.description,
         price = product.price,
         salePrice = product.salePrice,

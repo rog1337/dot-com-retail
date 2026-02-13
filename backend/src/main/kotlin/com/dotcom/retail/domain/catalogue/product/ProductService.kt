@@ -46,14 +46,6 @@ class ProductService(
         return productRepository.findByIdOrNull(id) ?: throw NotFoundException(Product::class.simpleName, id)
     }
 
-    fun findBySlug(slug: String): Product? {
-        return productRepository.findBySlug(slug)
-    }
-
-    fun getBySlug(slug: String): Product {
-        return productRepository.findBySlug(slug) ?: throw NotFoundException(Product::class.simpleName, slug)
-    }
-
     fun findAll(specification: Specification<Product>, pageable: Pageable): Page<Product> {
         return productRepository.findAll(specification, pageable)
     }
@@ -72,7 +64,6 @@ class ProductService(
         val product = Product(
             name = dto.name,
             sku = dto.sku,
-            slug = generateSlug(),
             description = dto.description,
             price = dto.price,
             salePrice = dto.salePrice,
@@ -111,11 +102,6 @@ class ProductService(
         return saved
     }
 
-    //TODO
-    fun generateSlug(): String {
-        return ""
-    }
-
     fun save(product: Product): Product {
         return productRepository.save(product)
     }
@@ -127,7 +113,6 @@ class ProductService(
         product.apply {
             name = dto.name
             sku = dto.sku
-            slug = generateSlug()
             description = dto.description
             price = dto.price
             salePrice = dto.salePrice

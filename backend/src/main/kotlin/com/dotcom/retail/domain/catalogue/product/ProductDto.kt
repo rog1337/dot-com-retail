@@ -14,7 +14,6 @@ data class ProductDto (
     val id: Long,
     val name: String,
     val description: String?,
-    val slug: String,
     val sku: String,
     val price: BigDecimal,
     val salePrice: BigDecimal,

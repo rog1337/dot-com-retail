@@ -34,12 +34,6 @@ class ProductController(
         return ResponseEntity.ok(productMapper.toDto(product))
     }
 
-    @GetMapping("${ApiRoutes.Product.SLUG}/{slug}")
-    fun getBySlug(@PathVariable slug: String): ResponseEntity<ProductDto> {
-        val product = productService.getBySlug(slug)
-        return ResponseEntity.ok(productMapper.toDto(product))
-    }
-
     @PostMapping
     fun create(
         @RequestPart("product") product: CreateProduct,

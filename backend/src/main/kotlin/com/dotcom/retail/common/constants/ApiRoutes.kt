@@ -34,7 +34,6 @@ object ApiRoutes {
     object Product {
         const val BASE = "$V1/product"
         const val IMAGE = "/image"
-        const val SLUG = "/slug"
         const val SEARCH = "/search"
     }
 

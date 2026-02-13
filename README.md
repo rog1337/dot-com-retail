@@ -246,9 +246,6 @@ Base path: `/api/v1/product`
     - `GET /api/v1/product/{id}`
     - Returns a single `ProductDto`.
 
-- #### Get product by slug
-    - `GET /api/v1/product/slug/{slug}`
-
 - #### Create product
     - `POST /api/v1/product`
     - `multipart/form-data` with:

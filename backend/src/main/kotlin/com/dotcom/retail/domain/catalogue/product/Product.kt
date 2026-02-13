@@ -36,7 +36,6 @@ class Product(
 
     var name: String,
     var sku: String,
-    var slug: String,
 
     var description: String? = null,
 
@@ -82,6 +81,6 @@ class Product(
     }
 
     override fun toString(): String {
-        return "Product(id=$id, name='$name', sku='$sku', slug='$slug', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive, ${super.toString()})"
+        return "Product(id=$id, name='$name', sku='$sku', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive, ${super.toString()})"
     }
 }
