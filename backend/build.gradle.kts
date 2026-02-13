@@ -50,6 +50,7 @@ dependencies {
 	implementation("com.google.zxing:core:3.5.4")
 	implementation("com.google.zxing:javase:3.5.4")
 	implementation("dev.samstevens.totp:totp:1.7.1")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

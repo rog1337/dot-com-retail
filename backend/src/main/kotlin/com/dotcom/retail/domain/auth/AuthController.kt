@@ -1,6 +1,5 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.annotation.RequiresTwoFactorAuth
 import com.dotcom.retail.common.constants.ApiRoutes.Auth
 import com.dotcom.retail.domain.auth.dto.RegisterResponse
 import com.dotcom.retail.domain.auth.dto.LoginRequest
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
@@ -74,7 +72,6 @@ class AuthController(
             .body(RefreshResponse(tokenPair.accessToken))
     }
 
-    @RequiresTwoFactorAuth
     @GetMapping(Auth.LOGOUT)
     fun logout(@AuthenticationPrincipal userId: UUID): ResponseEntity<Void> {
         authService.logout(userId)

@@ -65,13 +65,11 @@ password:
   reset:
     duration: 15m
 file:
-  dir: ${user.dir}/uploads
-  image:
-    dir: ${file.dir}/images
-    product:
-      dir: ${file.image.dir}/product
-    brand:
-      dir: ${file.image.dir}/brand
+  root: ${UPLOAD_PATH}
+  structure:
+    images: images
+    products: product
+    brands: brand
 
 cloudflare:
   turnstile:

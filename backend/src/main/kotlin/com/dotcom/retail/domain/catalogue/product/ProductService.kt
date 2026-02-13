@@ -23,7 +23,6 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
-import java.nio.file.Paths
 
 @Service
 class ProductService(
@@ -31,14 +30,13 @@ class ProductService(
     private val brandService: BrandService,
     private val categoryService: CategoryService,
     private val imageService: ImageService,
-    fileProperties: FileProperties,
+    private val fileProperties: FileProperties,
     private val eventPublisher: ApplicationEventPublisher,
     private val productMapper: ProductMapper,
     private val productSpecifications: ProductSpecifications,
 ) {
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
-    private val productImagePath = Paths.get(fileProperties.image.product.dir)
 
     fun find(id: Long): Product? {
         return productRepository.findByIdOrNull(id)
@@ -94,7 +92,7 @@ class ProductService(
                     val meta = imageMetaMap[file.originalFilename]
                         ?: throw NotFoundException(ImageMetadata::class.simpleName, file.originalFilename)
 
-                    val image = imageService.create(file, meta, productImagePath)
+                    val image = imageService.create(file, meta, fileProperties.productPath)
                     processedImages.add(image)
                 }
             } catch (e: Exception) {
@@ -189,7 +187,7 @@ class ProductService(
                     val file = imageFiles.find { it.originalFilename == meta.fileName }
                         ?: throw NotFoundException(ImageMetadata::class.simpleName, meta.fileName)
 
-                    val image = imageService.create(file, meta, productImagePath)
+                    val image = imageService.create(file, meta, fileProperties.productPath)
                     newImages.add(image)
                 }
             }
