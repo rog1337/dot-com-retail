@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.catalogue.brand
 
 import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.config.properties.FileProperties
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
 import com.dotcom.retail.domain.catalogue.image.ImageService
@@ -14,7 +15,8 @@ import org.springframework.transaction.annotation.Transactional
 class BrandService(
     private val brandRepository: BrandRepository,
     private val imageService: ImageService,
-    private val eventPublisher: ApplicationEventPublisher
+    private val eventPublisher: ApplicationEventPublisher,
+    private val fileProperties: FileProperties
 ) {
 
     fun find(id: Long): Brand? {
@@ -49,7 +51,8 @@ class BrandService(
             val currentImage = brand.image
 
             if (currentImage != null && currentImage.id != newImage.id) {
-                eventPublisher.publishEvent(ImageDeletionEvent(listOf(currentImage.filePath)))
+                val imagePath = fileProperties.brandPathFull.resolve(currentImage.fileName)
+                eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath.toString())))
             }
 
             brand.image = newImage
@@ -66,17 +69,19 @@ class BrandService(
     @Transactional
     fun delete(id: Long) {
         val brand = get(id)
-        val brandImagePath = brand.image?.filePath
+        val brandImageName = brand.image?.fileName
 
-        if (brandImagePath != null) {
-            eventPublisher.publishEvent(ImageDeletionEvent(listOf(brandImagePath)))
+        if (brandImageName != null) {
+            val imagePath = fileProperties.brandPathFull.resolve(brandImageName)
+            eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath.toString())))
         }
 
         brandRepository.delete(brand)
     }
 
     fun getImage(id: Long): Resource {
-        val imagePath = imageService.getActiveBrandImagePath(id)
+        val imageFileName = imageService.getActiveBrandImagePath(id)
+        val imagePath = fileProperties.brandPath.resolve(imageFileName)
         val imageFile = imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, id)
         return imageFile
     }

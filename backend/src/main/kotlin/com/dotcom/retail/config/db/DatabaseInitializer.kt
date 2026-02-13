@@ -13,8 +13,6 @@ import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageRepository
 import com.dotcom.retail.domain.catalogue.product.Product
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
-import com.dotcom.retail.domain.catalogue.product.ProductService
-import org.springframework.aot.hint.TypeReference.listOf
 import org.springframework.boot.CommandLineRunner
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -22,7 +20,6 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
-import java.nio.file.Paths
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -86,15 +83,15 @@ class DatabaseInitializer(
     fun images(name: String): Image {
         val path = fileProperties.productPath
         val imageData = mapOf(
-            "Michelin" to path.resolve("sample_michelin.jpg"),
-            "Continental" to path.resolve("sample_continental.jpg"),
-            "Goodyear" to path.resolve("sample_goodyear.png"),
-            "Pirelli" to path.resolve("sample_pirelli.jpg"),
-            "Bridgestone" to path.resolve("sample_bridgestone.jpeg"),
+            "Michelin" to "sample_michelin.jpg",
+            "Continental" to "sample_continental.jpg",
+            "Goodyear" to "sample_goodyear.png",
+            "Pirelli" to "sample_pirelli.jpg",
+            "Bridgestone" to "sample_bridgestone.jpeg",
         )
 
         val image = Image(
-                filePath = imageData[name].toString() ?: throw RuntimeException("Image $name not found"),
+                fileName = imageData[name].toString() ?: throw RuntimeException("Image $name not found"),
                 contentType = MediaType.IMAGE_JPEG_VALUE,
                 sortOrder = 0,
                 altText = name

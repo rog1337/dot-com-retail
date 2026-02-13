@@ -50,7 +50,7 @@ class ImageService(
         val filePath = directory.resolve(uniqueName)
 
         var image = Image(
-            filePath = filePath.toString(),
+            fileName = filePath.toString(),
             sortOrder = metaData.sortOrder,
             contentType = MediaType.IMAGE_JPEG_VALUE
         )
@@ -75,8 +75,8 @@ class ImageService(
         return true
     }
 
-    fun findFile(path: String): Resource? {
-        val fullPath = fileProperties.imagesPath.resolve(path)
+    fun findFile(fileName: Path): Resource? {
+        val fullPath = fileProperties.imagesPath.resolve(fileName)
         val resource: Resource = UrlResource(fullPath.toUri())
         if (!resource.exists() || !resource.isReadable) return null
         return resource;

@@ -97,7 +97,9 @@ class ProductService(
                 }
             } catch (e: Exception) {
                 if (processedImages.isNotEmpty()) {
-                    eventPublisher.publishEvent(ImageDeletionEvent(processedImages.map { it.filePath }))
+                    eventPublisher.publishEvent(ImageDeletionEvent(
+                        processedImages.map { fileProperties.productPathFull.resolve(it.fileName).toString() })
+                    )
                 }
                 throw e
             }
@@ -193,12 +195,12 @@ class ProductService(
             }
             val toRemove = currentImages.subtract(newExistingImages.toSet())
             currentImages.removeAll(toRemove)
-            eventPublisher.publishEvent(ImageDeletionEvent(toRemove.map { it.filePath }))
+            eventPublisher.publishEvent(ImageDeletionEvent(toRemove.map { fileProperties.productPathFull.resolve(it.fileName).toString() }))
 
             currentImages.addAll(newImages)
         } catch (e: Exception) {
             if (newImages.isNotEmpty()) {
-                eventPublisher.publishEvent(ImageDeletionEvent(newImages.map { it.filePath }))
+                eventPublisher.publishEvent(ImageDeletionEvent(newImages.map { fileProperties.productPathFull.resolve(it.fileName).toString() }))
             }
             throw e
         }
@@ -210,7 +212,7 @@ class ProductService(
         val images = product.images
 
         if (images.isNotEmpty()) {
-            val filePaths = images.map { it.filePath }
+            val filePaths = images.map { fileProperties.productPathFull.resolve(it.fileName).toString() }
             eventPublisher.publishEvent(ImageDeletionEvent(filePaths))
         }
 
@@ -218,7 +220,8 @@ class ProductService(
     }
 
     fun getImage(productId: Long, imageId: Long): Resource {
-        val imagePath = imageService.getActiveProductImagePath(productId, imageId)
+        val imageFileName = imageService.getActiveProductImagePath(productId, imageId)
+        val imagePath = fileProperties.productPath.resolve(imageFileName)
         return imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, imageId)
     }
 
