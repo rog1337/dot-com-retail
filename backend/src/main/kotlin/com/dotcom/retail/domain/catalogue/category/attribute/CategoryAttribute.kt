@@ -15,17 +15,17 @@ class CategoryAttribute(
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
-    val attribute: String,
-    val label: String,
-    val unit: String? = null,
-    val dataType: AttributeDataType,
-    val filterType: FilterType,
-    val displayOrder: Int,
-    val isPublic: Boolean,
+    var attribute: String,
+    var label: String,
+    var unit: String? = null,
+    var dataType: AttributeDataType,
+    var filterType: FilterType,
+    var displayOrder: Int,
+    var isPublic: Boolean,
 
     @ManyToMany(mappedBy = "attributes")
     @JsonBackReference
-    val categories: MutableSet<Category> = mutableSetOf()
+    var categories: MutableSet<Category> = mutableSetOf()
 
     ) : BaseEntity() {
 

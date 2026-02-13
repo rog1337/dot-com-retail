@@ -27,7 +27,7 @@ class Category(
     var parent: Category? = null,
 
     @OneToMany(mappedBy = "parent", cascade = [CascadeType.ALL])
-    val children: MutableList<Category> = mutableListOf(),
+    var children: MutableList<Category> = mutableListOf(),
 
     @ManyToMany
     @JoinTable(

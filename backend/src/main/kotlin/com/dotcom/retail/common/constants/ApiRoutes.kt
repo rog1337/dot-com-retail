@@ -44,6 +44,10 @@ object ApiRoutes {
 
     object Category {
         const val BASE = "$V1/category"
+
+        object Attribute {
+            const val BASE = "${Category.BASE}/attribute"
+        }
     }
 
     object Image {
