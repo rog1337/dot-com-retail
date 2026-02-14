@@ -94,19 +94,6 @@ class JwtService(
         return request.cookies?.firstOrNull { it.name == TokenType.REFRESH }?.value
     }
 
-    fun sendResponse(response: HttpServletResponse, status: HttpStatus, message: String? = null, details: String? = null) {
-        response.contentType = MediaType.APPLICATION_JSON_VALUE
-        response.status = status.value()
-
-        val body = mapOf(
-            "status" to status.value(),
-            "message" to message,
-            "details" to details
-        )
-
-        ObjectMapper().writeValue(response.outputStream, body)
-    }
-
     fun isRefreshToken(type: String): Boolean {
         return TokenType.REFRESH == type
     }
