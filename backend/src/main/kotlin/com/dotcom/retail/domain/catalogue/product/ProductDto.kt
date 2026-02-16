@@ -37,12 +37,12 @@ data class CreateProduct (
     val sku: String,
     val description: String?,
     val price: BigDecimal = BigDecimal.ZERO,
-    val salePrice: BigDecimal = price,
+    val salePrice: BigDecimal = BigDecimal.ZERO,
     val stock: Int,
     val brandId: Long?,
     val categoryId: Long?,
-    val images: List<ImageMetadata>?,
-    val attributes: List<ProductAttributeDto>?,
+    val images: List<ImageMetadata>? = listOf(),
+    val attributes: List<ProductAttributeDto>? = listOf(),
     val isActive: Boolean = false,
 )
 
