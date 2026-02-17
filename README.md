@@ -9,13 +9,9 @@
 - [Configuration](#configuration)
 - [API](#api)
 
----
-
 ## Requirements
 
 - Docker
-
----
 
 
 ## Tech stack
@@ -33,7 +29,6 @@
 
 ## Project overview
 
----
 
 Backend for an e‑commerce catalogue focused on selling car tyres, 
 but can support a wide range of products.
@@ -42,15 +37,12 @@ It provides:
 
 #### Product catalogue
 
----
-
 - Products with schemaless **PostgreSQL**'s jsonb attribute model.
 - Categories with attributes for providing filters/facets, stored in an EAV model.
 - Images for products and brands.
 
 #### Authentication & security
 
----
 
 - Registration with **Captcha** (Cloudflare Turnstile) integration and login 
 via **email/password** or **OAuth2** (Google)
@@ -67,7 +59,6 @@ via **email/password** or **OAuth2** (Google)
 
 #### Infrastructure & tooling
 
----
 
 - PostgreSQL as the primary database
 - Redis for caching / token versioning
@@ -79,13 +70,11 @@ via **email/password** or **OAuth2** (Google)
 The backend is designed to sit behind a separate frontend which is going to be implemented
 in the next task and exposes its API under `/api/v1/**`.
 
----
 
 ### Entity Relationship Diagram
 
 ![Entity Relationship Diagram](./shopping_erd.png)
 
----
 
 ### Setup
 #### 1. Clone the repository
@@ -95,7 +84,6 @@ git clone https://gitea.kood.tech/romangadjak/i-love-shopping1.git dot-com-retai
 cd dot-com-retail
 ```
 
----
 
 #### 2. Configure environment variables / secrets
 
@@ -135,7 +123,6 @@ You can skip this if you want, the .env file contains 2 dummy keys:
 
 You can edit environment variables per container for PostgresSQL and Redis in `docker-compose-dev.yml` and the backend in `docker-compose.yml`
 
----
 
 #### 3. Build and run the container
 ```
@@ -153,7 +140,6 @@ or from your IDE (import the ``.env`` file)
 
 Spring starts on **port 8080** by default.
 
----
 
 
 #### Stopping
@@ -169,13 +155,11 @@ cd backend
 ./gradlew bootRun
 ```
 
----
 
 ### Endpoints
 
 [Endpoints](./endpoints.md)
 
----
 
 ### File storage
 
