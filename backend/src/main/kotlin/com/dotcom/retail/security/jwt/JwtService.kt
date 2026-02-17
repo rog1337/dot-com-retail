@@ -103,14 +103,14 @@ class JwtService(
     }
 
     // for testing
-    fun generateDevToken(): String {
-        return Jwts
-            .builder()
-            .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS)
-            .claim(TOKEN_VERSION_CLAIM, Instant.now().epochSecond)
-            .subject("55e62730-36a8-46f9-9d06-e7677254d0fa")
-            .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
-            .signWith(KEY)
-            .compact()
-    }
+//    fun generateDevToken(): String {
+//        return Jwts
+//            .builder()
+//            .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS)
+//            .claim(TOKEN_VERSION_CLAIM, Instant.now().epochSecond)
+//            .subject("55e62730-36a8-46f9-9d06-e7677254d0fa")
+//            .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
+//            .signWith(KEY)
+//            .compact()
+//    }
 }

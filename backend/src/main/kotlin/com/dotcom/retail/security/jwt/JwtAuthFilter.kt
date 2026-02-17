@@ -38,9 +38,6 @@ class JwtAuthFilter(
     ) {
 
         try {
-            val generatedToken = jwtService.generateDevToken()
-            println("generated token: \n$generatedToken")
-
             val authHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
             if (authHeader.isNullOrBlank() || !authHeader.startsWith(JwtService.BEARER_PREFIX)) {
                 filterChain.doFilter(request, response)
