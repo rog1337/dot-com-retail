@@ -11,13 +11,13 @@ data class BrandDto(
 
 data class CreateBrand(
     val name: String,
-    val image: Long,
+    val image: Long? = null,
     val isActive: Boolean
 )
 
 data class EditBrand(
     val id: Long,
     val name: String,
-    val image: Long?,
+    val image: Long? = null,
     val isActive: Boolean,
 )

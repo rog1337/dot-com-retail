@@ -34,7 +34,7 @@ class CategoryAttributeService(
         if (findByAttribute(data.attribute).isNotEmpty()) throw AlreadyExistsException(CategoryAttribute::class.simpleName, data.attribute)
         val categories = data.categories?.map { categoryService.get(it) }?.toMutableSet() ?: mutableSetOf()
 
-        val attribute = CategoryAttribute(
+        val attribute = save(CategoryAttribute(
             attribute = data.attribute,
             label = data.label,
             unit = data.unit,
@@ -43,7 +43,7 @@ class CategoryAttributeService(
             displayOrder = data.displayOrder,
             isPublic = data.isPublic,
             categories = categories
-        )
+        ))
 
         categories.forEach { it.attributes.add(attribute) }
         categoryService.saveAll(categories.toList())

@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.catalogue.category.attribute
 
 import com.dotcom.retail.common.constants.ApiRoutes
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -27,7 +28,7 @@ class CategoryAttributeController(
     @PostMapping
     fun create(@RequestBody data: CreateCategoryAttribute): ResponseEntity<CategoryAttributeDto> {
         val attribute = categoryAttributeService.create(data)
-        return ResponseEntity<CategoryAttributeDto>.ok().body(categoryAttributeMapper.toDto(attribute))
+        return ResponseEntity<CategoryAttributeDto>.status(HttpStatus.CREATED).body(categoryAttributeMapper.toDto(attribute))
     }
 
     @PutMapping("{id}")

@@ -2,7 +2,7 @@ package com.dotcom.retail.common.exception
 
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
-import org.apache.tomcat.util.http.fileupload.impl.InvalidContentTypeException
+import jakarta.servlet.ServletException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.core.Ordered
@@ -16,6 +16,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.multipart.MultipartException
+import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.resource.NoResourceFoundException
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -79,5 +80,15 @@ class GlobalExceptionHandler {
     @ExceptionHandler(MultipartException::class)
     fun handleMultipartException(e: MultipartException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid multipart request")
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException::class)
+    fun handleMissingServletRequestPart(e: MissingServletRequestPartException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
+    }
+
+    @ExceptionHandler(ServletException::class)
+    fun handleServletException(e: ServletException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
     }
 }

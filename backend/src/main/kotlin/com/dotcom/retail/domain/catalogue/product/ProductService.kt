@@ -110,6 +110,12 @@ class ProductService(
     fun edit(id: Long, dto: EditProductDto, imageFiles: List<MultipartFile>?): Product {
         val product = get(id)
 
+        val attributes = if (!dto.attributes.isNullOrEmpty()) {
+            dto.attributes.groupBy { it.name }?.mapValues {
+                    (_, list) -> list.flatMap { it.values}
+            } as MutableMap<String, MutableList<Any>>? ?: throw BadRequestException("Invalid attributes")
+        } else mutableMapOf()
+
         product.apply {
             name = dto.name
             sku = dto.sku
@@ -119,7 +125,7 @@ class ProductService(
             stock = dto.stock
             brand = dto.brandId?.let(brandService::get)
             category = dto.categoryId?.let(categoryService::get)
-            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values }} as MutableMap<String, MutableList<Any>>
+            this.attributes = attributes
             isActive = dto.isActive
         }
 
