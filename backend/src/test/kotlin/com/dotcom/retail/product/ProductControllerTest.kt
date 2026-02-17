@@ -1,24 +1,26 @@
 package com.dotcom.retail.product
 
+import com.dotcom.retail.common.BaseIntegrationTest
 import com.dotcom.retail.common.constants.ApiRoutes
-import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.domain.catalogue.product.*
 import com.dotcom.retail.security.jwt.JwtService
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.ninjasquad.springmockk.MockkBean
+import com.jayway.jsonpath.JsonPath
+import com.ninjasquad.springmockk.SpykBean
 import io.mockk.every
-import io.mockk.just
-import io.mockk.runs
-import io.mockk.verify
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
+import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
@@ -26,23 +28,24 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import org.springframework.web.servlet.function.RequestPredicates.contentType
 import java.math.BigDecimal
 
-@WebMvcTest(ProductController::class)
-@AutoConfigureMockMvc(addFilters = false)
-class ProductControllerTest(
-    @Autowired val mockMvc: MockMvc,
-    @Autowired val objectMapper: ObjectMapper
-) {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+class ProductControllerTest : BaseIntegrationTest() {
 
-    @MockkBean lateinit var jwtService: JwtService
+    @Autowired lateinit var mockMvc: MockMvc
+    @Autowired lateinit var objectMapper: ObjectMapper
 
-    @MockkBean(relaxed = true) lateinit var jwtProperties: JwtProperties
+    @Autowired
+    private lateinit var jwtService: JwtService
 
-    @MockkBean(relaxed = true) lateinit var productService: ProductService
-    @MockkBean(relaxed = true) lateinit var productMapper: ProductMapper
-    @MockkBean lateinit var productRepository: ProductRepository
+    @SpykBean lateinit var productService: ProductService
+    @Autowired private lateinit var productRepository: ProductRepository
 
-    val product = Product(
-        id = 1,
+    @Autowired lateinit var productMapper: ProductMapper
+
+    var product = Product(
+        id = 0,
         name = "testProduct",
         sku = "testSku",
         description = "testDescription",
@@ -52,12 +55,12 @@ class ProductControllerTest(
         brand = null,
         category = null,
         images = mutableListOf(),
-        attributes = null,
+        attributes = mutableMapOf(),
         isActive = true,
         searchContent = null,
     )
 
-    val createProduct = CreateProduct(
+    var createProduct = CreateProduct(
         name = "testProduct",
         sku = "testSku",
         price = BigDecimal(10),
@@ -67,11 +70,11 @@ class ProductControllerTest(
         brandId = null,
         categoryId = null,
         images = null,
-        attributes = null,
+        attributes = listOf(),
         isActive = true,
     )
 
-    val editProduct = EditProductDto(
+    var editProduct = EditProductDto(
         id = 1,
         name = "editProduct",
         sku = "sku",
@@ -85,6 +88,12 @@ class ProductControllerTest(
         attributes = null,
         isActive = true,
     )
+
+    @BeforeEach
+    fun seed() {
+        productRepository.deleteAll()
+        product = productRepository.save(product)
+    }
 
     @Test
     fun `create should return 201 with created product`() {
@@ -100,9 +109,12 @@ class ProductControllerTest(
                 .file(imagePart)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
         )
-            .andExpect(status().isCreated)
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.id").exists())
+            .andExpect {
+                status().isCreated
+                content().contentType(MediaType.APPLICATION_JSON)
+                jsonPath("$.id").exists()
+                assertTrue(productRepository.existsById(JsonPath.read<Long>(it.response.contentAsString, "$.id")))
+            }
     }
 
     @Test
@@ -128,8 +140,7 @@ class ProductControllerTest(
 
     @Test
     fun `edit returns 200 with edited product`() {
-        val editRequest = editProduct.copy()
-        val editJson = objectMapper.writeValueAsString(editRequest)
+        val editJson = objectMapper.writeValueAsString(editProduct)
 
         val productPart = MockMultipartFile(
             "product",
@@ -151,9 +162,9 @@ class ProductControllerTest(
         val imageId = 1
         val mockResource = ByteArrayResource("image-data".toByteArray())
 
-        every { productService.getImage(1, 1) } returns mockResource
+        every { productService.getImage(any(), any()) } returns mockResource
 
-        val url = "${ApiRoutes.Product.BASE}/1${ApiRoutes.Product.IMAGE}/$imageId"
+        val url = "${ApiRoutes.Product.BASE}/${product.id}${ApiRoutes.Product.IMAGE}/$imageId"
 
         mockMvc.perform(get(url))
             .andExpect(status().isOk)
@@ -167,8 +178,6 @@ class ProductControllerTest(
         val pageable = PageRequest.of(0, 10)
         val productPage = PageImpl(listOf(product))
 
-        every { productRepository.searchByText(query, pageable) } returns productPage
-
         mockMvc.perform(get(ApiRoutes.Product.BASE + ApiRoutes.Product.SEARCH)
             .param("query", query))
             .andExpect(status().isOk)
@@ -178,11 +187,9 @@ class ProductControllerTest(
 
     @Test
     fun `delete returns 204 no content`() {
-        every { productService.delete(product.id) } just runs
-
         mockMvc.perform(delete("${ApiRoutes.Product.BASE}/{id}", product.id))
             .andExpect(status().isNoContent)
 
-        verify(exactly = 1) { productService.delete(product.id) }
+        assertFalse(productRepository.existsById(product.id))
     }
 }

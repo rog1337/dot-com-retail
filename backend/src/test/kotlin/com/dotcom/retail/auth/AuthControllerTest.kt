@@ -1,13 +1,16 @@
 package com.dotcom.retail.auth
 
+import com.dotcom.retail.common.BaseIntegrationTest
 import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.common.constants.ApiRoutes.Auth
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
+import com.dotcom.retail.domain.auth.AuthController
 import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.dto.LoginRequest
 import com.dotcom.retail.domain.auth.dto.PasswordResetRequest
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
+import com.dotcom.retail.domain.catalogue.product.ProductController
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserRepository
 import com.dotcom.retail.security.jwt.JwtService
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -42,9 +46,8 @@ import java.time.Duration
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@Testcontainers
 @ActiveProfiles("test")
-class AuthIntegrationTest {
+class AuthIntegrationTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -72,12 +75,6 @@ class AuthIntegrationTest {
 
     @MockkBean(relaxed = true)
     private lateinit var emailService: com.dotcom.retail.common.service.EmailService
-
-    companion object {
-        @Container
-        @ServiceConnection
-        val postgres = PostgreSQLContainer("postgres:16-alpine")
-    }
 
     @BeforeEach
     fun setup() {
