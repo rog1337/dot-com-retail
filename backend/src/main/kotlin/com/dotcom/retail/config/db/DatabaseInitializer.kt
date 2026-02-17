@@ -11,6 +11,7 @@ import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeRe
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageRepository
+import com.dotcom.retail.domain.catalogue.image.ImageService
 import com.dotcom.retail.domain.catalogue.product.Product
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
 import org.springframework.boot.CommandLineRunner
@@ -20,6 +21,7 @@ import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.nio.file.Files
 import java.util.UUID
 import javax.sql.DataSource
 
@@ -31,7 +33,8 @@ class DatabaseInitializer(
     private val imageRepository: ImageRepository,
     private val categoryAttributeRepository: CategoryAttributeRepository,
     private val categoryRepository: CategoryRepository,
-    private val dataSource: DataSource
+    private val dataSource: DataSource,
+    private val imageService: ImageService
 ) : CommandLineRunner {
 
     private val logger = org.slf4j.LoggerFactory.getLogger(this.javaClass)
@@ -81,7 +84,6 @@ class DatabaseInitializer(
     }
 
     fun images(name: String): Image {
-        val path = fileProperties.productPath
         val imageData = mapOf(
             "Michelin" to "sample_michelin.jpg",
             "Continental" to "sample_continental.jpg",
@@ -96,6 +98,15 @@ class DatabaseInitializer(
                 sortOrder = 0,
                 altText = name
             )
+
+        val path = fileProperties.productPathFull
+        val sourceDir = path.resolve("sample/${imageData[name]}")
+        val targetDir = path.resolve("${imageData[name]}")
+
+        if (!Files.exists(targetDir)) {
+            Files.copy(sourceDir, targetDir)
+        }
+
         return imageRepository.save(image)
     }
 
