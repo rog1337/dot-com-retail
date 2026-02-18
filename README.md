@@ -6,8 +6,8 @@
 - [Project overview](#project-overview)
 - [Entity Relationship Diagram](#entity-relationship-diagram)
 - [Setup](#setup)
-- [Configuration](#configuration)
-- [API](#api)
+- [Endpoints](./endpoints.md)
+- [File storage](#file-storage)
 
 ## Requirements
 
@@ -144,16 +144,6 @@ Spring starts on **port 8080** by default.
 
 #### Stopping
 ``docker compose down``
-
-#### 4. Build and run the backend
-
-From the `backend` directory:
-
-```bash
-cd backend
-./gradlew clean build
-./gradlew bootRun
-```
 
 
 ### Endpoints
