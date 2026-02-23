@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.exception.TwoFactorAuthException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.TwoFactorAuthError
 import com.dotcom.retail.domain.auth.dto.TwoFactorSetupResponse
 import com.dotcom.retail.domain.user.UserService
 import dev.samstevens.totp.code.DefaultCodeGenerator
@@ -46,8 +47,8 @@ class TwoFactorAuthService(private val userService: UserService) {
 
     fun verify(userId: UUID, code: String) {
         val user = userService.getById(userId)
-        val secret = user.twoFactorSecret ?: throw TwoFactorAuthException.secretNotSet()
-        if (!verifyCode(secret, code)) throw TwoFactorAuthException.invalidCode()
+        val secret = user.twoFactorSecret ?: throw AppException(TwoFactorAuthError.TWO_FACTOR_SECRET_NOT_SET)
+        if (!verifyCode(secret, code)) throw AppException(TwoFactorAuthError.INVALID_TWO_FACTOR_CODE)
 
         user.twoFactorEnabled = true
         userService.save(user)

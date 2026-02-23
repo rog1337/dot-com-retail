@@ -1,7 +1,7 @@
 package com.dotcom.retail.domain.user
 
-import com.dotcom.retail.common.exception.AlreadyExistsException
-import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.UserError
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -18,7 +18,7 @@ class UserService(
     }
 
     fun getById(id: UUID): User {
-        return userRepository.findByIdOrNull(id) ?: throw NotFoundException(User::class.simpleName, id)
+        return userRepository.findByIdOrNull(id) ?: throw AppException(UserError.USER_NOT_FOUND.withIdentifier(id))
     }
 
     fun findById(id: UUID): User? {
@@ -26,7 +26,7 @@ class UserService(
     }
 
     fun getByEmail(email: String): User {
-        return userRepository.findByEmail(email) ?: throw NotFoundException(User::class.simpleName, email)
+        return userRepository.findByEmail(email) ?: throw AppException(UserError.USER_NOT_FOUND.withIdentifier(email))
     }
 
     fun findByEmail(email: String): User? {
@@ -35,7 +35,7 @@ class UserService(
 
     fun create(params: CreateUserParams): User {
         val email = params.email
-        if (userRepository.existsByEmail(email)) throw AlreadyExistsException(User::class.simpleName, email)
+        if (userRepository.existsByEmail(email)) throw AppException(UserError.USER_ALREADY_EXISTS.withIdentifier(email))
 
         val hashedPasswordOrNull =
             if (params.password != null )

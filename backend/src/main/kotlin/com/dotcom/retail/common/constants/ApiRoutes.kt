@@ -60,4 +60,18 @@ object ApiRoutes {
         const val BASE = "$V1/filter"
         const val FILTER = "/filter"
     }
+
+    object Cart {
+        const val BASE = "$V1/cart"
+    }
+
+    object Order {
+        const val BASE = "$V1/order"
+    }
+
+    object Payment {
+        const val BASE = "$V1/webhook"
+        const val STRIPE = "/stripe"
+
+    }
 }

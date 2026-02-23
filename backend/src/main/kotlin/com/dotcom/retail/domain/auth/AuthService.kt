@@ -1,9 +1,11 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.exception.AuthException
-import com.dotcom.retail.common.exception.JwtException
-import com.dotcom.retail.common.exception.NotFoundException
-import com.dotcom.retail.common.exception.TwoFactorAuthException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.AuthError
+import com.dotcom.retail.common.exception.CaptchaError
+import com.dotcom.retail.common.exception.JwtError
+import com.dotcom.retail.common.exception.TwoFactorAuthError
+import com.dotcom.retail.common.exception.UserError
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
@@ -51,7 +53,7 @@ class AuthService(
     }
 
     fun register(request: RegisterRequest): User {
-        if (!verifyCaptcha(request.captchaToken)) throw AuthException.captchaFailed()
+        if (!verifyCaptcha(request.captchaToken)) throw AppException(CaptchaError.CAPTCHA_FAILED)
 
         val user = userService.create(
             CreateUserParams(
@@ -93,13 +95,13 @@ class AuthService(
     }
 
      fun login(request: LoginRequest): LoginResult {
-         val user = userService.findByEmail(request.email) ?: throw NotFoundException(User::class.simpleName, request.email)
+         val user = userService.findByEmail(request.email) ?: throw AppException(UserError.USER_NOT_FOUND.withIdentifier(request.email))
          val storedPassword = user.password
 
          if (!passwordEncoder.matches(request.password, storedPassword)) {
-             if (storedPassword.isNullOrEmpty()) throw AuthException.nonLocalAccount()
+             if (storedPassword.isNullOrEmpty()) throw AppException(AuthError.NON_LOCAL_ACCOUNT.withIdentifier(request.email))
 
-             throw AuthException.incorrectPassword()
+             throw AppException(AuthError.INVALID_CREDENTIALS)
          }
 
          if (user.twoFactorEnabled) {
@@ -107,10 +109,10 @@ class AuthService(
                  return LoginResult.TwoFactorRequired()
              }
 
-             val secret = user.twoFactorSecret ?: throw TwoFactorAuthException.secretNotSet()
+             val secret = user.twoFactorSecret ?: throw AppException(TwoFactorAuthError.TWO_FACTOR_SECRET_NOT_SET)
 
              if (!twoFactorAuthService.verifyCode(secret, request.twoFactorCode))
-                 throw TwoFactorAuthException.invalidCode()
+                 throw AppException(TwoFactorAuthError.INVALID_TWO_FACTOR_CODE)
          }
 
          val tokenPair = jwtService.rotateTokens(user.id)
@@ -123,15 +125,15 @@ class AuthService(
      }
 
     fun refreshTokens(request: HttpServletRequest): TokenPair {
-        val refreshToken = jwtService.extractJwtFromCookie(request) ?: throw JwtException.missing(TokenType.REFRESH)
+        val refreshToken = jwtService.extractJwtFromCookie(request) ?: throw AppException(JwtError.JWT_REFRESH_MISSING)
         val claims = jwtService.validateTokenAndExtractClaims(refreshToken)
 
         val type = claims.getValue(JwtService.TOKEN_TYPE_CLAIM).toString()
-        if (!jwtService.isRefreshToken(type)) throw JwtException()
+        if (!jwtService.isRefreshToken(type)) throw AppException(JwtError.JWT_REFRESH_MISSING)
 
         val userId = claims.subject
         val version = claims.getValue(JwtService.TOKEN_VERSION_CLAIM).toString()
-        if (!jwtService.isValidTokenVersion(userId, version)) throw JwtException.revoked(TokenType.REFRESH)
+        if (!jwtService.isValidTokenVersion(userId, version)) throw AppException(JwtError.JWT_REFRESH_REVOKED)
 
         return TokenPair(jwtService.rotateTokens(UUID.fromString(userId)).accessToken, jwtService.rotateTokens(UUID.fromString(userId)).refreshToken)
     }

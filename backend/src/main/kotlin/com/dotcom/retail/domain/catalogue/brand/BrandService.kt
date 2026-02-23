@@ -1,6 +1,8 @@
 package com.dotcom.retail.domain.catalogue.brand
 
-import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.BrandError
+import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.config.properties.FileProperties
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
@@ -24,7 +26,7 @@ class BrandService(
     }
 
     fun get(id: Long): Brand {
-        return brandRepository.findById(id).orElseThrow { NotFoundException(Brand::class.simpleName, id) }
+        return brandRepository.findById(id).orElseThrow { AppException(BrandError.BRAND_NOT_FOUND.withIdentifier(id)) }
     }
 
     fun save(brand: Brand): Brand {
@@ -82,7 +84,7 @@ class BrandService(
     fun getImage(id: Long): Resource {
         val imageFileName = imageService.getActiveBrandImagePath(id)
         val imagePath = fileProperties.brandPath.resolve(imageFileName)
-        val imageFile = imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, id)
+        val imageFile = imageService.findFile(imagePath) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(id))
         return imageFile
     }
 }

@@ -1,5 +1,8 @@
 package com.dotcom.retail.common.exception
 
+import com.fasterxml.jackson.databind.exc.InvalidNullException
+import com.fasterxml.jackson.databind.exc.MismatchedInputException
+import com.stripe.exception.SignatureVerificationException
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import jakarta.servlet.ServletException
@@ -43,7 +46,9 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(AppException::class)
     fun handleAppException(e: AppException): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(e.status, e.message)
+        val problemDetail = ProblemDetail.forStatusAndDetail(e.status, e.message)
+        problemDetail.setProperty("code", e.code)
+        return problemDetail
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
@@ -59,7 +64,18 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMessageNotReadableException::class)
     fun handleJsonError(e: HttpMessageNotReadableException): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Invalid request body")
+        val cause = e.cause
+
+        val message = if (cause is MismatchedInputException) {
+            val fieldName = cause.path.first().fieldName
+
+            when (cause) {
+                is InvalidNullException -> "Field '$fieldName' is required"
+                else -> "Invalid value for field '$fieldName'"
+            }
+        } else "Invalid request body"
+
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message)
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException::class)
@@ -90,5 +106,13 @@ class GlobalExceptionHandler {
     @ExceptionHandler(ServletException::class)
     fun handleServletException(e: ServletException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, e.message)
+    }
+
+    @ExceptionHandler(SignatureVerificationException::class)
+    fun handleSignatureVerificationException(e: SignatureVerificationException): ProblemDetail {
+        val errorDetail = TransactionError.STRIPE_SIGNATURE_VERIFICATION_FAILED
+        val problemDetail = ProblemDetail.forStatusAndDetail(errorDetail.status, errorDetail.message)
+        problemDetail.setProperty("code", errorDetail.code)
+        return problemDetail
     }
 }

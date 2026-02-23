@@ -1,8 +1,9 @@
 package com.dotcom.retail.security.aspect
 
 import com.dotcom.retail.common.annotation.RequiresTwoFactorAuth
-import com.dotcom.retail.common.exception.AuthException
-import com.dotcom.retail.common.exception.TwoFactorAuthException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.AuthError
+import com.dotcom.retail.common.exception.TwoFactorAuthError
 import com.dotcom.retail.domain.auth.TwoFactorAuthService
 import com.dotcom.retail.domain.user.UserService
 import org.aspectj.lang.ProceedingJoinPoint
@@ -31,7 +32,7 @@ class TwoFactorAuthAspect(
         val userId = SecurityContextHolder.getContext()
             .authentication
             ?.principal as? UUID
-            ?: throw AuthException.notAuthenticated()
+            ?: throw AppException(AuthError.REQUEST_NOT_AUTHENTICATED)
 
         val user = userService.getById(userId)
 
@@ -40,9 +41,9 @@ class TwoFactorAuthAspect(
             val twoFactorCode = request.getHeader(TwoFactorAuthService.TWO_FACTOR_HEADER)
             val secret = user.twoFactorSecret
 
-            if (secret.isNullOrBlank()) throw TwoFactorAuthException.secretNotSet()
-            if (twoFactorCode.isNullOrBlank()) throw TwoFactorAuthException(requiresTwoFactorAuth.message)
-            if (!twoFactorAuthService.verifyCode(secret, twoFactorCode)) throw TwoFactorAuthException.invalidCode()
+            if (secret.isNullOrBlank()) throw AppException(TwoFactorAuthError.TWO_FACTOR_SECRET_NOT_SET)
+            if (twoFactorCode.isNullOrBlank()) throw AppException(TwoFactorAuthError.TWO_FACTOR_REQUIRED)
+            if (!twoFactorAuthService.verifyCode(secret, twoFactorCode)) throw AppException(TwoFactorAuthError.INVALID_TWO_FACTOR_CODE)
         }
 
         return joinPoint.proceed()

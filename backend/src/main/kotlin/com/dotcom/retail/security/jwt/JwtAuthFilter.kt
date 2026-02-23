@@ -1,6 +1,7 @@
 package com.dotcom.retail.security.jwt
 
-import com.dotcom.retail.common.exception.JwtException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.JwtError
 import com.dotcom.retail.config.security.SecurityMatchers
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -53,7 +54,7 @@ class JwtAuthFilter(
                 throw Exception()
 
             if (!jwtService.isValidTokenVersion(claims.subject, claims.getValue(JwtService.TOKEN_VERSION_CLAIM).toString()))
-                throw JwtException()
+                throw AppException(JwtError.JWT_ACCESS_REVOKED)
 
             val id = claims.subject
             if (id.isNullOrBlank()) throw Exception()

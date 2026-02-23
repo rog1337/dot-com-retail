@@ -1,8 +1,7 @@
 package com.dotcom.retail.domain.catalogue.image
 
-import com.dotcom.retail.common.exception.FileIsNotAnImageException
-import com.dotcom.retail.common.exception.ImageIsEmptyException
-import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.config.properties.FileProperties
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
@@ -28,7 +27,7 @@ class ImageService(
     private val logger = LoggerFactory.getLogger(ImageService::class.java)
 
     fun get(id: Long): Image {
-        return imageRepository.findById(id).orElseThrow { NotFoundException(Image::class.simpleName, id) }
+        return imageRepository.findById(id).orElseThrow { AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(id)) }
     }
 
     fun findAllById(ids: List<Long>): List<Image> {
@@ -62,11 +61,11 @@ class ImageService(
     }
 
     fun write(file: MultipartFile, pathToFile: Path): Boolean {
-        if (file.isEmpty) throw ImageIsEmptyException(file)
+        if (file.isEmpty) throw AppException(ImageError.IMAGE_EMPTY)
 
-        val contentType = file.contentType ?: throw FileIsNotAnImageException(file)
+        val contentType = file.contentType ?: throw AppException(ImageError.NOT_AN_IMAGE)
         if (!contentType.startsWith(CONTENT_TYPE_IMAGE_PREFIX)) {
-            throw FileIsNotAnImageException(file)
+            throw AppException(ImageError.NOT_AN_IMAGE)
         }
 
         Files.copy(file.inputStream, pathToFile)
@@ -83,11 +82,11 @@ class ImageService(
     }
 
     fun getActiveProductImagePath(productId: Long, imageId: Long): String {
-        return imageRepository.findActiveProductImagePath(productId, imageId) ?: throw NotFoundException(Image::class.simpleName, imageId)
+        return imageRepository.findActiveProductImagePath(productId, imageId) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(imageId))
     }
 
     fun getActiveBrandImagePath(brandId: Long): String {
-        return imageRepository.findActiveBrandImagePath(brandId) ?: throw NotFoundException(Image::class.simpleName)
+        return imageRepository.findActiveBrandImagePath(brandId) ?: throw AppException(ImageError.IMAGE_NOT_FOUND)
     }
 
     fun edit(data: EditImage): Image {

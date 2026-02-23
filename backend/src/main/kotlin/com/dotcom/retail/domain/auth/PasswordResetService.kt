@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.exception.PasswordResetException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.PasswordResetError
 import com.dotcom.retail.common.service.EmailService
 import com.dotcom.retail.config.properties.PasswordProperties
 import com.dotcom.retail.domain.auth.dto.PasswordResetRequest
@@ -10,15 +11,15 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import java.time.Duration
-import java.util.UUID
+import java.util.*
 
 @Service
 class PasswordResetService(
-    val passwordProperties: PasswordProperties,
     private val userService: UserService,
     private val emailService: EmailService,
     private val redisTemplate: StringRedisTemplate,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    passwordProperties: PasswordProperties,
 ) {
     private val passwordResetDuration: Duration = passwordProperties.reset.duration
 
@@ -33,7 +34,7 @@ class PasswordResetService(
     }
 
     fun resetPassword(data: PasswordResetVerification) {
-        val email = getEmail(data.token) ?: throw PasswordResetException.invalid()
+        val email = getEmail(data.token) ?: throw AppException(PasswordResetError.PASSWORD_RESET_TOKEN_INVALID)
         val user = userService.getByEmail(email)
         user.passwordHash = passwordEncoder.encode(data.password)
         userService.save(user)

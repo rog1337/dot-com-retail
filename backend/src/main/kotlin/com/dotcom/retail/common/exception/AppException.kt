@@ -2,26 +2,14 @@ package com.dotcom.retail.common.exception
 
 import org.springframework.http.HttpStatus
 
-abstract class AppException(
-    override val message: String = "Error",
-    val status: HttpStatus = HttpStatus.BAD_REQUEST,
-    cause: Throwable? = null
-) : RuntimeException(message, cause)
+open class AppException(
+    error: AppError,
+    val code: String = error.code,
+    val status: HttpStatus = error.status,
+    val identifier: Any? = error.identifier,
+    override val message: String = formatMessage(error.message, identifier)
+) : RuntimeException(error.message)
 
-open class NotFoundException(
-    resourceName: String?,
-    identifier: Any? = null
-) : AppException(
-    message = "$resourceName not found${identifier?.let { ": $it" } ?: ""}",
-    status = HttpStatus.NOT_FOUND
-)
-
-open class AlreadyExistsException(
-    resourceName: String?,
-    identifier: Any? = null
-) : AppException(
-    message = "$resourceName already exists${identifier?.let { ": $it" } ?: ""}",
-    status = HttpStatus.CONFLICT
-)
-
-open class BadRequestException(message: String = "Bad request") : AppException(message, HttpStatus.BAD_REQUEST)
+fun formatMessage(message: String, identifier: Any?): String {
+    return identifier?.let { return "$message: $it" } ?: message
+}

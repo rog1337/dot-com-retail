@@ -1,7 +1,7 @@
 package com.dotcom.retail.domain.catalogue.category.attribute
 
-import com.dotcom.retail.common.exception.AlreadyExistsException
-import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.CategoryAttributeError
 import com.dotcom.retail.domain.catalogue.category.CategoryService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -14,7 +14,7 @@ class CategoryAttributeService(
 ) {
 
     fun get(id: Long): CategoryAttribute {
-        return categoryAttributeRepository.findByIdOrNull(id) ?: throw NotFoundException(CategoryAttribute::class.simpleName, id)
+        return categoryAttributeRepository.findByIdOrNull(id) ?: throw AppException(CategoryAttributeError.CATEGORY_ATTRIBUTE_NOT_FOUND.withIdentifier(id))
     }
 
     fun save(it: CategoryAttribute): CategoryAttribute {
@@ -31,7 +31,7 @@ class CategoryAttributeService(
 
     @Transactional
     fun create(data: CreateCategoryAttribute): CategoryAttribute {
-        if (findByAttribute(data.attribute).isNotEmpty()) throw AlreadyExistsException(CategoryAttribute::class.simpleName, data.attribute)
+        if (findByAttribute(data.attribute).isNotEmpty()) throw AppException(CategoryAttributeError.CATEGORY_ATTRIBUTE_ALREADY_EXISTS.withIdentifier(data.attribute))
         val categories = data.categories?.map { categoryService.get(it) }?.toMutableSet() ?: mutableSetOf()
 
         val attribute = save(CategoryAttribute(
