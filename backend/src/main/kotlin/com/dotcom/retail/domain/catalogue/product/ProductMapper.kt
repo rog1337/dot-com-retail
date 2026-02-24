@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.domain.catalogue.brand.BrandMapper
+import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.category.CategoryMapper
 import com.dotcom.retail.domain.catalogue.image.ImageMapper
 import org.springframework.stereotype.Component
@@ -11,18 +12,18 @@ class ProductMapper(
     private val brandMapper: BrandMapper,
     private val categoryMapper: CategoryMapper
 ) {
-    fun toDto(product: Product): ProductDto = ProductDto(
-        id = product.id,
-        name = product.name,
-        sku = product.sku,
-        description = product.description,
-        price = product.price,
-        salePrice = product.salePrice,
-        stock = product.stock,
-        brand = product.brand?.let { brandMapper.toDto(it) },
-        category = product.category?.let { categoryMapper.toDto(it) },
-        attributes = product.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
-        images = product.images.map { image -> imageMapper.toProductImageDto(image, product.id) },
-        isActive = product.isActive,
+    fun toDto(p: Product): ProductDto = ProductDto(
+        id = p.id,
+        name = p.name,
+        sku = p.sku,
+        description = p.description,
+        price = p.price,
+        salePrice = p.salePrice,
+        stock = p.stock,
+        brand = p.brand?.let { brandMapper.toDto(it) },
+        category = p.category?.let { ProductCategoryDto(it.id) },
+        attributes = p.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
+        images = p.images.map { image -> imageMapper.toProductImageDto(image, p.id) },
+        isActive = p.isActive,
     )
 }

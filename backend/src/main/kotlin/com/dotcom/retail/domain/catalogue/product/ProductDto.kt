@@ -19,7 +19,7 @@ data class ProductDto (
     val salePrice: BigDecimal,
     val stock: Int,
     val brand: BrandDto?,
-    val category: CategoryDto?,
+    val category: ProductCategoryDto?,
     val attributes: List<ProductAttributeDto>?,
     val images: List<ImageDto>?,
     val isActive: Boolean,
@@ -75,4 +75,8 @@ data class ProductQueryParams(
     val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
     val sort: SortOrder = SortOrder.TOP,
     val price: RangeData? = null
+)
+
+data class ProductCategoryDto(
+    val id: Long,
 )
