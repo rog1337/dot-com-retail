@@ -1,7 +1,9 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.exception.BadRequestException
-import com.dotcom.retail.common.exception.NotFoundException
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.ImageError
+import com.dotcom.retail.common.exception.ImageMetadataError
+import com.dotcom.retail.common.exception.ProductError
 import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.config.properties.FileProperties
@@ -43,11 +45,26 @@ class ProductService(
     }
 
     fun get(id: Long): Product {
-        return productRepository.findByIdOrNull(id) ?: throw NotFoundException(Product::class.simpleName, id)
+        return productRepository.findByIdOrNull(id) ?: throw AppException(ProductError.PRODUCT_NOT_FOUND.withIdentifier(id))
     }
 
     fun findAll(specification: Specification<Product>, pageable: Pageable): Page<Product> {
         return productRepository.findAll(specification, pageable)
+    }
+
+    fun findAllById(ids: Set<Long>): Set<Product> {
+        if (ids.isEmpty()) return emptySet()
+        return productRepository.findAllById(ids).toSet()
+    }
+
+    fun getAllById(ids: Set<Long>): Set<Product> {
+        if (ids.isEmpty()) throw AppException(ProductError.PRODUCT_IDS_NOT_PROVIDED)
+        val products = productRepository.findAllById(ids).toSet()
+        if (products.size != ids.size) {
+            throw AppException(ProductError.PRODUCT_NOT_FOUND.withIdentifier(ids.subtract(products.map { it.id }.toSet())))
+        }
+
+        return products
     }
 
     fun query(params: ProductQueryParams): PagedResponse<ProductDto> {
@@ -81,7 +98,7 @@ class ProductService(
                 val imageMetaMap = dto.images.associateBy { it.fileName }
                 imageFiles.forEach { file ->
                     val meta = imageMetaMap[file.originalFilename]
-                        ?: throw NotFoundException(ImageMetadata::class.simpleName, file.originalFilename)
+                        ?: throw AppException(ImageMetadataError.IMAGE_METADATA_NOT_PROVIDED.withIdentifier(file.originalFilename.toString()))
 
                     val image = imageService.create(file, meta, fileProperties.productPath)
                     processedImages.add(image)
@@ -112,8 +129,8 @@ class ProductService(
 
         val attributes = if (!dto.attributes.isNullOrEmpty()) {
             dto.attributes.groupBy { it.name }?.mapValues {
-                    (_, list) -> list.flatMap { it.values}
-            } as MutableMap<String, MutableList<Any>>? ?: throw BadRequestException("Invalid attributes")
+                    (_, list) -> list.flatMap { it.values }
+            } as MutableMap<String, MutableList<Any>>? ?: throw AppException(ProductError.INVALID_PRODUCT_ATTRIBUTE)
         } else mutableMapOf()
 
         product.apply {
@@ -157,7 +174,7 @@ class ProductService(
             .keys
 
         if (duplicateSortOrder.isNotEmpty()) {
-            throw BadRequestException("Duplicate image sort order")
+            throw AppException(ImageMetadataError.IMAGE_METADATA_DUPLICATE_SORT_ORDER.withIdentifier(duplicateSortOrder.joinToString(",")))
         }
 
         val currentImages = product.images
@@ -168,7 +185,7 @@ class ProductService(
             imageMetadata.forEach { meta ->
                 if (meta.id != null) {
                     val existingImage = currentImages.find { it.id == meta.id }
-                        ?: throw NotFoundException(Image::class.simpleName, meta.id)
+                        ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(meta.id))
 
                     existingImage.apply {
                         sortOrder = meta.sortOrder
@@ -178,7 +195,7 @@ class ProductService(
                     newExistingImages.add(existingImage)
                 } else {
                     val file = imageFiles.find { it.originalFilename == meta.fileName }
-                        ?: throw NotFoundException(ImageMetadata::class.simpleName, meta.fileName)
+                        ?: throw AppException(ImageError.IMAGE_NOT_PROVIDED.withIdentifier(meta.fileName.toString()))
 
                     val image = imageService.create(file, meta, fileProperties.productPath)
                     newImages.add(image)
@@ -213,7 +230,7 @@ class ProductService(
     fun getImage(productId: Long, imageId: Long): Resource {
         val imageFileName = imageService.getActiveProductImagePath(productId, imageId)
         val imagePath = fileProperties.productPath.resolve(imageFileName)
-        return imageService.findFile(imagePath) ?: throw NotFoundException(Image::class.simpleName, imageId)
+        return imageService.findFile(imagePath) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(imageId))
     }
 
     fun getBrandCounts(categoryId: Long): List<ProductBrandCount> {

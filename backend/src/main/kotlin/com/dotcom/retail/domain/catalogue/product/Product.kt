@@ -1,34 +1,17 @@
 package com.dotcom.retail.domain.catalogue.product
 
+import com.dotcom.retail.common.BaseEntity
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.image.Image
-import com.dotcom.retail.common.BaseEntity
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.Index
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
-import jakarta.persistence.PrePersist
-import jakarta.persistence.PreUpdate
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 
 @Entity
-@Table(indexes = [
-    Index(columnList = "name"),
-    Index(columnList = "id"),
-    Index(columnList = "category_id"),
-])
 class Product(
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -63,7 +46,10 @@ class Product(
     var isActive: Boolean = false,
 
     @JsonIgnore
-    var searchContent: String? = null
+    var searchContent: String? = null,
+
+    @Version
+    var version: Long? = null
 
 ) : BaseEntity() {
 

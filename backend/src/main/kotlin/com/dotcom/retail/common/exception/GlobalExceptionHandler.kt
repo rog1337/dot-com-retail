@@ -66,8 +66,8 @@ class GlobalExceptionHandler {
     fun handleJsonError(e: HttpMessageNotReadableException): ProblemDetail {
         val cause = e.cause
 
-        val message = if (cause is MismatchedInputException) {
-            val fieldName = cause.path.first().fieldName
+        val message = if (cause is MismatchedInputException && !cause.path.isNullOrEmpty()) {
+            val fieldName = cause.path?.first()?.fieldName
 
             when (cause) {
                 is InvalidNullException -> "Field '$fieldName' is required"

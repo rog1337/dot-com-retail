@@ -26,49 +26,47 @@ class ProductSpecifications(
             }
 
             params.attributes?.forEach { attr ->
+                if (attr == null) return@forEach
                 if (attributeMetadataService.isSlider(attr.name)) {
                     val min = attr.values.firstOrNull()?.toString()?.toDoubleOrNull()
                     val max = attr.values.lastOrNull()?.toString()?.toDoubleOrNull()
 
-                    if (min != null || max != null) {
-                        val predicatesString = mutableListOf<String>()
-                        if (min != null) predicatesString.add("@ >= $min")
-                        if (max != null) predicatesString.add("@ <= $max")
+                    if (min == null || max == null) return@forEach
 
-                        val rangePred = predicatesString.joinToString(" && ")
-                        val jsonPath = "$.\"${attr.name}\"[*] ? ($rangePred)"
+                    val predicatesString = mutableListOf<String>()
+                    predicatesString.add("@ >= $min")
+                    predicatesString.add("@ <= $max")
 
-                        predicates.add(
-                            cb.isTrue(
-                                cb.function(
-                                    "jsonb_path_exists",
-                                    Boolean::class.java,
-                                    root.get<Any>("attributes"),
-                                    cb.literal(jsonPath)
-                                )
+                    val rangePred = predicatesString.joinToString(" && ")
+                    val jsonPath = "$.\"${attr.name}\"[*] ? ($rangePred)"
+
+                    predicates.add(
+                        cb.isTrue(
+                            cb.function(
+                                "jsonb_path_exists",
+                                Boolean::class.java,
+                                root.get<Any>("attributes"),
+                                cb.literal(jsonPath)
+                            )))
+                } else {
+                    val orPredicates = attr.values.mapNotNull { value ->
+                        val checkedValue = if (attributeMetadataService.isNumeric(attr.name)) {
+                            value.toString().toDoubleOrNull() ?: return@mapNotNull null
+                        } else value.toString()
+
+                        val json = objectMapper.writeValueAsString(mapOf(attr.name to listOf(checkedValue)))
+                        cb.isTrue(
+                            cb.function(
+                                "jsonb_contains",
+                                Boolean::class.java,
+                                root.get<Any>("attributes"),
+                                cb.literal(json)
                             )
                         )
-                    } else {
-                        val orPredicates = attr.values.mapNotNull { value ->
-                            val checkedValue = if (attributeMetadataService.isNumeric(attr.name)) {
-                                value.toString().toDoubleOrNull() ?: return@mapNotNull null
-                            } else value.toString()
+                    }.toTypedArray()
 
-                            val json = objectMapper.writeValueAsString(mapOf(attr.name to listOf(checkedValue)))
-                            cb.isTrue(
-                                cb.function(
-                                    "jsonb_contains",
-                                    Boolean::class.java,
-                                    root.get<Any>("attributes"),
-                                    cb.literal(json)
-                                )
-                            )
-                        }.toTypedArray()
-
-
-                        if (orPredicates.isNotEmpty()) {
-                            predicates.add(cb.or(*orPredicates))
-                        }
+                    if (orPredicates.isNotEmpty()) {
+                        predicates.add(cb.or(*orPredicates))
                     }
                 }
             }

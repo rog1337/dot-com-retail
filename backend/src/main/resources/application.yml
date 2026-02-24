@@ -27,6 +27,11 @@ spring:
       ddl-auto: update
 #      ddl-auto: create-drop
     show-sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
   mvc:
     problemdetails:
       enabled: true
@@ -75,3 +80,7 @@ cloudflare:
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY}
     verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+
+stripe:
+  apiKey: ${STRIPE_API_KEY}
+  webhookSecret: ${STRIPE_WEBHOOK_SECRET}

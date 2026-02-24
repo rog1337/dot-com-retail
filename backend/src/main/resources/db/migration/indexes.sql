@@ -1,6 +1,8 @@
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
+CREATE INDEX IF NOT EXISTS idx_products_active ON product (id) WHERE is_active = true;
+
 CREATE INDEX IF NOT EXISTS idx_product_attributes_gin ON product USING GIN (attributes);
 
 CREATE INDEX IF NOT EXISTS idx_product_name_trgm ON product USING GIN (name gin_trgm_ops);
