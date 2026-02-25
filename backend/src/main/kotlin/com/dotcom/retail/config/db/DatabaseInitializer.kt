@@ -92,8 +92,10 @@ class DatabaseInitializer(
             "Bridgestone" to "sample_bridgestone.jpeg",
         )
 
+        val fileName = UUID.randomUUID().toString() + imageData[name]
+
         val image = Image(
-                fileName = imageData[name].toString() ?: throw RuntimeException("Image $name not found"),
+                fileName = fileName,
                 contentType = MediaType.IMAGE_JPEG_VALUE,
                 sortOrder = 0,
                 altText = name
@@ -101,7 +103,7 @@ class DatabaseInitializer(
 
         val path = fileProperties.productPathFull
         val sourceDir = path.resolve("sample/${imageData[name]}")
-        val targetDir = path.resolve("${imageData[name]}")
+        val targetDir = path.resolve(fileName)
 
         if (!Files.exists(targetDir)) {
             Files.copy(sourceDir, targetDir)

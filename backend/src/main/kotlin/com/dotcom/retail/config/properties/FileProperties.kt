@@ -15,11 +15,12 @@ data class FileProperties (
     private val logger: Logger = LoggerFactory.getLogger(FileProperties::class.java)
 
     val rootPath: Path = Paths.get(root).toAbsolutePath().normalize()
-    val imagesPath: Path = rootPath.resolve(structure.images)
+    val imagesPath: Path = Paths.get(structure.images)
+    val imagesPathFull: Path = rootPath.resolve(structure.images)
     val productPath: Path = Paths.get(structure.products)
-    val productPathFull: Path = imagesPath.resolve(structure.products)
+    val productPathFull: Path = imagesPathFull.resolve(structure.products)
     val brandPath: Path = Paths.get(structure.brands)
-    val brandPathFull: Path = imagesPath.resolve(structure.brands)
+    val brandPathFull: Path = imagesPathFull.resolve(structure.brands)
 
     init {
         val pathList = listOf(productPathFull, brandPathFull)

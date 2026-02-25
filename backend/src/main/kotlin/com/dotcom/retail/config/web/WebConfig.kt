@@ -13,6 +13,6 @@ class WebConfig(
 
     override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
         registry.addResourceHandler(Image.SERVE)
-            .addResourceLocations("file:${fileProperties.imagesPath}")
+            .addResourceLocations("file:${fileProperties.imagesPathFull}")
     }
 }

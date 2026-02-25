@@ -6,14 +6,12 @@ import com.dotcom.retail.config.properties.FileProperties
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.UUID
 
 @Service
@@ -63,7 +61,7 @@ class ImageService(
         )
 
         image = imageRepository.save(image)
-        val filePath = fileProperties.imagesPath.resolve(directory).resolve(uniqueName)
+        val filePath = fileProperties.imagesPathFull.resolve(directory).resolve(uniqueName)
         write(imageFile, filePath)
 
         return image
@@ -84,7 +82,7 @@ class ImageService(
     }
 
     fun findFile(fileName: Path): Resource? {
-        val fullPath = fileProperties.imagesPath.resolve(fileName)
+        val fullPath = fileProperties.imagesPathFull.resolve(fileName)
         val resource: Resource = UrlResource(fullPath.toUri())
         if (!resource.exists() || !resource.isReadable) return null
         return resource;
