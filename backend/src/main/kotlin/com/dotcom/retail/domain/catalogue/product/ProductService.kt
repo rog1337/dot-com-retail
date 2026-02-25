@@ -16,7 +16,6 @@ import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import com.dotcom.retail.domain.catalogue.image.ImageService
 import org.slf4j.LoggerFactory
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.io.Resource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -106,7 +105,7 @@ class ProductService(
             } catch (e: Exception) {
                 if (processedImages.isNotEmpty()) {
                     eventPublisher.publishEvent(ImageDeletionEvent(
-                        processedImages.map { fileProperties.productPathFull.resolve(it.fileName).toString() })
+                        processedImages.map { fileProperties.productPathFull.resolve(it.fileName) })
                     )
                 }
                 throw e
@@ -124,94 +123,106 @@ class ProductService(
     }
 
     @Transactional
-    fun edit(id: Long, dto: EditProductDto, imageFiles: List<MultipartFile>?): Product {
+    fun update(id: Long, data: EditProductDto, imageFiles: List<MultipartFile>?, imageMetadata: List<ImageMetadata>?): Product {
         val product = get(id)
 
-        val attributes = if (!dto.attributes.isNullOrEmpty()) {
-            dto.attributes.groupBy { it.name }?.mapValues {
+        if (data.name.isPresent) product.name = data.name.get()
+        if (data.sku.isPresent) product.sku = data.sku.get()
+        if (data.description.isPresent) product.description = data.description.get()
+        if (data.price.isPresent) product.price = data.price.get()
+        if (data.salePrice.isPresent) product.salePrice = data.salePrice.get()
+        if (data.stock.isPresent) product.stock = data.stock.get()
+        if (data.isActive.isPresent) product.isActive = data.isActive.get()
+
+        if (data.brandId.isPresent) {
+            val brandId = data.brandId.get()
+            if (brandId == null) product.brand = null
+            else product.brand = brandService.get(brandId)
+        }
+
+        if (data.categoryId.isPresent) {
+            val categoryId = data.categoryId.get()
+            if (categoryId == null) product.category = null
+            else product.category = categoryService.get(categoryId)
+        }
+
+        if (data.attributes.isPresent) {
+            val attributes = data.attributes.get()
+            if (attributes.isNullOrEmpty()) product.attributes = null
+            else {
+                product.attributes = attributes.groupBy { it.name }?.mapValues {
                     (_, list) -> list.flatMap { it.values }
-            } as MutableMap<String, MutableList<Any>>? ?: throw AppException(ProductError.INVALID_PRODUCT_ATTRIBUTE)
-        } else mutableMapOf()
-
-        product.apply {
-            name = dto.name
-            sku = dto.sku
-            description = dto.description
-            price = dto.price
-            salePrice = dto.salePrice
-            stock = dto.stock
-            brand = dto.brandId?.let(brandService::get)
-            category = dto.categoryId?.let(categoryService::get)
-            this.attributes = attributes
-            isActive = dto.isActive
+                } as MutableMap<String, MutableList<Any>>
+            }
         }
 
-        if (!dto.images.isNullOrEmpty() && !imageFiles.isNullOrEmpty()) {
-            handleImageUpdates(product, dto.images, imageFiles)
+        if (data.images.isPresent) {
+            val updatableImages = data.images.get()
+            if (updatableImages.isNullOrEmpty()) {
+                val images = product.images
+                eventPublisher.publishEvent(ImageDeletionEvent(images.map { fileProperties.productPathFull.resolve(it.fileName) }))
+                product.images.clear()
+            }
+            else {
+                val sortOrders = updatableImages.map { it.sortOrder }
+                checkDuplicateImageSortOrder(sortOrders)
+
+                val images = imageService.getAllById(updatableImages.map { it.id }.toSet()).toSet()
+                val toRemove = product.images.subtract(images)
+                eventPublisher.publishEvent(ImageDeletionEvent(toRemove.map { fileProperties.productPathFull.resolve(it.fileName) }))
+                product.images.removeAll(toRemove)
+
+                images.forEach { image ->
+                    image.sortOrder = updatableImages.find { it.id == image.id }?.sortOrder ?: 0
+                    image.altText = updatableImages.find { it.id == image.id }?.altText ?: ""
+                }
+            }
         }
+
+        if (!imageFiles.isNullOrEmpty() && !imageMetadata.isNullOrEmpty()) {
+            handleNewImages(product, imageMetadata, imageFiles)
+        }
+
         return save(product)
     }
 
-    /**
-     * Updates the [Product] images with the provided metadata and files.
-     * * This function performs a "diff" operation:
-     * 1. Updates existing images based on ID.
-     * 2. Uploads and attaches new image files.
-     * 3. Removes images that are no longer present in the metadata.
-     * @throws NotFoundException if a provided ID does not exist.
-     * @throws NotFoundException if a file is missing for new metadata.
-     * @throws BadRequestException if metadata contains duplicate sortOrders.
-     */
-    private fun handleImageUpdates(
+    private fun checkDuplicateImageSortOrder(values: List<Int>) {
+        val duplicateSortOrder = values.groupBy { it }
+            .filter { it.value.size > 1 }
+            .keys
+
+        if (duplicateSortOrder.isNotEmpty())
+            throw AppException(ImageMetadataError.IMAGE_METADATA_DUPLICATE_SORT_ORDER
+                .withIdentifier(duplicateSortOrder.joinToString(",")))
+    }
+
+    private fun handleNewImages(
         product: Product,
         imageMetadata: List<ImageMetadata>,
         imageFiles: List<MultipartFile>
     ) {
+        val sortOrders = imageMetadata.map { it.sortOrder }
+        checkDuplicateImageSortOrder(sortOrders)
 
-        val duplicateSortOrder = imageMetadata.map { it.sortOrder }
-            .groupBy { it }
-            .filter { it.value.size > 1 }
-            .keys
-
-        if (duplicateSortOrder.isNotEmpty()) {
-            throw AppException(ImageMetadataError.IMAGE_METADATA_DUPLICATE_SORT_ORDER.withIdentifier(duplicateSortOrder.joinToString(",")))
-        }
-
-        val currentImages = product.images
-
-        val newExistingImages = mutableListOf<Image>()
-        val newImages = mutableListOf<Image>()
+        val images = mutableListOf<Image>()
         try {
             imageMetadata.forEach { meta ->
-                if (meta.id != null) {
-                    val existingImage = currentImages.find { it.id == meta.id }
-                        ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(meta.id))
+                val file = imageFiles.find { it.originalFilename == meta.fileName }
+                    ?: throw AppException(ImageError.IMAGE_NOT_PROVIDED.withIdentifier(meta.fileName))
 
-                    existingImage.apply {
-                        sortOrder = meta.sortOrder
-                        altText = meta.altText
-                    }
-
-                    newExistingImages.add(existingImage)
-                } else {
-                    val file = imageFiles.find { it.originalFilename == meta.fileName }
-                        ?: throw AppException(ImageError.IMAGE_NOT_PROVIDED.withIdentifier(meta.fileName.toString()))
-
-                    val image = imageService.create(file, meta, fileProperties.productPath)
-                    newImages.add(image)
-                }
+                val image = imageService.create(file, meta, fileProperties.productPath)
+                images.add(image)
             }
-            val toRemove = currentImages.subtract(newExistingImages.toSet())
-            currentImages.removeAll(toRemove)
-            eventPublisher.publishEvent(ImageDeletionEvent(toRemove.map { fileProperties.productPathFull.resolve(it.fileName).toString() }))
 
-            currentImages.addAll(newImages)
         } catch (e: Exception) {
-            if (newImages.isNotEmpty()) {
-                eventPublisher.publishEvent(ImageDeletionEvent(newImages.map { fileProperties.productPathFull.resolve(it.fileName).toString() }))
+            println(images.isNotEmpty())
+            if (images.isNotEmpty()) {
+                eventPublisher.publishEvent(ImageDeletionEvent(images.map { fileProperties.productPathFull.resolve(it.fileName) }))
             }
             throw e
         }
+
+        product.images.addAll(images)
     }
 
     @Transactional
@@ -220,17 +231,11 @@ class ProductService(
         val images = product.images
 
         if (images.isNotEmpty()) {
-            val filePaths = images.map { fileProperties.productPathFull.resolve(it.fileName).toString() }
+            val filePaths = images.map { fileProperties.productPathFull.resolve(it.fileName) }
             eventPublisher.publishEvent(ImageDeletionEvent(filePaths))
         }
 
         productRepository.delete(product)
-    }
-
-    fun getImage(productId: Long, imageId: Long): Resource {
-        val imageFileName = imageService.getActiveProductImagePath(productId, imageId)
-        val imagePath = fileProperties.productPath.resolve(imageFileName)
-        return imageService.findFile(imagePath) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(imageId))
     }
 
     fun getBrandCounts(categoryId: Long): List<ProductBrandCount> {

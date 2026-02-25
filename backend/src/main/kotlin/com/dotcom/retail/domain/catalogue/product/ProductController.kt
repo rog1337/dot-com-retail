@@ -3,7 +3,7 @@ package com.dotcom.retail.domain.catalogue.product
 import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
-import org.springframework.core.io.Resource
+import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -43,20 +43,15 @@ class ProductController(
         return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.CREATED)
     }
 
-    @PutMapping("/{id}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
-    fun edit(
+    @PatchMapping("/{id}", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
+    fun update(
         @PathVariable id: Long,
-        @RequestPart("product") dto: EditProductDto,
+        @RequestPart("product") data: EditProductDto,
         @RequestPart("images") imageFiles: List<MultipartFile>?,
+        @RequestPart("image_metadata") imageMetadata: List<ImageMetadata>?
     ): ResponseEntity<ProductDto> {
-        val product = productService.edit(id, dto, imageFiles)
+        val product = productService.update(id, data, imageFiles, imageMetadata)
         return ResponseEntity<ProductDto>(productMapper.toDto(product), HttpStatus.OK)
-    }
-
-    @GetMapping("{productId}${ApiRoutes.Product.IMAGE}/{imageId}")
-    fun getImage(@PathVariable productId: Long, @PathVariable imageId: Long): ResponseEntity<Resource> {
-        val image = productService.getImage(productId, imageId)
-        return ResponseEntity<Resource>.ok().contentType(MediaType.IMAGE_JPEG).body(image)
     }
 
     @GetMapping(ApiRoutes.Product.SEARCH)

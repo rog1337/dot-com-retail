@@ -51,9 +51,8 @@ object ApiRoutes {
     }
 
     object Image {
+        const val SERVE = "/images/**"
         const val BASE = "$V1/image"
-        const val PRODUCT = "/product"
-        const val BRAND = "/brand"
     }
 
     object Filter {

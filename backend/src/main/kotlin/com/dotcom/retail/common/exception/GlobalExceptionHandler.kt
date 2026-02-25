@@ -67,7 +67,7 @@ class GlobalExceptionHandler {
         val cause = e.cause
 
         val message = if (cause is MismatchedInputException && !cause.path.isNullOrEmpty()) {
-            val fieldName = cause.path?.first()?.fieldName
+            val fieldName = cause.path?.last()?.fieldName
 
             when (cause) {
                 is InvalidNullException -> "Field '$fieldName' is required"

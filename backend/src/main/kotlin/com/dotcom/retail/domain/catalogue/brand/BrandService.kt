@@ -54,7 +54,7 @@ class BrandService(
 
             if (currentImage != null && currentImage.id != newImage.id) {
                 val imagePath = fileProperties.brandPathFull.resolve(currentImage.fileName)
-                eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath.toString())))
+                eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath)))
             }
 
             brand.image = newImage
@@ -75,7 +75,7 @@ class BrandService(
 
         if (brandImageName != null) {
             val imagePath = fileProperties.brandPathFull.resolve(brandImageName)
-            eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath.toString())))
+            eventPublisher.publishEvent(ImageDeletionEvent(listOf(imagePath)))
         }
 
         brandRepository.delete(brand)

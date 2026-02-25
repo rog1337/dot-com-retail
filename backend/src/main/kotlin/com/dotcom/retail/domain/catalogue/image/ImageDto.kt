@@ -17,10 +17,11 @@ data class CreateImage(
 data class EditImage(
     val id: Long,
     val sortOrder: Int,
+    val altText: String?,
 )
 
 data class ImageDeletionEvent(
-    val filePaths: List<String>,
+    val filePaths: List<Path>,
 )
 
 data class ImageStoringEvent(
@@ -29,8 +30,7 @@ data class ImageStoringEvent(
 )
 
 open class ImageMetadata(
-    val id: Long? = null,
-    val fileName: String? = null,
+    val fileName: String,
     val sortOrder: Int = 0,
     val altText: String? = null,
 )

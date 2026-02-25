@@ -1,3 +1,5 @@
+uploads/
+redis-data
 .env
 HELP.md
 .gradle

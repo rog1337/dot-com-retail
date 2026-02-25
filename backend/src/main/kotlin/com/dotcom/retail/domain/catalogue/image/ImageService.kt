@@ -6,6 +6,7 @@ import com.dotcom.retail.config.properties.FileProperties
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -30,6 +31,14 @@ class ImageService(
         return imageRepository.findById(id).orElseThrow { AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(id)) }
     }
 
+    fun getAllById(ids: Set<Long>): List<Image> {
+        val images = imageRepository.findAllById(ids)
+        if (images.size != ids.size) {
+            throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(ids.subtract(images.map { it.id }.toSet())))
+        }
+        return images
+    }
+
     fun findAllById(ids: List<Long>): List<Image> {
         return imageRepository.findAllById(ids)
     }
@@ -46,15 +55,15 @@ class ImageService(
     fun create(imageFile: MultipartFile, metaData: ImageMetadata, directory: Path): Image {
 
         val uniqueName = UUID.randomUUID().toString() + metaData.fileName
-        val filePath = directory.resolve(uniqueName)
 
         var image = Image(
-            fileName = filePath.toString(),
+            fileName = uniqueName,
             sortOrder = metaData.sortOrder,
             contentType = MediaType.IMAGE_JPEG_VALUE
         )
 
         image = imageRepository.save(image)
+        val filePath = fileProperties.imagesPath.resolve(directory).resolve(uniqueName)
         write(imageFile, filePath)
 
         return image
@@ -81,10 +90,6 @@ class ImageService(
         return resource;
     }
 
-    fun getActiveProductImagePath(productId: Long, imageId: Long): String {
-        return imageRepository.findActiveProductImagePath(productId, imageId) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(imageId))
-    }
-
     fun getActiveBrandImagePath(brandId: Long): String {
         return imageRepository.findActiveBrandImagePath(brandId) ?: throw AppException(ImageError.IMAGE_NOT_FOUND)
     }
@@ -95,14 +100,14 @@ class ImageService(
         return save(image)
     }
 
-    fun deleteFile(filePath: String): Boolean {
+    fun deleteFile(filePath: Path): Boolean {
         try {
-            if (Files.notExists(Paths.get(filePath))) {
+            if (Files.notExists(filePath)) {
                 logger.warn("Image file does not exist: $filePath")
                 return false
             }
 
-            Files.delete(Paths.get(filePath))
+            Files.delete(filePath)
             logger.info("Deleted image file: $filePath")
             return true
         } catch (e: Exception) {

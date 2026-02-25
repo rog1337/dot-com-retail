@@ -53,6 +53,7 @@ dependencies {
 	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15")
 	implementation("org.springframework.boot:spring-boot-starter-amqp")
 	implementation("com.stripe:stripe-java:31.3.0")
+	implementation("org.openapitools:jackson-databind-nullable:0.2.9")
 	developmentOnly("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15")
 	runtimeOnly("org.postgresql:postgresql")
 	annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
