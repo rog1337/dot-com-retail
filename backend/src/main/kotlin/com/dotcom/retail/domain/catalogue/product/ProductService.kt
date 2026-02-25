@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.springframework.util.MultiValueMap
 import org.springframework.web.multipart.MultipartFile
 
 @Service
@@ -36,6 +37,10 @@ class ProductService(
     private val productMapper: ProductMapper,
     private val productSpecifications: ProductSpecifications,
 ) {
+
+    companion object {
+        const val QUERY_PARAM_ATTRIBUTE_PREFIX = "attr_"
+    }
 
     private val logger = LoggerFactory.getLogger(this.javaClass)
 
@@ -66,12 +71,30 @@ class ProductService(
         return products
     }
 
-    fun query(params: ProductQueryParams): PagedResponse<ProductDto> {
-        val spec = productSpecifications.fromParams(params)
+    fun query(params: ProductQueryParams, attributes: MultiValueMap<String, String>?): PagedResponse<ProductDto> {
+        val query = productMapper.queryParamsToQuery(params, parseAttributeParams(attributes))
+        val spec = productSpecifications.fromParams(query)
         val pageable = PageRequest.of(params.page, params.pageSize)
         val productPage = findAll(spec, pageable)
 
         return PageMapper.toPagedResponse(productPage.map { product -> productMapper.toDto(product)})
+    }
+
+    private fun parseAttributeParams(attributes: MultiValueMap<String, String>?): List<ProductAttributeDto> {
+        if (attributes.isNullOrEmpty()) return emptyList()
+        return attributes.entries
+            .filter { (key,_) -> key.startsWith(QUERY_PARAM_ATTRIBUTE_PREFIX) }
+            .map { (key, values) ->
+                val attributeName = key.removePrefix(QUERY_PARAM_ATTRIBUTE_PREFIX)
+
+                val normalizedValues = values
+                    .flatMap { it.split(",") }
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+
+                ProductAttributeDto(attributeName, normalizedValues)
+            }
+            .filter { it.values.isNotEmpty() }
     }
 
 

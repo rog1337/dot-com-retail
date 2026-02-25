@@ -26,4 +26,16 @@ class ProductMapper(
         images = p.images.map { image -> imageMapper.toProductImageDto(image, p.id) },
         isActive = p.isActive,
     )
+
+    fun queryParamsToQuery(params: ProductQueryParams, attributes: List<ProductAttributeDto>): ProductQuery {
+        return ProductQuery(
+            categoryId = params.categoryId,
+            brands = params.brands,
+            attributes = attributes,
+            page = params.page,
+            pageSize = params.pageSize,
+            sort = params.sort,
+            price = params.price
+        )
+    }
 }

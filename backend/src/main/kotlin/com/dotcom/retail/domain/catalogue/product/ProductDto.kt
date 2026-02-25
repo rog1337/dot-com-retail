@@ -71,7 +71,16 @@ data class ProductBrandCount(
 data class ProductQueryParams(
     val categoryId: Long?,
     val brands: List<Long> = emptyList(),
-    val attributes: List<ProductAttributeDto>? = emptyList(),
+    val page: Int = PageConstants.DEFAULT_PAGE,
+    val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
+    val sort: SortOrder = SortOrder.TOP,
+    val price: RangeData? = null
+)
+
+data class ProductQuery(
+    val categoryId: Long?,
+    val brands: List<Long> = emptyList(),
+    val attributes: List<ProductAttributeDto> = emptyList(),
     val page: Int = PageConstants.DEFAULT_PAGE,
     val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
     val sort: SortOrder = SortOrder.TOP,

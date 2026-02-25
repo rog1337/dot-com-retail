@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.util.MultiValueMap
 import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -23,8 +24,10 @@ class ProductController(
     @GetMapping
     fun getProducts(
         @Validated params: ProductQueryParams,
+        @RequestParam attributes: MultiValueMap<String, String>?
     ): ResponseEntity<PagedResponse<ProductDto>> {
-        val products = productService.query(params)
+        println(attributes)
+        val products = productService.query(params, attributes)
         return ResponseEntity.ok(products)
     }
 

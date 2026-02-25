@@ -13,7 +13,7 @@ class ProductSpecifications(
     private val attributeMetadataService: AttributeMetadataService,
     private val objectMapper: ObjectMapper,
 ) {
-    fun fromParams(params: ProductQueryParams): Specification<Product> {
+    fun fromParams(params: ProductQuery): Specification<Product> {
         return Specification { root, query, cb ->
             val predicates = mutableListOf<Predicate>()
 
@@ -26,7 +26,6 @@ class ProductSpecifications(
             }
 
             params.attributes?.forEach { attr ->
-                if (attr == null) return@forEach
                 if (attributeMetadataService.isSlider(attr.name)) {
                     val min = attr.values.firstOrNull()?.toString()?.toDoubleOrNull()
                     val max = attr.values.lastOrNull()?.toString()?.toDoubleOrNull()
