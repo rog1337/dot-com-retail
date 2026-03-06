@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.image.Image
@@ -51,7 +51,7 @@ class Product(
     @Version
     var version: Long? = null
 
-) : BaseEntity() {
+) : AuditingEntity() {
 
     @PrePersist
     @PreUpdate

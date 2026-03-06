@@ -1,21 +1,11 @@
 package com.dotcom.retail.domain.cart
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
+import com.dotcom.retail.domain.order.ShippingType
 import com.dotcom.retail.domain.user.User
-import com.fasterxml.jackson.annotation.JsonManagedReference
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Entity
-import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
-import jakarta.persistence.OneToOne
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 @Entity
 @Table(name = "carts")
@@ -28,11 +18,17 @@ class Cart(
     var user: User? = null,
 
     var sessionId: String? = null,
+    var intentId: String? = null,
 
     @OneToMany(mappedBy = "cart", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    var items: MutableList<CartItem> = mutableListOf<CartItem>(),
+    var items: MutableSet<CartItem> = mutableSetOf<CartItem>(),
 
-) : BaseEntity() {
+    @Enumerated(EnumType.STRING)
+    var shippingType: ShippingType? = null,
+
+    var shippingCost: BigDecimal? = null,
+
+) : AuditingEntity() {
     fun addItem(item: CartItem) {
         items.add(item)
         item.cart = this
@@ -43,8 +39,16 @@ class Cart(
         item.cart = null
     }
 
-    fun getTotalPrice(): BigDecimal {
+    fun getSubTotalPrice(): BigDecimal {
         return items.sumOf { it.getTotalPrice() }
+    }
+
+    fun getTotalPrice(): BigDecimal {
+        return items.sumOf { it.getTotalPrice() }.add(shippingCost ?: BigDecimal.ZERO)
+    }
+
+    fun getTotalQuantity(): Int {
+        return items.sumOf { it.quantity }
     }
 
     override fun toString(): String {

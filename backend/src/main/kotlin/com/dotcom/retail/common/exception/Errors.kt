@@ -92,6 +92,7 @@ object CartError {
 object OrderError {
     val ORDER_ERROR = AppError("ORDER_ERROR", HttpStatus.BAD_REQUEST, "Order error")
     val ORDER_NOT_FOUND = AppError("ORDER_NOT_FOUND", HttpStatus.NOT_FOUND, "Order not found")
+    val ORDER_EMAIL_REQUIRED = AppError("ORDER_EMAIL_REQUIRED", HttpStatus.BAD_REQUEST, "Email is required")
 }
 
 object TransactionError {

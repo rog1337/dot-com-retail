@@ -12,12 +12,10 @@ class ImageMapper(
     private val appProperties: AppProperties,
     private val fileProperties: FileProperties,
 ) {
-    fun toProductImageDto(image: Image, productId: Long): ImageDto = ImageDto(
+    fun toProductImageDto(image: Image): ImageDto = ImageDto(
         id = image.id,
         url = URI.create(appProperties.url + "/" + fileProperties.imagesPath
             .resolve(fileProperties.productPath).resolve(image.fileName).toString()).toString(),
-//        url = URI.create(.toString(),
-//        "${appProperties.url}${fileProperties.imagesPath}/product/${image.fileName}",
         sortOrder = image.sortOrder,
         altText = image.altText
     )
@@ -28,4 +26,9 @@ class ImageMapper(
         sortOrder = image.sortOrder,
         altText = image.altText
     )
+
+    fun toCartImageDto(image: Image): String {
+        return URI.create(appProperties.url + "/" + fileProperties.imagesPath
+            .resolve(fileProperties.productPath).resolve(image.fileName).toString()).toString()
+    }
 }

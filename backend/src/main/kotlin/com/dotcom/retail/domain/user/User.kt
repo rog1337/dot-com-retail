@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.user
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
@@ -24,7 +24,7 @@ class User(
     var twoFactorEnabled: Boolean = false
 
 
-    ) : BaseEntity(), UserDetails {
+    ) : AuditingEntity(), UserDetails {
 
     override fun toString(): String {
         return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', ${super.toString()})"

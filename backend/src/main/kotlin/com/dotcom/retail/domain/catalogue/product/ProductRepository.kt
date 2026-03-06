@@ -3,12 +3,20 @@ package com.dotcom.retail.domain.catalogue.product
 import com.dotcom.retail.domain.catalogue.filter.ValueCount
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.jpa.domain.Specification
+import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import java.math.BigDecimal
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
+
+    @EntityGraph(attributePaths = ["images", "brand"])
+    override fun findAll(spec: Specification<Product>?, pageable: Pageable): Page<Product>
+
+    @EntityGraph(attributePaths = ["images", "brand"])
+    override fun findAllById(ids: Iterable<Long>): List<Product>
 
     @Query("""
     SELECT p.* FROM product p

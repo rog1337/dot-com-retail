@@ -26,7 +26,6 @@ class ProductController(
         @Validated params: ProductQueryParams,
         @RequestParam attributes: MultiValueMap<String, String>?
     ): ResponseEntity<PagedResponse<ProductDto>> {
-        println(attributes)
         val products = productService.query(params, attributes)
         return ResponseEntity.ok(products)
     }

@@ -1,14 +1,12 @@
 package com.dotcom.retail.domain.payment
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.order.Order
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
@@ -42,7 +40,7 @@ class Transaction (
     var externalId: String,
 
     var errorMessage: String? = null
-) : BaseEntity()
+) : AuditingEntity()
 
 enum class TransactionType { CHARGE, REFUND }
 enum class TransactionStatus { PENDING, SUCCESS, FAILED }

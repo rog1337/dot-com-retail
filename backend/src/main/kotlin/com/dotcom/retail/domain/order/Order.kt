@@ -1,22 +1,11 @@
 package com.dotcom.retail.domain.order
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
+import com.dotcom.retail.common.model.Contact
 import com.dotcom.retail.domain.user.User
-import jakarta.persistence.CascadeType
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
-import jakarta.persistence.FetchType
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
-import jakarta.persistence.OneToMany
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 @Entity
 @Table(name = "orders")
@@ -28,17 +17,21 @@ class Order(
     @JoinColumn(name = "user_id")
     var user: User? = null,
 
-    @Column(nullable = false)
-    var email: String,
-
-    @Column(nullable = false)
-    var shippingName: String,
-
-    @Column(nullable = false)
-    var shippingAddress: String,
+    var sessionId: String? = null,
+    var intentId: String,
 
     @Enumerated(EnumType.STRING)
     var status: OrderStatus = OrderStatus.PENDING_PAYMENT,
+
+    @Embedded
+    var contact: Contact? = null,
+
+    var notes: String? = null,
+
+    @Enumerated(EnumType.STRING)
+    var shippingType: ShippingType? = ShippingType.STANDARD,
+
+    var shippingCost: BigDecimal? = null,
 
     @Column(nullable = false)
     var totalAmount: BigDecimal,
@@ -46,7 +39,7 @@ class Order(
     @OneToMany(mappedBy = "order", cascade = [CascadeType.ALL], orphanRemoval = true)
     var items: MutableList<OrderItem> = mutableListOf(),
 
-) : BaseEntity() {
+    ) : AuditingEntity() {
 
     fun addItem(item: OrderItem) {
         items.add(item)
@@ -62,4 +55,9 @@ enum class OrderStatus {
     SHIPPED,
     DELIVERED,
     CANCELLED
+}
+
+enum class ShippingType {
+    STANDARD,
+    EXPRESS
 }

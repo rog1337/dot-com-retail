@@ -38,5 +38,6 @@ class EmailService(
         message.setTo(email)
         message.subject = "Order Failed"
         message.text = "Your order with id $orderId failed."
+        mailSender.send(message)
     }
 }

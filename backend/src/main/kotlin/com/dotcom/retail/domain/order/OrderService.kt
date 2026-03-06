@@ -2,16 +2,19 @@ package com.dotcom.retail.domain.order
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.CartError
-import com.dotcom.retail.common.exception.ProductError
+import com.dotcom.retail.common.exception.OrderError
+import com.dotcom.retail.common.model.AddressFields
+import com.dotcom.retail.common.model.Contact
+import com.dotcom.retail.domain.cart.CartMapper
 import com.dotcom.retail.domain.cart.CartService
 import com.dotcom.retail.domain.catalogue.product.ProductService
-import com.dotcom.retail.domain.order.dto.OrderRequest
-import com.dotcom.retail.domain.order.dto.OrderResponse
+import com.dotcom.retail.domain.order.dto.CreateOrderResponse
+import com.dotcom.retail.domain.order.dto.SubmitOrderRequest
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.UserService
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.util.*
 
 @Service
@@ -20,52 +23,114 @@ class OrderService(
     private val userService: UserService,
     private val productService: ProductService,
     private val orderRepository: OrderRepository,
-    private val paymentService: PaymentService
+    private val paymentService: PaymentService,
+    private val cartMapper: CartMapper
 ) {
-
     @Transactional
-    fun createOrder(userId: UUID?, sessionId: String?, request: OrderRequest): OrderResponse {
-        val cart = cartService.getCart(userId, sessionId)
+    fun createOrder(userId: UUID?, sessionId: String?): CreateOrderResponse {
+        val cart = cartService.getCartWithLock(userId, sessionId)
         if (cart.items.isEmpty()) throw AppException(CartError.CART_EMPTY)
+        cartService.checkStock(cart)
 
+        val intentId = cart.intentId
+        if (intentId != null) {
+            val order = getByPaymentIntentId(intentId)
+            if (order.status == OrderStatus.PENDING_PAYMENT) {
+                val intent = paymentService.retrieveIntent(intentId)
+                return CreateOrderResponse(
+                    orderId = order.id.toString(),
+                    status = order.status,
+                    clientSecret = intent.clientSecret
+                )
+            }
+        }
+
+        val shippingCost = cartService.calculateShippingCost(ShippingType.STANDARD)
         val order = Order(
             user = userId?.let { userService.getById(userId) },
-            email = request.email,
-            shippingName = request.shippingName,
-            shippingAddress = request.shippingAddress,
+            sessionId = sessionId,
             status = OrderStatus.PENDING_PAYMENT,
-            totalAmount = BigDecimal.ZERO,
+            shippingCost = shippingCost,
+            totalAmount = shippingCost,
+            intentId = "placeholder"
         )
 
-        cart.items.forEach {
-            val product = it.product
+        cart.shippingType = ShippingType.STANDARD
+        cart.shippingCost = shippingCost
 
-            if (product.stock < it.quantity) throw AppException(ProductError.PRODUCT_INSUFFICIENT_STOCK.withIdentifier(product.id))
-
-            product.stock -= it.quantity
-            productService.save(product)
-
-            val orderItem = OrderItem(
-                order = order,
-                product = product,
-                quantity = it.quantity,
-                price = product.price,
-            )
-
-            order.addItem(orderItem)
-            order.totalAmount = order.totalAmount.add(it.getTotalPrice())
-        }
+        val amount = cart.getTotalPrice()
+        val paymentIntent = paymentService.createPaymentIntent(amount)
+        order.intentId = paymentIntent.id
+        cart.intentId = paymentIntent.id
+        cartService.save(cart)
         save(order)
 
-        val paymentIntent = paymentService.createPaymentIntent(order)
-
-        cartService.clearCart(cart)
-
-        return OrderResponse(
+        return CreateOrderResponse(
             orderId = order.id.toString(),
             status = order.status,
             clientSecret = paymentIntent.clientSecret,
         )
+    }
+
+    @Transactional
+    fun submitOrder(userId: UUID?, sessionId: String?, request: SubmitOrderRequest): Order {
+        val cart = cartService.getCart(userId, sessionId)
+        if (cart.items.isEmpty()) throw AppException(CartError.CART_EMPTY)
+        cartService.checkStock(cart)
+
+        val intentId = cart.intentId
+            ?: throw AppException(OrderError.ORDER_NOT_FOUND)
+
+        val order = getByPaymentIntentId(intentId)
+
+        val email = request.email
+            ?: if (userId != null) userService.getById(userId).email
+            else throw AppException(OrderError.ORDER_EMAIL_REQUIRED)
+
+        val requestAddress = request.address
+
+        val address = AddressFields(
+            streetLine1 = requestAddress.streetLine1,
+            streetLine2 = requestAddress.streetLine2,
+            city = requestAddress.city,
+            stateOrProvince = requestAddress.stateOrProvince,
+            postalCode = requestAddress.postalCode,
+            country = requestAddress.country
+        )
+        val contact = Contact(
+            name = request.name,
+            email = email,
+            phone = request.phone,
+            address = address
+        )
+        order.contact = contact
+        order.notes = request.notes
+
+        val shippingType = request.shippingType
+        val shippingCost = cartService.calculateShippingCost(shippingType)
+        var totalAmount = shippingCost
+
+        val orderItems = cart.items.map {
+            totalAmount = totalAmount.add(it.getTotalPrice())
+            OrderItem(
+                order = order,
+                product = it.product,
+                productName = it.product.name,
+                quantity = it.quantity,
+                price = it.priceSnapshot,
+            )
+        } as MutableList<OrderItem>
+
+        order.items.clear()
+        order.items.addAll(orderItems)
+
+        order.apply {
+            this.shippingType = shippingType
+            this.shippingCost = shippingCost
+            this.totalAmount = totalAmount
+        }
+
+        return save(order)
     }
 
     fun save(order: Order): Order {
@@ -74,6 +139,8 @@ class OrderService(
 
     fun handleSuccess(order: Order): Order {
         order.status = OrderStatus.PAID
+        val cart = cartService.getByPaymentIntentId(order.intentId)
+        cartService.delete(cart)
         return save(order)
     }
 
@@ -95,6 +162,50 @@ class OrderService(
             product.stock += item.quantity
             productService.save(product)
         }
+    }
+
+    fun getOrders(userId: UUID?, sessionId: String?): Set<Order> {
+        if (userId != null) {
+            val orders = findByUserId(userId)
+            if (orders.isNotEmpty()) return orders
+            throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(userId))
+        }
+        if (sessionId != null) {
+            val orders = findBySessionId(sessionId)
+            if (orders.isNotEmpty()) return orders
+            throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(sessionId))
+        }
+
+        throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
+    }
+
+    fun findOrders(userId: UUID?, sessionId: String?): Set<Order> {
+        if (userId != null) return findByUserId(userId)
+        if (sessionId != null) return findBySessionId(sessionId)
+        throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
+    }
+
+    fun findByUserId(userId: UUID): Set<Order> {
+        return orderRepository.findByUserId(userId)
+    }
+
+    fun findBySessionId(sessionId: String): Set<Order> {
+        return orderRepository.findBySessionId(sessionId)
+    }
+
+    fun getByPaymentIntentId(intentId: String): Order {
+        return orderRepository.findByIntentId(intentId) ?: throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(intentId))
+    }
+
+    fun getOrder(orderId: UUID?, paymentIntentId: String?): Order {
+        if (orderId != null) return getById(orderId)
+        if (paymentIntentId != null) return getByPaymentIntentId(paymentIntentId)
+        throw AppException(OrderError.ORDER_NOT_FOUND)
+    }
+
+    fun getById(orderId: UUID): Order {
+        return orderRepository.findByIdOrNull(orderId)
+            ?: throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(orderId))
     }
 
 }

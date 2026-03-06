@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.category
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttribute
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.CascadeType
@@ -38,7 +38,7 @@ class Category(
     @JsonManagedReference
     var attributes: MutableList<CategoryAttribute> = mutableListOf()
 
-) : BaseEntity() {
+) : AuditingEntity() {
 
     override fun toString(): String {
         return "Category(id=$id, name='$name', parent=$parent, children=$children, ${super.toString()})"

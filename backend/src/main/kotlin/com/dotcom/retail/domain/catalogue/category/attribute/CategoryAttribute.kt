@@ -1,9 +1,11 @@
 package com.dotcom.retail.domain.catalogue.category.attribute
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.fasterxml.jackson.annotation.JsonBackReference
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -18,7 +20,9 @@ class CategoryAttribute(
     var attribute: String,
     var label: String,
     var unit: String? = null,
+    @Enumerated(EnumType.STRING)
     var dataType: AttributeDataType,
+    @Enumerated(EnumType.STRING)
     var filterType: FilterType,
     var displayOrder: Int,
     var isPublic: Boolean,
@@ -27,7 +31,7 @@ class CategoryAttribute(
     @JsonBackReference
     var categories: MutableSet<Category> = mutableSetOf()
 
-    ) : BaseEntity() {
+    ) : AuditingEntity() {
 
     override fun toString(): String {
         return "CategoryAttribute(id=$id, attribute='$attribute', label='$label', type=$filterType, displayOrder=$displayOrder), ${super.toString()}"
@@ -35,7 +39,7 @@ class CategoryAttribute(
 }
 
 enum class FilterType {
-    CHECKBOX, DROPDOWN, SLIDER
+    CHECKBOX, SLIDER, DROPDOWN
 }
 
 enum class AttributeDataType {

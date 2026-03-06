@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.catalogue.brand
 
-import com.dotcom.retail.common.BaseEntity
+import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.product.Product
 import com.fasterxml.jackson.annotation.JsonBackReference
@@ -29,7 +29,7 @@ class Brand(
 
     var isActive: Boolean = false
 
-) : BaseEntity() {
+) : AuditingEntity() {
 
     override fun toString(): String {
         return "Brand(id=$id, name='$name', image=$image, ${super.toString()})"

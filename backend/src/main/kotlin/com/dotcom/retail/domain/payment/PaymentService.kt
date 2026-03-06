@@ -10,6 +10,7 @@ import com.stripe.model.Event
 import com.stripe.model.PaymentIntent
 import com.stripe.net.Webhook
 import com.stripe.param.PaymentIntentCreateParams
+import com.stripe.param.PaymentIntentUpdateParams
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
@@ -26,9 +27,9 @@ class PaymentService(
         const val CURRENCY = "EUR"
     }
 
-    fun createPaymentIntent(order: Order): PaymentIntent {
+    fun createPaymentIntent(amount: BigDecimal): PaymentIntent {
         val params = PaymentIntentCreateParams.builder()
-            .setAmount(toStripeMoney(order.totalAmount))
+            .setAmount(toStripeMoney(amount))
             .setCurrency(CURRENCY)
             .setAutomaticPaymentMethods(
                 PaymentIntentCreateParams.AutomaticPaymentMethods.builder().setEnabled(true).build()
@@ -37,17 +38,19 @@ class PaymentService(
 
         val paymentIntent = PaymentIntent.create(params)
 
-        val transaction = Transaction(
-            order = order,
-            type = TransactionType.CHARGE,
-            status = TransactionStatus.PENDING,
-            amount = order.totalAmount,
-            externalId = paymentIntent.id,
-        )
-
-        saveTransaction(transaction)
-
         return paymentIntent
+    }
+
+    fun updatePaymentIntent(paymentIntentId: String, amount: BigDecimal): PaymentIntent {
+        val intent = PaymentIntent.retrieve(paymentIntentId)
+        val newAmount = toStripeMoney(amount)
+
+        val params = PaymentIntentUpdateParams.builder()
+            .setAmount(newAmount)
+            .putMetadata("updated_at", System.currentTimeMillis().toString())
+            .build()
+
+        return intent.update(params)
     }
 
     fun handleStripeEvent(payload: String, sigHeader: String) {
@@ -58,12 +61,16 @@ class PaymentService(
             paymentProducer.sendPaymentStatus(
                 PaymentEvent(paymentIntent.id, TransactionStatus.SUCCESS)
             )
-        } else if (event.type == "payment_intent.payment_failed") {
+        } else if (event.type == "payment_intent.canceled") {
             val paymentIntent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
             paymentProducer.sendPaymentStatus(
                 PaymentEvent(paymentIntent.id, TransactionStatus.FAILED)
             )
         }
+    }
+
+    fun retrieveIntent(paymentIntentId: String): PaymentIntent {
+        return PaymentIntent.retrieve(paymentIntentId)
     }
 
     fun handleSuccess(transaction: Transaction): Transaction {

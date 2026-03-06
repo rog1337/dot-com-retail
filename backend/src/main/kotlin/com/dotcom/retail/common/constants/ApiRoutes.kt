@@ -66,6 +66,8 @@ object ApiRoutes {
 
     object Order {
         const val BASE = "$V1/order"
+        const val SUMMARY = "/summary"
+        const val SUBMIT = "/submit"
     }
 
     object Payment {

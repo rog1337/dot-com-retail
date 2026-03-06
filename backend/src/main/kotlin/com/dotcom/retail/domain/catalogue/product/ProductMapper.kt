@@ -1,8 +1,6 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.domain.catalogue.brand.BrandMapper
-import com.dotcom.retail.domain.catalogue.category.Category
-import com.dotcom.retail.domain.catalogue.category.CategoryMapper
 import com.dotcom.retail.domain.catalogue.image.ImageMapper
 import org.springframework.stereotype.Component
 
@@ -10,7 +8,6 @@ import org.springframework.stereotype.Component
 class ProductMapper(
     private val imageMapper: ImageMapper,
     private val brandMapper: BrandMapper,
-    private val categoryMapper: CategoryMapper
 ) {
     fun toDto(p: Product): ProductDto = ProductDto(
         id = p.id,
@@ -23,7 +20,7 @@ class ProductMapper(
         brand = p.brand?.let { brandMapper.toDto(it) },
         category = p.category?.let { ProductCategoryDto(it.id) },
         attributes = p.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
-        images = p.images.map { image -> imageMapper.toProductImageDto(image, p.id) },
+        images = p.images.map { image -> imageMapper.toProductImageDto(image) },
         isActive = p.isActive,
     )
 

@@ -5,26 +5,26 @@ import com.dotcom.retail.common.exception.CartError
 import com.dotcom.retail.common.exception.ProductError
 import com.dotcom.retail.domain.cart.dto.CartUpdateRequest
 import com.dotcom.retail.domain.catalogue.product.ProductService
+import com.dotcom.retail.domain.order.ShippingType
+import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
-import jakarta.annotation.PostConstruct
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
-import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.UUID
+import java.math.BigDecimal
+import java.util.*
 
 @Service
 class CartService(
     private val cartRepository: CartRepository,
     private val userService: UserService,
     private val productService: ProductService,
-    private val cartItemRepository: CartItemRepository
+    private val paymentService: PaymentService,
 ) {
-
     companion object {
         const val SESSION_ID_HEADER = "X-Session-Id"
+        val SHIPPING_STANDARD_PRICE = BigDecimal(5)
+        val SHIPPING_EXPRESS_PRICE = BigDecimal(15)
     }
 
     @Transactional
@@ -33,10 +33,10 @@ class CartService(
             return findByUserId(userId) ?: createCartForUser(userService.getById(userId))
         }
         if (sessionId != null) {
-            return findBySessionId(sessionId) ?: createCartForGuest(sessionId)
+            return findBySessionId(sessionId) ?: createCartForGuest()
         }
 
-        throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
+        return createCartForGuest()
     }
 
     @Transactional
@@ -45,37 +45,49 @@ class CartService(
         return save(cart)
     }
 
-    fun createCart(userId: UUID?, sessionId: String?, productIds: List<Long>?) {
-
-    }
-
     fun createCartForUser(user: User): Cart {
         return save(Cart(user = user))
     }
 
-    fun createCartForGuest(sessionId: String): Cart {
+    fun createCartForGuest(): Cart {
+        val sessionId = UUID.randomUUID().toString()
         return save(Cart(sessionId = sessionId))
     }
 
     @Transactional
-    fun update(userId: UUID?, sessionId: String?, request: List<CartUpdateRequest>?): Cart {
+    fun update(userId: UUID?, sessionId: String?, request: CartUpdateRequest): Cart {
         val cart = getActiveCart(userId, sessionId)
-        val productQuantity = request?.associate { it.productId to it.quantity }
+        val productQuantity = request.items?.associate { it.productId to it.quantity }
         if (productQuantity.isNullOrEmpty()) return clearCart(cart)
 
         val products = productService.getAllById(productQuantity.keys)
+        val cartItems = cart.items
+        cartItems.removeIf { it.product.id !in productQuantity.keys }
 
-        val cartItems = products.mapNotNull {
-            val quantity = productQuantity[it.id]
+        val existingProductIds = cartItems.map { it.product.id }
 
-            if (quantity == null || quantity < 1) return@mapNotNull null
-            if (it.stock < quantity) throw AppException(ProductError.PRODUCT_INSUFFICIENT_STOCK.withIdentifier(it.id))
+        products.forEach { product ->
+            val quantity = productQuantity.getValue(product.id)
 
-            CartItem(product = it, quantity = quantity)
+            if (product.stock < quantity) {
+                throw AppException(ProductError.PRODUCT_INSUFFICIENT_STOCK.withIdentifier(product.id))
+            }
+
+            if (product.id in existingProductIds) {
+                cartItems.find { it.product.id == product.id }?.quantity = quantity
+            } else {
+                cart.addItem(CartItem(product = product, quantity = quantity, priceSnapshot = product.price))
+            }
         }
 
-        clearCart(cart)
-        cartItems.forEach { cart.addItem(it) }
+        request.shippingType?.let {
+            cart.shippingType = it
+            cart.shippingCost = calculateShippingCost(it)
+        }
+
+        cart.intentId?.let {
+            paymentService.updatePaymentIntent(it, cart.getTotalPrice())
+        }
 
         return save(cart)
     }
@@ -91,6 +103,42 @@ class CartService(
         throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
     }
 
+    fun getCartWithLock(userId: UUID?, sessionId: String?): Cart {
+        if (userId != null) {
+            val cart = cartRepository.lockByUserId(userId)
+                ?: throw AppException(CartError.CART_NOT_FOUND.withIdentifier(userId))
+
+            return getCartById(cart.id)
+        }
+        if (sessionId != null) {
+            val cart = cartRepository.lockBySessionId(sessionId)
+                ?: throw AppException(CartError.CART_NOT_FOUND.withIdentifier(sessionId))
+            return getCartById(cart.id)
+        }
+
+        throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
+    }
+
+    fun checkStock(cart: Cart) {
+        cart.items.forEach { item ->
+            if (item.product.stock < item.quantity) {
+                throw AppException(ProductError.PRODUCT_INSUFFICIENT_STOCK.withIdentifier(item.product.id))
+            }
+        }
+    }
+
+    fun calculateShippingCost(shippingType: ShippingType): BigDecimal {
+        return when (shippingType) {
+            ShippingType.STANDARD -> SHIPPING_STANDARD_PRICE
+            ShippingType.EXPRESS -> SHIPPING_EXPRESS_PRICE
+        }
+    }
+
+    fun getCartById(cartId: UUID): Cart {
+        return cartRepository.findById(cartId)
+            .orElseThrow { AppException(CartError.CART_NOT_FOUND.withIdentifier(cartId)) }!!
+    }
+
     fun findByUserId(userId: UUID): Cart? {
         return cartRepository.findByUserId(userId)
     }
@@ -103,7 +151,12 @@ class CartService(
         return cartRepository.save(cart)
     }
 
-    fun saveAllCartItems(cartsItems: List<CartItem>): List<CartItem> {
-        return cartItemRepository.saveAll(cartsItems)
+    fun delete(cart: Cart) {
+        cartRepository.delete(cart)
+    }
+
+    fun getByPaymentIntentId(paymentIntentId: String): Cart {
+        return cartRepository.findByIntentId(paymentIntentId)
+            ?: throw AppException(CartError.CART_NOT_FOUND.withIdentifier(paymentIntentId))
     }
 }
