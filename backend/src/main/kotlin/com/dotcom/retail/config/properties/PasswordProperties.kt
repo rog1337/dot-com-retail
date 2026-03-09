@@ -13,11 +13,11 @@ data class PasswordProperties(
     val reset: PasswordResetExpiration,
 ) {
     @Autowired
-    lateinit var appProperties: AppProperties
+    lateinit var frontendProperties: FrontendProperties
 
     @EventListener(ApplicationReadyEvent::class)
     fun init() {
-        passwordResetUrl = "${appProperties.url}/${ApiRoutes.Auth.BASE}${ApiRoutes.Auth.RESET_PASSWORD_VERIFY}"
+        passwordResetUrl = frontendProperties.passwordResetUrl
     }
 
     lateinit var passwordResetUrl: String

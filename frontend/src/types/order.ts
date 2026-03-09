@@ -1,4 +1,5 @@
 import {AddressFields, Contact} from "@_types/contact"
+import {type Page} from "@_types/page"
 
 export interface Order {
     id: string,
@@ -35,6 +36,11 @@ export interface SubmitOrderRequest {
     address: AddressFields,
     shippingType: ShippingType
     notes?: string
+}
+
+export interface OrderResponse {
+    content: Order[]
+    page: Page
 }
 
 export enum OrderStatus { PENDING_PAYMENT, PAID, SHIPPED, DELIVERED, CANCELLED }

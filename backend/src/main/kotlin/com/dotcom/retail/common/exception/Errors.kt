@@ -37,10 +37,12 @@ object TwoFactorAuthError {
     val TWO_FACTOR_SECRET_NOT_SET = AppError("TWO_FACTOR_SECRET_NOT_SET", HttpStatus.FORBIDDEN, "2FA secret is not set")
     val INVALID_TWO_FACTOR_CODE = AppError("INVALID_TWO_FACTOR_CODE", HttpStatus.FORBIDDEN, "2FA secret is not set")
     val TWO_FACTOR_REQUIRED = AppError("TWO_FACTOR_REQUIRED", HttpStatus.FORBIDDEN, "2FA is required")
+    val TWO_FACTOR_AUTHENTICATION_ALREADY_ENABLED = AppError("TWO_FACTOR_AUTHENTICATION_ALREADY_ENABLED", HttpStatus.BAD_REQUEST, "2FA authentication already enabled")
 }
 
 object CaptchaError {
     val CAPTCHA_FAILED = AppError("CAPTCHA_FAILED", HttpStatus.BAD_REQUEST, "Captcha failed")
+    val CAPTCHA_TOKEN_ALREADY_USED = AppError("CAPTCHA_TOKEN_ALREADY_USED", HttpStatus.BAD_REQUEST, "Captcha token already used")
 }
 
 object UserError {

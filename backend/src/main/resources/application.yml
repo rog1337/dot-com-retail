@@ -4,6 +4,7 @@ app:
   url: http://localhost:${server.port}
 frontend:
   url: http://localhost:3000
+  password-reset-url: ${frontend.url}/account/reset-password
 logging:
   level:
 #    root: DEBUG

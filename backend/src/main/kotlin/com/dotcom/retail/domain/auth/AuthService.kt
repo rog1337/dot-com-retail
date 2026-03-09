@@ -15,10 +15,10 @@ import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
 import com.dotcom.retail.security.jwt.TokenPair
 import com.dotcom.retail.domain.auth.dto.TurnstileResponse
-import com.dotcom.retail.domain.user.CreateUserParams
+import com.dotcom.retail.domain.user.dto.CreateUserParams
 import com.dotcom.retail.domain.user.User
+import com.dotcom.retail.domain.user.UserMapper
 import com.dotcom.retail.domain.user.UserService
-import com.dotcom.retail.domain.user.toDto
 import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
@@ -40,12 +40,14 @@ class AuthService(
     private val jwtProperties: JwtProperties,
     private val turnstileProperties: TurnstileProperties,
     private val restClientBuilder: RestClient.Builder,
-    private val twoFactorAuthService: TwoFactorAuthService
+    private val twoFactorAuthService: TwoFactorAuthService,
+    private val userMapper: UserMapper
 ) {
 
     companion object {
         const val COOKIE_SAME_SITE_STRICT = "Strict"
         const val COOKIE_PATH = "/"
+        const val TURNSTILE_ERROR_TOKEN_ALREADY_VALIDATED = "timeout-or-duplicate"
     }
 
     private val turnstileClient: RestClient by lazy {
@@ -79,7 +81,19 @@ class AuthService(
                  .retrieve()
                  .toEntity<TurnstileResponse>()
 
-             response.body?.success == true
+
+             if (response.body?.success == false) {
+                 val errorCode = response.body?.errorCodes?.firstOrNull()
+                 if (errorCode != null) {
+                     when (errorCode) {
+                         TURNSTILE_ERROR_TOKEN_ALREADY_VALIDATED ->
+                             throw AppException(CaptchaError.CAPTCHA_TOKEN_ALREADY_USED)
+                     }
+                 }
+                 false
+             } else {
+                 true
+             }
          } catch (_: Exception) {
              false
          }
@@ -120,7 +134,7 @@ class AuthService(
          return LoginResult.Success(
              accessToken = tokenPair.accessToken,
              refreshToken = tokenPair.refreshToken,
-             user = user.toDto()
+             user = userMapper.toDto(user)
          )
      }
 

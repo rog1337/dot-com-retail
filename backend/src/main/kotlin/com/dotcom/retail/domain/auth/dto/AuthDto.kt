@@ -1,6 +1,6 @@
 package com.dotcom.retail.domain.auth.dto
 
-import com.dotcom.retail.domain.user.UserDto
+import com.dotcom.retail.domain.user.dto.UserDto
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size

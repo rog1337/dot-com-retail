@@ -33,6 +33,9 @@ class TwoFactorAuthService(private val userService: UserService) {
 
     fun setup(userId: UUID): TwoFactorSetupResponse {
         val user = userService.getById(userId)
+        if (user.twoFactorEnabled) {
+            throw AppException(TwoFactorAuthError.TWO_FACTOR_AUTHENTICATION_ALREADY_ENABLED)
+        }
 
         val secret = generateSecret()
         user.twoFactorSecret = secret
@@ -83,5 +86,10 @@ class TwoFactorAuthService(private val userService: UserService) {
 
     fun verifyCode(secret: String, code: String): Boolean {
         return codeVerifier.isValidCode(secret, code)
+    }
+
+    fun getStatus(userId: UUID): Boolean {
+        val user = userService.getById(userId)
+        return user.twoFactorEnabled
     }
 }

@@ -9,7 +9,7 @@ import com.dotcom.retail.domain.auth.dto.PasswordResetRequest
 import com.dotcom.retail.domain.auth.dto.PasswordResetVerification
 import com.dotcom.retail.domain.auth.dto.RefreshResponse
 import com.dotcom.retail.domain.auth.dto.RegisterRequest
-import com.dotcom.retail.domain.user.toDto
+import com.dotcom.retail.domain.user.UserMapper
 import com.dotcom.retail.security.jwt.JwtService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
@@ -30,6 +30,7 @@ class AuthController(
     private val authService: AuthService,
     private val jwtService: JwtService,
     private val passwordResetService: PasswordResetService,
+    private val userMapper: UserMapper,
 ) {
 
     @PostMapping(Auth.REGISTER)
@@ -41,7 +42,7 @@ class AuthController(
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .header(HttpHeaders.SET_COOKIE, cookie.toString())
-            .body(RegisterResponse(tokenPair.accessToken, user.toDto()))
+            .body(RegisterResponse(tokenPair.accessToken, userMapper.toDto(user)))
     }
 
     @PostMapping(Auth.LOGIN)
@@ -72,7 +73,7 @@ class AuthController(
             .body(RefreshResponse(tokenPair.accessToken))
     }
 
-    @GetMapping(Auth.LOGOUT)
+    @PostMapping(Auth.LOGOUT)
     fun logout(@AuthenticationPrincipal userId: UUID): ResponseEntity<Void> {
         authService.logout(userId)
         val cookie = authService.removeRefreshTokenCookie()
@@ -83,7 +84,7 @@ class AuthController(
 
     @PostMapping(Auth.RESET_PASSWORD)
     fun resetPassword(@RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
-        passwordResetService.initiatePasswordReset(request)
+        passwordResetService.initiatePasswordResetByEmail(request.email)
         return ResponseEntity.accepted().build()
     }
 

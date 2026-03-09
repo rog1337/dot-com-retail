@@ -4,6 +4,7 @@ import com.dotcom.retail.security.jwt.JwtAuthFilter
 import com.dotcom.retail.security.oauth2.OAuth2SuccessHandler
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.servlet.http.HttpServletResponse
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.MediaType
@@ -28,6 +29,8 @@ class SecurityConfig(
     private val successHandler: OAuth2SuccessHandler,
     private val authenticationProvider: AuthenticationProvider
 ) {
+
+    @Value("\${frontend.url}") lateinit var frontendUrl: String
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
@@ -60,7 +63,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val cfg = CorsConfiguration()
-        cfg.allowedOrigins = listOf("http://localhost:3000")
+        cfg.allowedOrigins = listOf(frontendUrl)
 //        cfg.allowedOrigins = listOf("*")
         cfg.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
         cfg.allowedHeaders = listOf("*")

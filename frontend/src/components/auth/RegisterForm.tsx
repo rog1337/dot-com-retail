@@ -1,5 +1,5 @@
 import {useAuth} from "@lib/auth/authContext"
-import {useState} from "react"
+import {useRef, useState} from "react"
 import {useForm} from "react-hook-form"
 import {RegisterFormData, registerSchema} from "@lib/validation/authSchemas"
 import {zodResolver} from "@hookform/resolvers/zod"
@@ -7,6 +7,7 @@ import Link from "next/link"
 import OAuth from "@components/auth/OAuth"
 import { logger as log} from "@lib/logger"
 import { Turnstile } from "@marsidev/react-turnstile"
+import {useRouter} from "next/navigation";
 
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
 
@@ -16,6 +17,8 @@ export default function RegisterForm() {
     const [error, setError] = useState("")
     const [captchaToken, setCaptchaToken] = useState("")
     const [captchaError, setCaptchaError] = useState("")
+    const turnstileRef = useRef<any>(null)
+    const router = useRouter()
 
     const {
         register,
@@ -28,10 +31,14 @@ export default function RegisterForm() {
 
     const password = watch("password")
 
+    const resetCaptcha = () => {
+        turnstileRef.current?.reset();
+        setCaptchaToken("");
+    }
+
     const onSubmit = async (data: RegisterFormData) => {
         setIsLoading(true)
         setError("")
-        console.log("captcha token:", captchaToken)
 
         if (!captchaToken) {
             log.d("No captcha token")
@@ -45,19 +52,25 @@ export default function RegisterForm() {
                 ...data,
                 captchaToken,
             })
+            router.push("/")
         } catch (err: any) {
-            if (err?.response?.data?.message) {
-                setError(err?.response?.data?.message)
+            console.log("err: ", err)
+            const code = err?.response?.data?.code
+            if (code === "CAPTCHA_FAILED") {
+                setError("Captcha verification failed")
+            } else if (code === "USER_ALREADY_EXISTS") {
+                setError("Email is already registered")
             } else {
-                setError("Registration failed. Please try again.")
+                setError("An error occurred")
+                throw Error(err ? err : "An error occurred")
             }
-        } finally {
-            setIsLoading(false)
+            resetCaptcha()
+            setIsLoading(true)
         }
     }
 
     return (
-        <div className="w-full max-w-md mx-auto">
+        <div className="p-4 md:p-0 md:w-full md:max-w-md md:mx-auto mt-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 <h2 className="text-3xl font-bold text-center mb-8">Create Account</h2>
 
@@ -138,10 +151,12 @@ export default function RegisterForm() {
                 </div>
 
                 <Turnstile
+                    ref={turnstileRef}
                     siteKey={TURNSTILE_SITE_KEY}
                     onSuccess={(token) => {
                         setCaptchaToken(token)
                         setCaptchaError("")
+                        setIsLoading(false)
                     }}
                     onError={(error) => {
                         setCaptchaError(error)
@@ -162,7 +177,7 @@ export default function RegisterForm() {
                     {isLoading ? 'Creating Account...' : 'Create Account'}
                 </button>
 
-                <p className="text-center text-sm text-gray-600 mb-2X">
+                <p className="text-center text-sm text-gray-600 mb-2">
                     Already have an account?{' '}
                     <Link href="/login" className="text-blue-600 hover:text-blue-800 font-medium">
                         Sign in

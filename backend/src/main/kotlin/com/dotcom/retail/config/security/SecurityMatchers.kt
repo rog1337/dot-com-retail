@@ -1,5 +1,6 @@
 package com.dotcom.retail.config.security
 
+import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.common.constants.ApiRoutes.Auth
 
 object SecurityMatchers {
@@ -10,7 +11,11 @@ object SecurityMatchers {
         "${Auth.BASE}${Auth.REFRESH}",
         "${Auth.BASE}${Auth.RESET_PASSWORD}",
         "${Auth.BASE}${Auth.RESET_PASSWORD_VERIFY}",
-
+        "${ApiRoutes.Filter.BASE}",
+        "${ApiRoutes.Product.BASE}",
+        "${ApiRoutes.Product.BASE}${ApiRoutes.Product.IMAGE}",
+        "${ApiRoutes.Product.BASE}${ApiRoutes.Product.SEARCH}",
+        "${ApiRoutes.Image.SERVE}",
         "/error"
     )
 }

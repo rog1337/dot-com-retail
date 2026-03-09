@@ -9,6 +9,16 @@ object ApiRoutes {
         const val ADMIN = "/admin"
     }
 
+    object User {
+        const val BASE = "$V1/user"
+    }
+
+    object Account {
+        const val BASE = "$V1/account"
+        const val DETAILS = "/details"
+        const val ORDERS = "/orders"
+    }
+
     object Auth {
         const val BASE = "$V1/auth"
         const val REGISTER = "/register"

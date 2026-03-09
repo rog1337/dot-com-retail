@@ -1,6 +1,7 @@
 import {orderApi} from "@lib/api/orderApi"
 import {redirect} from "next/navigation"
 import OrderItem from "@components/order/OrderItem"
+import ClearCart from "@/src/app/checkout/confirm/ClearCart";
 
 type SearchParams = {
     payment_intent?: string
@@ -33,8 +34,6 @@ export default async function CheckoutConfirm({ searchParams }: { searchParams: 
             return fetchOrder(retries-1, delay)
         }
     }
-
-    console.log("order: ", order)
 
     return (
 
@@ -72,8 +71,8 @@ export default async function CheckoutConfirm({ searchParams }: { searchParams: 
                     <span>Country: {order.contact.address.country}</span>
                 </div>
 
+                <ClearCart/>
             </div>
-
         </div>
     )
 }

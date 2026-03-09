@@ -7,6 +7,7 @@ import Header from "@components/Header";
 import Footer from "@components/Footer";
 import {ThemeProvider} from "next-themes";
 import Toast from "@components/Toast";
+import ProtectedRoute from "@components/ProtectedRoute";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,16 +33,16 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased
-          min-h-screen flex flex-col
+          min-h-screen flex flex-col transition-colors
           `}
       >
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
               <Header/>
-              <main className="flex-grow">
-                  {children}
-                  <Toast/>
-              </main>
+                  <main className="flex-grow">
+                      {children}
+                      <Toast/>
+                  </main>
               <Footer/>
           </AuthProvider>
       </ThemeProvider>

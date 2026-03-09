@@ -7,11 +7,15 @@ import {useState} from "react"
 import { useAuth } from "@/src/lib/auth/authContext"
 import OAuth from "@components/auth/OAuth"
 import Link from "next/link"
+import {useRouter} from "next/navigation";
+import {logger} from "@lib/logger";
 
 export default function LoginForm() {
     const { login } = useAuth()
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState("")
+    const router = useRouter()
+    const [twoFARequired, setTwoFARequired] = useState<boolean>(false)
 
     const {
         register,
@@ -25,16 +29,28 @@ export default function LoginForm() {
         setIsLoading(true)
         setError("")
 
+        console.log("errors", errors)
         try {
-            await login({
-                ...data,
-            })
+            const { user } = await login({...data})
+
+            if (!user) {
+                logger.d("2FA required")
+                setTwoFARequired(true)
+                return
+            }
+
+            router.push("/")
         } catch (err: any) {
-            console.error(err)
-            if (err.response?.data?.message) {
-                setError(err.response.data.message)
+            const data = err?.response?.data
+            const code = data?.code
+
+            if (code === "USER_NOT_FOUND") {
+                setError("Email is not registered")
+            } else if (code === "INVALID_CREDENTIALS") {
+                setError("Invalid credentials")
             } else {
-                setError('Login failed. Please check your credentials and try again.')
+                setError("An error occurred")
+                throw Error(err)
             }
         } finally {
             setIsLoading(false)
@@ -42,7 +58,7 @@ export default function LoginForm() {
     }
 
     return (
-        <div className="w-full max-w-md mx-auto">
+        <div className="px-4 pb-4 md:px-0 md:w-full md:max-w-md md:mx-auto mt-10">
             <form onSubmit={handleSubmit(onSubmit)} className="mb-2 space-y-6">
                 <h2 className="text-3xl font-bold text-center mb-8">Sign in</h2>
 
@@ -84,6 +100,23 @@ export default function LoginForm() {
                         <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
                     )}
                 </div>
+
+                {twoFARequired &&
+                    <div>
+                        <label htmlFor="twoFactorCode" className="block text-sm font-medium mb-2">
+                            Two-factor authentication
+                        </label>
+                        <input
+                            {...register("twoFactorCode")}
+                            id="twoFactorCode"
+                            autoComplete="twoFactorCode"
+                            className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                        {errors.twoFactorCode && (
+                            <p className="mt-1 text-sm text-red-600">{errors.twoFactorCode.message}</p>
+                        )}
+                    </div>
+                }
 
                 <button
                     type="submit"

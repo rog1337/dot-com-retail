@@ -2,10 +2,12 @@ package com.dotcom.retail.domain.auth
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.PasswordResetError
+import com.dotcom.retail.common.exception.UserError
 import com.dotcom.retail.common.service.EmailService
 import com.dotcom.retail.config.properties.PasswordProperties
 import com.dotcom.retail.domain.auth.dto.PasswordResetRequest
 import com.dotcom.retail.domain.auth.dto.PasswordResetVerification
+import com.dotcom.retail.domain.user.UserRepository
 import com.dotcom.retail.domain.user.UserService
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -20,6 +22,7 @@ class PasswordResetService(
     private val redisTemplate: StringRedisTemplate,
     private val passwordEncoder: PasswordEncoder,
     passwordProperties: PasswordProperties,
+    private val userRepository: UserRepository,
 ) {
     private val passwordResetDuration: Duration = passwordProperties.reset.duration
 
@@ -27,10 +30,23 @@ class PasswordResetService(
         private const val PASSWORD_RESET_PREFIX = "pwd_reset:"
     }
 
-    fun initiatePasswordReset(request: PasswordResetRequest) {
-        userService.getByEmail(request.email)
-        val token = createToken(request.email)
-        emailService.sendPasswordReset(request.email, token)
+    fun initiatePasswordResetByEmail(email: String) {
+        val email = email.trim()
+        if (!userRepository.existsByEmail(email)) {
+            throw AppException(UserError.USER_NOT_FOUND.withIdentifier(email))
+        }
+        initiatePasswordReset(email)
+    }
+
+    fun initiatePasswordResetByUserId(userId: UUID) {
+        val user = userService.getById(userId)
+        initiatePasswordReset(user.email)
+    }
+
+    private fun initiatePasswordReset(email: String) {
+        userService.getByEmail(email)
+        val token = createToken(email)
+        emailService.sendPasswordReset(email, token)
     }
 
     fun resetPassword(data: PasswordResetVerification) {

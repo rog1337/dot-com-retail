@@ -1,16 +1,20 @@
 "use client"
 import {useEffect, useState} from 'react'
 import {useTheme} from "next-themes"
-import { Search, ShoppingCart, User, LogIn, Menu, X } from 'lucide-react'
+import {Search, ShoppingCart, User, LogIn, Menu, X, LogOut, LoaderPinwheel, Moon, Sun} from 'lucide-react'
 import Link from "next/link"
+import {useRouter} from "next/navigation";
+import { useAuth } from "@lib/auth/authContext"
+import UserMenu from "@components/UserMenu";
 
 export default function Header() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const { isLoggedIn, logout } = useAuth()
     const [cartCount, setCartCount] = useState(3)
     const [searchQuery, setSearchQuery] = useState('')
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const {theme, setTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
+    const router = useRouter()
 
     useEffect(() => setMounted(true), [])
 
@@ -27,27 +31,18 @@ export default function Header() {
     }
 
     return (
-        <header className="bg-slate-900 text-white shadow-lg top-0 z-50">
+        <header className="bg-slate-900 text-white shadow-lg w-full top-0 z-50">
             <div className="container mx-auto px-4">
                 <div className="flex items-center justify-between h-16 md:h-20">
                     <Link href={"/"}>
                         <div className="flex items-center space-x-2 flex-shrink-0">
-                            <div
-                                className="w-10 h-10 md:w-12 md:h-12 bg-orange-500 rounded-full flex items-center justify-center">
-                                <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6 md:w-7 md:h-7">
-                                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-                                    <circle cx="12" cy="12" r="6" stroke="currentColor" strokeWidth="2"/>
-                                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
-                                </svg>
-                            </div>
-                            <span className="text-xl md:text-2xl font-bold hidden sm:block">
+                            <LoaderPinwheel/>
+                            <span className="text-xl md:text-2xl font-bold sm:block">
                                 tyre-dot-com
                             </span>
                         </div>
                     </Link>
 
-
-                    {/* Search Bar - Desktop */}
                     <div className="hidden md:flex flex-1 max-w-2xl mx-8">
                         <div className="relative w-full">
                             <input
@@ -71,25 +66,19 @@ export default function Header() {
 
                         <button
                             className="cursor-pointer"
-                            onClick={() => {
-                                setTheme(theme === "dark" ? "light" : "dark")
-                            }}
+                            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                             >
-                            {theme === "dark" ? "Light Mode" : "Dark Mode"}
+                            {theme === "dark" ? <Sun/> : <Moon/>}
                         </button>
 
 
                         {isLoggedIn ? (
-                            <button
-                                onClick={() => setIsLoggedIn(false)}
-                                className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800 rounded-lg transition-colors"
-                            >
-                                <User className="w-5 h-5"/>
-                                <span className="text-sm">My Account</span>
-                            </button>
+                                <div className="mt-2">
+                                    <UserMenu/>
+                                </div>
                         ) : (
                             <button
-                                onClick={() => setIsLoggedIn(true)}
+                                onClick={() => router.push("/login")}
                                 className="flex items-center space-x-2 px-4 py-2 hover:bg-slate-800 rounded-lg transition-colors"
                             >
                                 <LogIn className="w-5 h-5"/>
@@ -100,21 +89,14 @@ export default function Header() {
                         <Link
                             href="/cart"
                         >
-                            <ShoppingCart></ShoppingCart>
+                            <ShoppingCart/>
                         </Link>
                     </div>
 
-                    {/* Mobile Menu Button */}
                     <div className="flex md:hidden items-center space-x-2">
-                        <button className="relative p-2 hover:bg-slate-800 rounded-lg transition-colors">
-                            <ShoppingCart className="w-6 h-6"/>
-                            {cartCount > 0 && (
-                                <span
-                                    className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                    {cartCount}
-                                </span>
-                            )}
-                        </button>
+                        <Link href="/cart">
+                            <ShoppingCart/>
+                        </Link>
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
@@ -124,7 +106,6 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Mobile Search Bar */}
                 <div className="md:hidden pb-4">
                     <div className="relative">
                         <input
@@ -144,24 +125,36 @@ export default function Header() {
                     </div>
                 </div>
 
-                {/* Mobile Menu */}
                 {mobileMenuOpen && (
                     <div className="md:hidden border-t border-slate-800 py-4">
                         {isLoggedIn ? (
-                            <button
-                                onClick={() => {
-                                    setIsLoggedIn(false)
-                                    setMobileMenuOpen(false)
-                                }}
-                                className="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 rounded-lg transition-colors w-full"
-                            >
-                                <User className="w-5 h-5"/>
-                                <span>My Account</span>
-                            </button>
+                            <div>
+                                <button
+                                    onClick={() => {
+                                        router.push("/account")
+                                        setMobileMenuOpen(false)
+                                    }}
+                                    className="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 rounded-lg transition-colors w-full"
+                                >
+                                    <User/>
+                                    <span>My account</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        logout()
+                                        setMobileMenuOpen(false)
+                                    }}
+                                    className="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 rounded-lg transition-colors w-full"
+                                >
+                                    <LogOut/>
+                                    <span>Log out</span>
+                                </button>
+                            </div>
+
                         ) : (
                             <button
                                 onClick={() => {
-                                    setIsLoggedIn(true)
+                                    router.push("/login")
                                     setMobileMenuOpen(false)
                                 }}
                                 className="flex items-center space-x-3 px-4 py-3 hover:bg-slate-800 rounded-lg transition-colors w-full"

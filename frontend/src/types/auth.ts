@@ -19,19 +19,42 @@ export interface RegisterData {
     captchaToken: string
 }
 
-export interface AuthContextType {
-    user: User | null
-    isAuthenticated: boolean
-    isLoading: boolean
-    login: (data: LoginCredentials) => Promise<void>
-    register: (data: RegisterData) => Promise<void>
-    logout: () => Promise<void>
-    // refresh: () => Promise<void>
-    sessionId: string | null
-    setSessionId: (sessionId: string | null) => void
-}
-
 export interface AuthResponse {
     accessToken: string
     user: User
+}
+
+export interface RefreshResponse {
+    accessToken: string
+}
+
+export interface UserUpdate {
+    displayName: string
+}
+
+export interface UserDetails {
+    displayName: string
+    email: string
+}
+
+export interface PasswordResetInitiationRequest {
+    email: string
+}
+
+export interface PasswordResetRequest {
+    token: string
+    password: string
+}
+
+export interface TwoFactorStatus {
+    isEnabled: boolean
+}
+
+export interface TwoFactorSetupResponse {
+    secret: string
+    qrCode: string
+}
+
+export interface TwoFactorVerification {
+    code: string
 }

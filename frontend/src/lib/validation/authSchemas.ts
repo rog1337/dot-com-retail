@@ -17,9 +17,16 @@ const displayNameSchema = z
     .max(50, "Name must not exceed 50 characters")
     .regex(/^[a-zA-Z\s-']+$/, "Name contains illegal characters")
 
+const twoFactorSchema = z
+    .string()
+    .min(6, "Code is too short")
+    .max(6, "Code is too long")
+    .optional()
+
 export const loginSchema = z.object({
     email: emailSchema,
     password: passwordSchema,
+    twoFactorCode: twoFactorSchema,
 })
 
 export const registerSchema = z.object({

@@ -8,3 +8,7 @@ data class TwoFactorSetupResponse(
     val secret: String,
     val qrCode: String
 )
+
+data class TwoFactorStatus(
+    val isEnabled: Boolean,
+)

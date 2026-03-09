@@ -1,8 +1,12 @@
 package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.model.AuditingEntity
+import com.dotcom.retail.domain.order.Order
 import jakarta.persistence.Entity
+import jakarta.persistence.FetchType
 import jakarta.persistence.Id
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -21,8 +25,7 @@ class User(
     var displayName: String,
 
     var twoFactorSecret: String? = null,
-    var twoFactorEnabled: Boolean = false
-
+    var twoFactorEnabled: Boolean = false,
 
     ) : AuditingEntity(), UserDetails {
 
