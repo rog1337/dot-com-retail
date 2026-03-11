@@ -85,3 +85,6 @@ cloudflare:
 stripe:
   apiKey: ${STRIPE_API_KEY}
   webhookSecret: ${STRIPE_WEBHOOK_SECRET}
+
+encryption:
+  secret-key: ${ENCRYPTION_SECRET_KEY}

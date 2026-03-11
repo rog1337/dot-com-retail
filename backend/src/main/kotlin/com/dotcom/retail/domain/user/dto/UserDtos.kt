@@ -1,5 +1,6 @@
 package com.dotcom.retail.domain.user.dto
 
+import com.dotcom.retail.common.model.Contact
 import java.util.UUID
 
 data class CreateUserParams(
@@ -22,4 +23,5 @@ data class UserDetailsDto(
     val id: UUID,
     val displayName: String,
     val email: String,
+    val contact: Contact?
 )

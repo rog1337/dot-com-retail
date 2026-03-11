@@ -1,7 +1,8 @@
 import Image from "next/image"
 import Link from "next/link"
+import {Product} from "@_types/product";
 
-export default function ProductItem({product, onAddToCart}: any) {
+export default function ProductItem({product, onAddToCart, isLoading}: {product: Product, onAddToCart: any, isLoading: boolean}) {
     const images = product.images
     const imageUrl = images[0]?.url || "404"
     const imageAltText = images[0]?.altText || product.name
@@ -14,7 +15,7 @@ export default function ProductItem({product, onAddToCart}: any) {
 
     return (
         <Link
-            href={`/products/${product.slug}`}
+            href={`/products/${product.id}`}
             className="group flex w-full max-w-xs flex-col overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md"
         >
             <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
@@ -46,7 +47,8 @@ export default function ProductItem({product, onAddToCart}: any) {
                     onClick={handleAddToCart}
                     className="mt-5 w-full rounded-lg bg-black px-4 py-2.5 text-sm font-semibold
                      text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black
-                      focus:ring-offset-2 active:scale-[0.98]"
+                      focus:ring-offset-2 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isLoading}
                 >
                     Add to Cart
                 </button>

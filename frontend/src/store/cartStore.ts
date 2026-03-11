@@ -12,6 +12,7 @@ export const useCartStore = create<CartStore>()(
             subTotal: 0,
             total: 0,
             totalQuantity: 0,
+            isLoading: false,
 
             setItems: (items: CartItem[]) => set({ items }),
             setShippingCost: (type: ShippingType) => set((state) => {
@@ -62,10 +63,14 @@ export const useCartStore = create<CartStore>()(
                     total: cart.totalPrice,
                     totalQuantity: cart.totalQuantity
                 }
-            })
+            }),
+            setIsLoading: (isLoading: boolean) => set({ isLoading }),
         }),
-        { name: 'cart-storage' }
-    )
+        {
+            name: "cart-storage",
+            partialize: () => ({ isLoading: false }),
+        }
+    ),
 )
 
 export interface CartStore {
@@ -84,9 +89,10 @@ export interface CartStore {
     setCart: (cart: Cart) => void
     setQuantity: (id: number, quantity: number) => void
     getItemQuantity: (id: number) => number | null
-    // addItem: (item: CartItem) => void
     removeItem: (id: number) => void
     updateQuantity: (id: number, quantity: number) => void
     clearCart: () => void
     itemCount: () => number
+    isLoading: boolean
+    setIsLoading: (isLoading: boolean) => void
 }

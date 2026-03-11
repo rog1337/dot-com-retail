@@ -12,11 +12,12 @@ import {useToastStore} from "@store/toastStore"
 
 export default function Browse({params, products, page} : { params: ProductQuery, products: Product[], page: PageResponse}) {
 
-    const {items, setCart, getItemQuantity } = useCartStore()
+    const {items, setCart, getItemQuantity, isLoading, setIsLoading } = useCartStore()
     const { show } = useToastStore()
     const {sessionId, setSessionId} = useAuth()
 
     async function handleAddToCart(product: Product) {
+        setIsLoading(true)
         try {
             let quantity = getItemQuantity(product.id)
             if (quantity) quantity += 1
@@ -39,6 +40,7 @@ export default function Browse({params, products, page} : { params: ProductQuery
             }
             console.log("Error adding to cart: ", e)
         }
+        setIsLoading(false)
     }
 
     return (
@@ -59,6 +61,7 @@ export default function Browse({params, products, page} : { params: ProductQuery
                                     product={p}
                                     key={p.id}
                                     onAddToCart={(product: Product) => handleAddToCart(product)}
+                                    isLoading={isLoading}
                                 />
                             ))}
                         </div>

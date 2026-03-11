@@ -13,9 +13,18 @@ object SecurityMatchers {
         "${Auth.BASE}${Auth.RESET_PASSWORD_VERIFY}",
         "${ApiRoutes.Filter.BASE}",
         "${ApiRoutes.Product.BASE}",
+        "${ApiRoutes.Product.BASE}/*",
         "${ApiRoutes.Product.BASE}${ApiRoutes.Product.IMAGE}",
         "${ApiRoutes.Product.BASE}${ApiRoutes.Product.SEARCH}",
         "${ApiRoutes.Image.SERVE}",
+        "${ApiRoutes.Payment.BASE}${ApiRoutes.Payment.STRIPE}",
+
         "/error"
+    )
+
+    val OPTIONAL_AUTH_ENDPOINTS = arrayOf(
+        ApiRoutes.Cart.BASE,
+        ApiRoutes.Order.BASE,
+        "${ApiRoutes.Order.BASE}${ApiRoutes.Order.SUBMIT}",
     )
 }

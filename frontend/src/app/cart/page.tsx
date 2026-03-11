@@ -14,7 +14,7 @@ type SearchParams = {
 }
 
 export default function Cart({ searchParams }: { searchParams: SearchParams }) {
-    const { sessionId } = useAuth()
+    const { isLoggedIn, sessionId } = useAuth()
     const { items, setCart, subTotal, total } = useCartStore()
     const { show } = useToastStore()
 
@@ -43,13 +43,14 @@ export default function Cart({ searchParams }: { searchParams: SearchParams }) {
 
         showPaymentFailedToast()
 
-        if (sessionId) {
+        if (isLoggedIn || sessionId) {
             fetchCart()
         }
 
     }, [])
 
-    if (!sessionId || items.length === 0) {
+    if (!isLoggedIn && !sessionId || items.length === 0) {
+
         return emptyCart()
     }
 

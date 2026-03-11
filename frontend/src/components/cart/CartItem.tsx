@@ -9,13 +9,14 @@ import {useState} from "react"
 import {logger} from "@lib/logger"
 import {useToastStore} from "@store/toastStore"
 
-export default function CartItem({item}: {item: CartProduct}) {
+export default function CartItem({item}: {item: CartProduct }) {
     const { sessionId } = useAuth()
-    const { items, setQuantity, setCart, removeItem } = useCartStore()
+    const { items, setQuantity, setCart, removeItem, isLoading, setIsLoading } = useCartStore()
     const { show } = useToastStore()
     const [isQuantityMaxed, setIsQuantityMaxed] = useState(false)
 
     const onIncrease = async (productId: number) => {
+        setIsLoading(true)
         try {
             const quantity = item.quantity + 1
             setQuantity(productId, quantity)
@@ -38,9 +39,11 @@ export default function CartItem({item}: {item: CartProduct}) {
             }
             setQuantity(productId, item.quantity-1)
         }
+        setIsLoading(false)
     }
 
     const onDecrease = async (productId: number) => {
+        setIsLoading(true)
         if (item.quantity === 1) return onRemove(productId)
 
         try {
@@ -58,9 +61,11 @@ export default function CartItem({item}: {item: CartProduct}) {
         } catch(e: any) {
             console.log("Error decrementing quantity: ", e)
         }
+        setIsLoading(false)
     }
 
     const onRemove = async (productId: number) => {
+        setIsLoading(true)
         try {
             removeItem(productId)
             const cartUpdateRequest = {
@@ -71,6 +76,7 @@ export default function CartItem({item}: {item: CartProduct}) {
         } catch(e: any) {
             console.log("Error removing item: ", e)
         }
+        setIsLoading(false)
     }
 
 
@@ -96,8 +102,10 @@ export default function CartItem({item}: {item: CartProduct}) {
                 <button
                     onClick={() => onDecrease(item.productId)}
                     className="w-7 h-7 rounded-full border border-gray-200 flex items-center
-                     justify-center hover:bg-gray-400 hover:border-gray-500 transition-colors leading-none"
+                     justify-center hover:bg-gray-400 hover:border-gray-500 transition-colors
+                      leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Decrease quantity"
+                    disabled={isLoading}
                 >
                     −
                 </button>
@@ -110,7 +118,7 @@ export default function CartItem({item}: {item: CartProduct}) {
                      justify-center hover:bg-gray-400 hover:border-gray-500 transition-colors
                       leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
-                    disabled={isQuantityMaxed}
+                    disabled={isQuantityMaxed || isLoading}
                 >
                     +
                 </button>
@@ -118,8 +126,10 @@ export default function CartItem({item}: {item: CartProduct}) {
 
             <button
                 onClick={() => onRemove(item.productId)}
-                className="shrink-0 hover:text-red-400 transition-colors ml-1"
+                className="shrink-0 hover:text-red-400 transition-colors ml-1
+                disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="Remove item"
+                disabled={isLoading}
             >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

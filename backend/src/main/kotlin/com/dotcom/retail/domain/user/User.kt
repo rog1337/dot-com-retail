@@ -2,11 +2,13 @@ package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.order.Order
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
+import jakarta.persistence.OneToOne
 import jakarta.persistence.Table
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -26,6 +28,9 @@ class User(
 
     var twoFactorSecret: String? = null,
     var twoFactorEnabled: Boolean = false,
+
+    @OneToOne(cascade = [CascadeType.ALL])
+    var contact: Contact? = null,
 
     ) : AuditingEntity(), UserDetails {
 

@@ -2,6 +2,7 @@ package com.dotcom.retail.security.oauth2
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.OAuthError
+import com.dotcom.retail.config.properties.FrontendProperties
 import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
 import com.dotcom.retail.domain.user.UserService
@@ -22,6 +23,7 @@ class OAuth2SuccessHandler(
     private val userService: UserService,
     private val authService: AuthService,
     private val jwtService: JwtService,
+    private val frontendProperties: FrontendProperties,
 ) : AuthenticationSuccessHandler {
     val logger = LoggerFactory.getLogger(javaClass)
 
@@ -56,9 +58,7 @@ class OAuth2SuccessHandler(
             val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, version))
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
 
-//            response.sendRedirect(oauth2Service.FRONTEND_URL)
-            //temporary
-            response.writer.write("Successfully authenticated via oauth")
+            response.sendRedirect(frontendProperties.url)
         } catch (e: AppException) {
             oauth2Service.errorRedirect(response, e.message)
         } catch (e: Exception) {

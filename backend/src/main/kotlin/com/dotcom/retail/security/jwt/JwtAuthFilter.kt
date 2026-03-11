@@ -32,6 +32,11 @@ class JwtAuthFilter(
         }
     }
 
+    private fun isOptionalAuth(request: HttpServletRequest): Boolean {
+        val path = request.requestURI
+        return SecurityMatchers.OPTIONAL_AUTH_ENDPOINTS.any { AntPathMatcher().match(it, path) }
+    }
+
     override fun doFilterInternal(
         @NonNull request: HttpServletRequest,
         @NonNull response: HttpServletResponse,
@@ -66,8 +71,16 @@ class JwtAuthFilter(
 
             filterChain.doFilter(request, response)
         } catch (e: Exception) {
-            resolver.resolveException(request, response, null, e)
+            if (isOptionalAuth(request)) {
+                /*
+                For endpoints that accept authentication, but don't require it
+                 */
+                SecurityContextHolder.clearContext()
+                filterChain.doFilter(request, response)
+            } else {
+                resolver.resolveException(request, response, null, e)
+            }
         }
     }
 
- }
+}

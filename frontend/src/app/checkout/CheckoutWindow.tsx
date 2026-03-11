@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useEffect} from "react"
+import React, {useEffect, useState} from "react"
 import CartItem from "@components/cart/CartItem"
 import {useCartStore} from "@store/cartStore"
 import {cartApi} from "@lib/api/cartApi"
@@ -14,8 +14,8 @@ type CheckoutWindowProps = {
 
 export default function CheckoutWindow({ paymentFormRef }: CheckoutWindowProps) {
     const { sessionId } = useAuth()
-    const { items, setItems, setCart, total, shippingCost,
-        setShippingType, setShippingCost, shippingType } = useCartStore()
+    const { items, setCart, total, shippingCost, setShippingType,
+        setShippingCost, shippingType, isLoading, setIsLoading } = useCartStore()
     const router = useRouter()
 
     useEffect(() => {
@@ -37,11 +37,14 @@ export default function CheckoutWindow({ paymentFormRef }: CheckoutWindowProps) 
         }
     }, [items])
 
-    const handlePay = () => {
+    const handlePay = async () => {
+        setIsLoading(true)
         paymentFormRef.current?.requestSubmit()
     }
 
-    const handleShipping = async (type: ShippingType) => {
+    const handleShippingChange = async (type: ShippingType) => {
+        if (type === shippingType) return
+        setIsLoading(true)
         try {
             setShippingType(type)
             setShippingCost(type)
@@ -55,6 +58,7 @@ export default function CheckoutWindow({ paymentFormRef }: CheckoutWindowProps) 
             console.log("Error fetching cart: ", e)
             throw Error("Error fetching cart: ", e)
         }
+        setIsLoading(false)
     }
 
     return (
@@ -93,13 +97,17 @@ export default function CheckoutWindow({ paymentFormRef }: CheckoutWindowProps) 
                     >
                         <button
                             className={`border-2 rounded-md px-1 hover:bg-gray-400
-                            ${shippingType === ShippingType.STANDARD ? "bg-blue-500" : ""}`}
-                            onClick={() => handleShipping(ShippingType.STANDARD)}
+                            ${shippingType === ShippingType.STANDARD ? "bg-blue-500" : ""}
+                            disabled:opacity-50 disabled:cursor-not-allowed`}
+                            onClick={() => handleShippingChange(ShippingType.STANDARD)}
+                            disabled={isLoading}
                         >Standard</button>
                         <button
                             className={`border-2 rounded-md px-1 hover:bg-gray-400
-                            ${shippingType === ShippingType.EXPRESS ? "bg-blue-500" : ""}`}
-                            onClick={() => handleShipping(ShippingType.EXPRESS)}
+                            ${shippingType === ShippingType.EXPRESS ? "bg-blue-500" : ""}
+                            disabled:opacity-50 disabled:cursor-not-allowed`}
+                            onClick={() => handleShippingChange(ShippingType.EXPRESS)}
+                            disabled={isLoading}
                         >Express</button>
                     </div>
                 </div>
@@ -115,8 +123,10 @@ export default function CheckoutWindow({ paymentFormRef }: CheckoutWindowProps) 
                     </div>
                     <button
                         className="px-16 py-2 bg-gray-900 text-white text-xl
-                        font-medium rounded-xl hover:bg-gray-700 transition-colors"
+                        font-medium rounded-xl hover:bg-gray-700 transition-colors
+                        disabled:opacity-50 disabled:cursor-not-allowed"
                         onClick={handlePay}
+                        disabled={isLoading}
                     >Pay
                     </button>
                 </div>

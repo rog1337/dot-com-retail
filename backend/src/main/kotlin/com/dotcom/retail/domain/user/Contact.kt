@@ -1,21 +1,16 @@
 package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.model.AddressFields
-import jakarta.persistence.Embedded
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import com.dotcom.retail.common.model.AuditingEntity
+import com.dotcom.retail.common.model.Contact
+import jakarta.persistence.*
 
 @Entity
-class Contact {
+@Table(name = "contacts")
+class Contact(
     @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    val id: Long = 0
-
-    var name: String = ""
-    var email: String = ""
-    var phone: String = ""
+    val id: Long = 0,
 
     @Embedded
-    var address: AddressFields = AddressFields()
-}
+    var contact: Contact
+) :  AuditingEntity()

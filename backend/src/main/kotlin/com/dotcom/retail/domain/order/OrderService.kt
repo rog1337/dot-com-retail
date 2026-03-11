@@ -5,6 +5,8 @@ import com.dotcom.retail.common.exception.CartError
 import com.dotcom.retail.common.exception.OrderError
 import com.dotcom.retail.common.model.AddressFields
 import com.dotcom.retail.common.model.Contact
+import com.dotcom.retail.domain.user.Contact as ContactEntity
+import com.dotcom.retail.common.service.EncryptionService
 import com.dotcom.retail.domain.cart.CartMapper
 import com.dotcom.retail.domain.cart.CartService
 import com.dotcom.retail.domain.catalogue.product.ProductService
@@ -24,7 +26,8 @@ class OrderService(
     private val productService: ProductService,
     private val orderRepository: OrderRepository,
     private val paymentService: PaymentService,
-    private val cartMapper: CartMapper
+    private val cartMapper: CartMapper,
+    private val encryptionService: EncryptionService
 ) {
     @Transactional
     fun createOrder(userId: UUID?, sessionId: String?): CreateOrderResponse {
@@ -84,27 +87,32 @@ class OrderService(
         val order = getByPaymentIntentId(intentId)
 
         val email = request.email
-            ?: if (userId != null) userService.getById(userId).email
-            else throw AppException(OrderError.ORDER_EMAIL_REQUIRED)
 
         val requestAddress = request.address
 
         val address = AddressFields(
-            streetLine1 = requestAddress.streetLine1,
-            streetLine2 = requestAddress.streetLine2,
-            city = requestAddress.city,
-            stateOrProvince = requestAddress.stateOrProvince,
-            postalCode = requestAddress.postalCode,
-            country = requestAddress.country
+            streetLine1 = encryptionService.encrypt(requestAddress.streetLine1),
+            streetLine2 = requestAddress.streetLine2?.let { encryptionService.encrypt(it) },
+            city = encryptionService.encrypt(requestAddress.city),
+            stateOrProvince = requestAddress.stateOrProvince?.let { encryptionService.encrypt(it) },
+            postalCode = encryptionService.encrypt(requestAddress.postalCode),
+            country = encryptionService.encrypt(requestAddress.country),
         )
         val contact = Contact(
-            name = request.name,
-            email = email,
-            phone = request.phone,
+            name = encryptionService.encrypt(request.name),
+            email = encryptionService.encrypt(email),
+            phone = encryptionService.encrypt(request.phone),
             address = address
         )
         order.contact = contact
-        order.notes = request.notes
+        order.notes = request.notes?.let { encryptionService.encrypt(it) }
+
+        val user = userId?.let { userService.findById(userId) }
+        user?.let {
+            val contact = ContactEntity(contact = contact)
+            it.contact = contact
+            userService.save(it)
+        }
 
         val shippingType = request.shippingType
         val shippingCost = cartService.calculateShippingCost(shippingType)
@@ -134,6 +142,7 @@ class OrderService(
     }
 
     fun save(order: Order): Order {
+
         return orderRepository.save(order)
     }
 

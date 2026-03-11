@@ -1,18 +1,19 @@
 import {productApi} from "@lib/api/productApi"
-import type {Product} from "@_types/product"
 import Image from "next/image"
 import {SquareX} from "lucide-react"
 import axios, {AxiosError} from "axios"
 import NotFound from "next/dist/client/components/builtin/not-found"
+import Product from "src/app/(shop)/products/[id]/Product"
 
-export default async function Product({ params }: any) {
+
+export default async function ProductPage({ params }: any) {
     const { id } = await params
 
-    let product: Product
+    if (!id) return NotFound()
 
+    let product
     try {
-        const data = await productApi.getById(1)
-        product = data
+        product = await productApi.getById(id)
 
     } catch (e: unknown) {
         if (axios.isAxiosError(e)) {
@@ -26,18 +27,7 @@ export default async function Product({ params }: any) {
 
     return (
         <div>
-            {product.images[0]?.url ?
-                <Image
-                    src={product.images[0].url}
-                    alt={"product"}
-                    width={100}
-                    height={100}
-                />
-                :
-                <SquareX size={75} width={75} />
-            }
-
-            <span>{JSON.stringify(product)}</span>
+            <Product product={product}/>
         </div>
     )
 }

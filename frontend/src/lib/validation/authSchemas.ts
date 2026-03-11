@@ -1,7 +1,7 @@
 import { z } from "zod"
 
-const emailSchema = z
-    .string()
+export const emailSchema = z
+    .email()
     .min(5, "Must be a valid email address")
     .max(255, "Email is too long")
     .toLowerCase()

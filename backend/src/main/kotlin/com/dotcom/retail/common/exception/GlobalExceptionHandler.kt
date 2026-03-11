@@ -13,6 +13,7 @@ import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
 import org.springframework.http.ProblemDetail
 import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.web.HttpMediaTypeNotSupportedException
 import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -112,6 +113,14 @@ class GlobalExceptionHandler {
     fun handleSignatureVerificationException(e: SignatureVerificationException): ProblemDetail {
         val errorDetail = TransactionError.STRIPE_SIGNATURE_VERIFICATION_FAILED
         val problemDetail = ProblemDetail.forStatusAndDetail(errorDetail.status, errorDetail.message)
+        problemDetail.setProperty("code", errorDetail.code)
+        return problemDetail
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException::class)
+    fun handleLockingFailureException(e: ObjectOptimisticLockingFailureException): ProblemDetail {
+        val errorDetail = OptimisticLockingError.CONCURRENT_UPDATE_CONFLICT
+        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, errorDetail.message)
         problemDetail.setProperty("code", errorDetail.code)
         return problemDetail
     }

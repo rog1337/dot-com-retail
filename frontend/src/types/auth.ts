@@ -1,9 +1,8 @@
+import {Contact} from "@_types/contact";
+
 export interface User {
     id: string
-    email: string
     displayName: string
-    role?: string
-    twoFactorEnabled?: boolean
 }
 
 export interface LoginCredentials {
@@ -35,6 +34,7 @@ export interface UserUpdate {
 export interface UserDetails {
     displayName: string
     email: string
+    contact?: Contact
 }
 
 export interface PasswordResetInitiationRequest {

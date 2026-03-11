@@ -48,6 +48,8 @@ export default function LoginForm() {
                 setError("Email is not registered")
             } else if (code === "INVALID_CREDENTIALS") {
                 setError("Invalid credentials")
+            } else if (code === "NON_LOCAL_ACCOUNT") {
+                setError("This account is registered via Google's login system and a password cannot be used to log in. Reset your password to use a regular password or keep using Google.")
             } else {
                 setError("An error occurred")
                 throw Error(err)

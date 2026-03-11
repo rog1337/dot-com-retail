@@ -1,6 +1,7 @@
 import {User, UserDetails, UserUpdate} from "@_types/auth";
 import api from "@lib/api/api";
 import {Order, OrderResponse} from "@_types/order";
+import {Contact} from "@_types/contact";
 
 export const accountPaths = {
     base: "/account",

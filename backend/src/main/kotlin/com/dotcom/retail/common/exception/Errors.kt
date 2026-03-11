@@ -101,3 +101,7 @@ object TransactionError {
     val TRANSACTION_NOT_FOUND = AppError("TRANSACTION_NOT_FOUND", HttpStatus.NOT_FOUND, "Transaction not found")
     val STRIPE_SIGNATURE_VERIFICATION_FAILED = AppError("STRIPE_SIGNATURE_VERIFICATION_FAILED", HttpStatus.BAD_REQUEST, "Stripe signature verification failed")
 }
+
+object OptimisticLockingError {
+    val CONCURRENT_UPDATE_CONFLICT = AppError("CONCURRENT_UPDATE_CONFLICT", HttpStatus.CONFLICT, "Conflict updating an entity concurrently")
+}
