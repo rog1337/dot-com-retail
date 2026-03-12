@@ -9,6 +9,7 @@ import com.dotcom.retail.domain.order.ShippingType
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
+import com.stripe.exception.InvalidRequestException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -86,7 +87,11 @@ class CartService(
         }
 
         cart.intentId?.let {
-            paymentService.updatePaymentIntent(it, cart.getTotalPrice())
+            try {
+                paymentService.updatePaymentIntent(it, cart.getTotalPrice())
+            } catch (e: InvalidRequestException) {
+                cart.intentId = null
+            }
         }
 
         return save(cart)
