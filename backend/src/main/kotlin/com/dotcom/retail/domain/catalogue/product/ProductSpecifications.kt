@@ -70,8 +70,6 @@ class ProductSpecifications(
                 }
             }
 
-            predicates.add(cb.isTrue(root.get<Boolean>("isActive")))
-
             params.sort.let { sortOrder ->
                 if (sortOrder == SortOrder.TOP) return@let
 
@@ -98,6 +96,8 @@ class ProductSpecifications(
                 it.max.let { max -> predicates.add(cb.lessThanOrEqualTo(effectivePrice, BigDecimal.valueOf(max))) }
 
             }
+
+            predicates.add(cb.greaterThan(root.get<Int>("stock"), 0))
 
             cb.and(*predicates.toTypedArray())
         }
