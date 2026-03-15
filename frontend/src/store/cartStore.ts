@@ -68,7 +68,7 @@ export const useCartStore = create<CartStore>()(
         }),
         {
             name: "cart-storage",
-            partialize: () => ({ isLoading: false }),
+            partialize: (state) => ({ isLoading: false }),
         }
     ),
 )

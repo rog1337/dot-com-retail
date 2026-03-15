@@ -28,3 +28,7 @@ export interface CartUpdateItem {
     productId: number
     quantity: number
 }
+
+export interface CheckoutResponse {
+    clientSecret: string
+}

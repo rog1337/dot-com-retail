@@ -23,7 +23,8 @@ export default function OrderRow({ order }: { order: Order }) {
         <div className="border-b border-zinc-50 last:border-0">
             <button
                 onClick={() => setOpen(v => !v)}
-                className="w-full flex items-center justify-between px-5 py-4 active:bg-zinc-50 hover:bg-zinc-50 transition-colors group text-left"
+                className="w-full flex items-center justify-between px-5 py-4 active:bg-zinc-50
+                 hover:bg-zinc-50 dark:hover:bg-zinc-600 transition-colors group text-left"
             >
                 <div className="min-w-0 mr-3">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-0.5">
@@ -38,7 +39,7 @@ export default function OrderRow({ order }: { order: Order }) {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-sm font-medium text-zinc-700">{fmt(order.totalAmount)}</span>
+                    <span className="text-sm font-medium">{fmt(order.totalAmount)}</span>
                     <svg
                         className={`w-4 h-4 text-zinc-300 group-hover:text-zinc-500 transition-all duration-200 ${open ? "rotate-90" : ""}`}
                         fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -61,7 +62,7 @@ export default function OrderRow({ order }: { order: Order }) {
                                     <p className="text-sm text-zinc-700 truncate">{item.productName}</p>
                                     <p className="text-xs text-zinc-400">Qty {item.quantity} &times; {fmt(item.price)}</p>
                                 </div>
-                                <span className="text-sm font-medium text-zinc-700 shrink-0">{fmt(item.totalAmount)}</span>
+                                <span className="text-sm font-medium shrink-0">{fmt(item.totalAmount)}</span>
                             </div>
                         ))}
                     </div>
@@ -71,7 +72,7 @@ export default function OrderRow({ order }: { order: Order }) {
                             <span>Shipping ({order.shippingType})</span>
                             <span>{order.shippingCost === 0 ? "Free" : fmt(order.shippingCost)}</span>
                         </div>
-                        <div className="flex justify-between text-sm font-medium text-zinc-800">
+                        <div className="flex justify-between text-sm font-medium">
                             <span>Total</span>
                             <span>{fmt(order.totalAmount)}</span>
                         </div>
