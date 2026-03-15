@@ -3,20 +3,26 @@ package com.dotcom.retail.domain.order
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.CartError
 import com.dotcom.retail.common.exception.OrderError
+import com.dotcom.retail.common.exception.ProductError
+import com.dotcom.retail.common.exception.TransactionError
 import com.dotcom.retail.common.model.AddressFields
 import com.dotcom.retail.common.model.Contact
 import com.dotcom.retail.domain.user.Contact as ContactEntity
 import com.dotcom.retail.common.service.EncryptionService
-import com.dotcom.retail.domain.cart.CartMapper
 import com.dotcom.retail.domain.cart.CartService
 import com.dotcom.retail.domain.catalogue.product.ProductService
-import com.dotcom.retail.domain.order.dto.CreateOrderResponse
+import com.dotcom.retail.domain.order.dto.CheckoutResponse
 import com.dotcom.retail.domain.order.dto.SubmitOrderRequest
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.UserService
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
+import org.springframework.orm.ObjectOptimisticLockingFailureException
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -26,53 +32,26 @@ class OrderService(
     private val productService: ProductService,
     private val orderRepository: OrderRepository,
     private val paymentService: PaymentService,
-    private val cartMapper: CartMapper,
     private val encryptionService: EncryptionService
 ) {
-    @Transactional
-    fun createOrder(userId: UUID?, sessionId: String?): CreateOrderResponse {
-        val cart = cartService.getCartWithLock(userId, sessionId)
-        if (cart.items.isEmpty()) throw AppException(CartError.CART_EMPTY)
-        cartService.checkStock(cart)
+    private val log = LoggerFactory.getLogger(javaClass)
 
-        val intentId = cart.intentId
-        if (intentId != null) {
-            val order = getByPaymentIntentId(intentId)
-            if (order.status == OrderStatus.PENDING_PAYMENT) {
-                val intent = paymentService.retrieveIntent(intentId)
-                return CreateOrderResponse(
-                    orderId = order.id.toString(),
-                    status = order.status,
-                    clientSecret = intent.clientSecret
-                )
+    @Scheduled(fixedRate = 3_600_000)
+    fun cancelAbandonedOrders() {
+        log.info("Running scheduled abandoned order cleanup job")
+        val cutoff = Instant.now().minus(Duration.ofHours(1))
+        val abandoned = orderRepository.findAbandonedOrders(cutoff)
+
+        if (abandoned.isEmpty()) return
+        log.info("Cleanup job: cancelling ${abandoned.size} abandoned orders")
+
+        abandoned.forEach { order ->
+            try {
+                paymentService.cancelPaymentIntent(order.intentId)
+            } catch (ex: Exception) {
+                log.error("Failed to cancel abandoned order=${order.id}", ex)
             }
         }
-
-        val shippingCost = cartService.calculateShippingCost(ShippingType.STANDARD)
-        val order = Order(
-            user = userId?.let { userService.getById(userId) },
-            sessionId = sessionId,
-            status = OrderStatus.PENDING_PAYMENT,
-            shippingCost = shippingCost,
-            totalAmount = shippingCost,
-            intentId = "placeholder"
-        )
-
-        cart.shippingType = ShippingType.STANDARD
-        cart.shippingCost = shippingCost
-
-        val amount = cart.getTotalPrice()
-        val paymentIntent = paymentService.createPaymentIntent(amount)
-        order.intentId = paymentIntent.id
-        cart.intentId = paymentIntent.id
-        cartService.save(cart)
-        save(order)
-
-        return CreateOrderResponse(
-            orderId = order.id.toString(),
-            status = order.status,
-            clientSecret = paymentIntent.clientSecret,
-        )
     }
 
     @Transactional
@@ -84,10 +63,26 @@ class OrderService(
         val intentId = cart.intentId
             ?: throw AppException(OrderError.ORDER_NOT_FOUND)
 
-        val order = getByPaymentIntentId(intentId)
+        val intent = paymentService.retrieveIntent(intentId)
+        if (intent.status == "canceled") {
+            throw AppException(TransactionError.PAYMENT_STATUS_CANCELLED)
+        }
+
+        val shippingType = request.shippingType
+        val shippingCost = cartService.calculateShippingCost(shippingType)
+        var totalAmount = shippingCost
+
+        val order = findByPaymentIntentId(intentId) ?: Order(
+            user = userId?.let { userService.getById(userId) },
+            sessionId = sessionId,
+            status = OrderStatus.PENDING_PAYMENT,
+            shippingType = shippingType,
+            shippingCost = shippingCost,
+            totalAmount = shippingCost,
+            intentId = intentId,
+        )
 
         val email = request.email
-
         val requestAddress = request.address
 
         val address = AddressFields(
@@ -114,10 +109,6 @@ class OrderService(
             userService.save(it)
         }
 
-        val shippingType = request.shippingType
-        val shippingCost = cartService.calculateShippingCost(shippingType)
-        var totalAmount = shippingCost
-
         val orderItems = cart.items.map {
             totalAmount = totalAmount.add(it.getTotalPrice())
             OrderItem(
@@ -133,38 +124,69 @@ class OrderService(
         order.items.addAll(orderItems)
 
         order.apply {
-            this.shippingType = shippingType
-            this.shippingCost = shippingCost
             this.totalAmount = totalAmount
         }
 
+        paymentService.updatePaymentIntent(intent, totalAmount)
         return save(order)
     }
 
     fun save(order: Order): Order {
-
         return orderRepository.save(order)
     }
 
-    fun handleSuccess(order: Order): Order {
+    @Transactional
+    fun handleSuccess(order: Order, chargeId: String?): Order {
+        try {
+            order.items.forEach {
+                if (it.product.stock < it.quantity) {
+                    throw AppException(ProductError.PRODUCT_INSUFFICIENT_STOCK.withIdentifier(it.product.id))
+                }
+                it.product.stock -= it.quantity
+            }
+        } catch (e: AppException) {
+            if (e.code != ProductError.PRODUCT_INSUFFICIENT_STOCK.code)
+                throw e
+
+            log.error("Stock exhausted for order=${order.id} after payment — refunding")
+            paymentService.refundCharge(chargeId!!, order.totalAmount)
+            order.status = OrderStatus.CANCELLED
+            order.failureReason = e.message
+            return save(order)
+        } catch (e: ObjectOptimisticLockingFailureException) {
+            throw e
+        }
+
         order.status = OrderStatus.PAID
+        order.chargeId = chargeId
         val cart = cartService.getByPaymentIntentId(order.intentId)
         cartService.delete(cart)
         return save(order)
     }
 
-    fun handleFail(order: Order): Order {
-        order.status = OrderStatus.FAILED
-        restock(order)
-        return save(order)
-    }
-
-    fun handleCancel(order: Order): Order {
+    @Transactional
+    fun handleCancel(order: Order, reason: String?): Order {
         order.status = OrderStatus.CANCELLED
+        order.failureReason = reason?.take(512)
         restock(order)
         return save(order)
     }
 
+    @Transactional
+    fun handleRefund(order: Order, refundId: String?): Order {
+        order.status = OrderStatus.REFUNDED
+        order.refundId = refundId
+        return save(order)
+    }
+
+    @Transactional
+    fun handleRefundFail(order: Order, reason: String?): Order {
+        order.status = OrderStatus.REFUND_FAILED
+        order.failureReason = reason?.take(512)
+        return save(order)
+    }
+
+    @Transactional
     fun restock(order: Order) {
         for (item in order.items) {
             val product = item.product
@@ -204,6 +226,10 @@ class OrderService(
 
     fun getByPaymentIntentId(intentId: String): Order {
         return orderRepository.findByIntentId(intentId) ?: throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(intentId))
+    }
+
+    fun findByPaymentIntentId(paymentIntentId: String): Order? {
+        return orderRepository.findByIntentId(paymentIntentId)
     }
 
     fun getOrder(orderId: UUID?, paymentIntentId: String?): Order {

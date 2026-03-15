@@ -3,6 +3,7 @@ package com.dotcom.retail.domain.cart
 import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.domain.cart.dto.CartDto
 import com.dotcom.retail.domain.cart.dto.CartUpdateRequest
+import com.dotcom.retail.domain.order.dto.CheckoutResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -32,5 +33,15 @@ class CartController(
     ): ResponseEntity<CartDto> {
         val cart = cartService.update(userId, sessionId, request)
         return ResponseEntity.ok().body(cartMapper.toDto(cart))
+    }
+
+
+    @PostMapping(ApiRoutes.Cart.CHECKOUT)
+    fun checkout(
+        @AuthenticationPrincipal userId: UUID?,
+        @RequestHeader(CartService.SESSION_ID_HEADER, required = false) sessionId: String?,
+    ): ResponseEntity<CheckoutResponse> {
+        val order = cartService.checkout(userId, sessionId)
+        return ResponseEntity.ok().body(order)
     }
 }

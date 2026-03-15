@@ -72,6 +72,7 @@ object ApiRoutes {
 
     object Cart {
         const val BASE = "$V1/cart"
+        const val CHECKOUT = "/checkout"
     }
 
     object Order {
@@ -81,8 +82,8 @@ object ApiRoutes {
     }
 
     object Payment {
-        const val BASE = "$V1/webhook"
-        const val STRIPE = "/stripe"
-
+        const val BASE = "$V1/payment"
+        const val STRIPE = "/webhook/stripe"
+        const val REFUND = "/refund"
     }
 }

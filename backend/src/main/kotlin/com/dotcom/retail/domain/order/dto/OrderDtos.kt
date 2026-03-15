@@ -1,7 +1,6 @@
 package com.dotcom.retail.domain.order.dto
 
 import com.dotcom.retail.common.model.Contact
-import com.dotcom.retail.domain.cart.dto.CartDto
 import com.dotcom.retail.domain.order.OrderStatus
 import com.dotcom.retail.domain.order.ShippingType
 import jakarta.validation.constraints.Email
@@ -37,9 +36,7 @@ data class OrderAddress(
     val country: String,
 )
 
-data class CreateOrderResponse(
-    val orderId: String,
-    val status: OrderStatus,
+data class CheckoutResponse(
     val clientSecret: String,
 )
 

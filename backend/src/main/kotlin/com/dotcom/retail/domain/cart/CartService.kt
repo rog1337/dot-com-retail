@@ -5,11 +5,15 @@ import com.dotcom.retail.common.exception.CartError
 import com.dotcom.retail.common.exception.ProductError
 import com.dotcom.retail.domain.cart.dto.CartUpdateRequest
 import com.dotcom.retail.domain.catalogue.product.ProductService
+import com.dotcom.retail.domain.order.OrderRepository
+import com.dotcom.retail.domain.order.OrderStatus
 import com.dotcom.retail.domain.order.ShippingType
+import com.dotcom.retail.domain.order.dto.CheckoutResponse
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.stripe.exception.InvalidRequestException
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -21,11 +25,48 @@ class CartService(
     private val userService: UserService,
     private val productService: ProductService,
     private val paymentService: PaymentService,
+    private val orderRepository: OrderRepository,
 ) {
+    private val log = LoggerFactory.getLogger(javaClass)
+
     companion object {
         const val SESSION_ID_HEADER = "X-Session-Id"
         val SHIPPING_STANDARD_PRICE = BigDecimal(5)
         val SHIPPING_EXPRESS_PRICE = BigDecimal(15)
+    }
+
+    @Transactional
+    fun checkout(userId: UUID?, sessionId: String?): CheckoutResponse {
+        val cart = getCartWithLock(userId, sessionId)
+        if (cart.items.isEmpty()) throw AppException(CartError.CART_EMPTY)
+        checkStock(cart)
+
+        val existingIntentId = cart.intentId
+        if (existingIntentId != null) {
+            val existingOrder = orderRepository.findByIntentId(existingIntentId)
+            if (existingOrder?.status == OrderStatus.PENDING_PAYMENT) {
+                val intent = paymentService.retrieveIntent(existingIntentId)
+                return CheckoutResponse(clientSecret = intent.clientSecret)
+            }
+            if (existingOrder == null) {
+                val intent = paymentService.retrieveIntent(existingIntentId)
+                if (intent.status == "requires_payment_method") {
+                    return CheckoutResponse(clientSecret = intent.clientSecret)
+                }
+            }
+        }
+
+        cart.shippingType = ShippingType.STANDARD
+        cart.shippingCost = calculateShippingCost(ShippingType.STANDARD)
+
+        val amount = cart.getTotalPrice()
+        val paymentIntent = paymentService.createPaymentIntent(amount)
+        cart.intentId = paymentIntent.id
+        save(cart)
+
+        return CheckoutResponse(
+            clientSecret = paymentIntent.clientSecret,
+        )
     }
 
     @Transactional

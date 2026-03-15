@@ -36,6 +36,12 @@ class Order(
     @Column(nullable = false)
     var totalAmount: BigDecimal,
 
+    var chargeId: String? = null,
+    var refundId: String? = null,
+
+    @Column(length = 512)
+    var failureReason: String? = null,
+
     @OneToMany(mappedBy = "order", cascade = [CascadeType.ALL], orphanRemoval = true)
     var items: MutableList<OrderItem> = mutableListOf(),
 
@@ -46,6 +52,8 @@ class Order(
         item.order = this
     }
 
+    fun isComplete(): Boolean = items.isNotEmpty() && contact != null
+
 }
 
 enum class OrderStatus {
@@ -54,7 +62,10 @@ enum class OrderStatus {
     FAILED,
     SHIPPED,
     DELIVERED,
-    CANCELLED
+    CANCELLED,
+    REFUND_PENDING,
+    REFUNDED,
+    REFUND_FAILED,
 }
 
 enum class ShippingType {

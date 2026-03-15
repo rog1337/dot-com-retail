@@ -1,30 +1,45 @@
 package com.dotcom.retail.domain.payment
 
 import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.CartError
+import com.dotcom.retail.common.exception.OrderError
 import com.dotcom.retail.common.exception.TransactionError
-import com.dotcom.retail.common.service.EmailService
 import com.dotcom.retail.config.properties.StripeProperties
 import com.dotcom.retail.domain.order.Order
-import com.dotcom.retail.domain.order.OrderService
+import com.dotcom.retail.domain.order.OrderRepository
+import com.dotcom.retail.domain.order.OrderStatus
+import com.dotcom.retail.domain.payment.dto.PaymentEvent
+import com.dotcom.retail.domain.payment.dto.TransactionStatus
+import com.stripe.model.Charge
 import com.stripe.model.Event
 import com.stripe.model.PaymentIntent
+import com.stripe.model.Refund
 import com.stripe.net.Webhook
 import com.stripe.param.PaymentIntentCreateParams
 import com.stripe.param.PaymentIntentUpdateParams
-import jakarta.transaction.Transactional
+import com.stripe.param.RefundCreateParams
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.util.UUID
 
 @Service
 class PaymentService(
     private val stripeProperties: StripeProperties,
     private val paymentProducer: PaymentProducer,
-    private val transactionRepository: TransactionRepository,
+    private val orderRepository: OrderRepository,
 ) {
+
+    private val log = LoggerFactory.getLogger(javaClass)
 
     companion object {
         const val STRIPE_SIGNATURE_HEADER = "Stripe-Signature"
         const val CURRENCY = "EUR"
+
+        object RefundReason {
+            const val DUPLICATE = "duplicate"
+            const val FRAUDULENT = "fraudulent"
+        }
     }
 
     fun createPaymentIntent(amount: BigDecimal): PaymentIntent {
@@ -41,59 +56,144 @@ class PaymentService(
         return paymentIntent
     }
 
-    fun updatePaymentIntent(paymentIntentId: String, amount: BigDecimal): PaymentIntent {
-        val intent = PaymentIntent.retrieve(paymentIntentId)
+    fun updatePaymentIntent(paymentIntent: PaymentIntent, amount: BigDecimal): PaymentIntent {
         val newAmount = toStripeMoney(amount)
-
         val params = PaymentIntentUpdateParams.builder()
             .setAmount(newAmount)
             .putMetadata("updated_at", System.currentTimeMillis().toString())
             .build()
 
-        return intent.update(params)
+        return paymentIntent.update(params)
+    }
+
+    fun updatePaymentIntent(paymentIntentId: String, amount: BigDecimal): PaymentIntent {
+        return updatePaymentIntent(PaymentIntent.retrieve(paymentIntentId), amount)
+    }
+
+    fun cancelPaymentIntent(intentId: String) {
+        val intent = PaymentIntent.retrieve(intentId)
+        if (intent.status in listOf("requires_payment_method", "requires_confirmation", "requires_action")) {
+            intent.cancel()
+            log.info("Cancelled PaymentIntent intentId=$intentId")
+        } else {
+            log.warn("PaymentIntent intentId=$intentId is in state=${intent.status} — cannot cancel")
+        }
     }
 
     fun handleStripeEvent(payload: String, sigHeader: String) {
-
         val event: Event = Webhook.constructEvent(payload, sigHeader, stripeProperties.webhookSecret)
-        if (event.type == "payment_intent.succeeded") {
-            val paymentIntent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
-            paymentProducer.sendPaymentStatus(
-                PaymentEvent(paymentIntent.id, TransactionStatus.SUCCESS)
-            )
-        } else if (event.type == "payment_intent.canceled") {
-            val paymentIntent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
-            paymentProducer.sendPaymentStatus(
-                PaymentEvent(paymentIntent.id, TransactionStatus.FAILED)
-            )
+
+        when (event.type) {
+            "payment_intent.succeeded" -> {
+                val intent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
+                paymentProducer.sendPaymentEvent(
+                    PaymentEvent(
+                        intentId = intent.id,
+                        status = TransactionStatus.SUCCESS,
+                        chargeId = intent.latestCharge,
+                        amount = fromStripeMoney(intent.amount),
+                        currency = intent.currency,
+                    )
+                )
+            }
+
+            "payment_intent.payment_failed" -> {
+                val intent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
+                log.info("Payment attempt failed for intent=${intent.id} reason=${intent.lastPaymentError?.message} — intent still open")
+            }
+
+            "payment_intent.canceled" -> {
+                // todo clear cart
+                val intent = event.dataObjectDeserializer.`object`.get() as PaymentIntent
+                paymentProducer.sendPaymentEvent(
+                    PaymentEvent(
+                        intentId = intent.id,
+                        status = TransactionStatus.CANCELLED,
+                        failureReason = intent.cancellationReason,
+                        amount = fromStripeMoney(intent.amount),
+                        currency = intent.currency,
+                    )
+                )
+            }
+
+            "charge.refunded" -> {
+                val charge = event.dataObjectDeserializer.`object`.get() as Charge
+                val intentId = charge.paymentIntent
+                if (intentId == null) {
+                    log.warn("charge.refunded has no paymentIntent — skipping (chargeId=${charge.id})")
+                    return
+                }
+                val refundId = charge.refunds?.data?.firstOrNull()?.id
+                paymentProducer.sendPaymentEvent(
+                    PaymentEvent(
+                        intentId = intentId,
+                        status = TransactionStatus.REFUNDED,
+                        chargeId = charge.id,
+                        refundId = refundId,
+                        amount = fromStripeMoney(charge.amountRefunded),
+                        currency = charge.currency,
+                    )
+                )
+            }
+
+            else -> log.debug("Unhandled Stripe event type=${event.type} — ignoring")
         }
+    }
+
+    fun initiateRefund(orderId: UUID, userId: UUID?, sessionId: String?, reason: String? = null) {
+        val order = orderRepository.findById(orderId)
+            .orElseThrow { AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(orderId)) }
+
+        if (userId != null && sessionId != null) {
+            if (order.user?.id != userId) {
+                throw AppException(OrderError.ORDER_ACCESS_DENIED.withIdentifier(userId))
+            } else if (order?.sessionId != sessionId) {
+                throw AppException(OrderError.ORDER_ACCESS_DENIED.withIdentifier(sessionId))
+            }
+        } else throw AppException(TransactionError.REFUND_IDENTIFIER_REQUIRED)
+
+        if (order.status != OrderStatus.PAID) {
+            throw AppException(TransactionError.REFUND_ORDER_INVALID_STATE.withIdentifier(order.status))
+        }
+
+        val chargeId = order.chargeId
+            ?: throw AppException(OrderError.ORDER_MISSING_CHARGE_ID)
+
+        refundCharge(chargeId, order.totalAmount, reason)
+
+        order.status = OrderStatus.REFUND_PENDING
+        orderRepository.save(order)
+
+        log.info("Refund initiated for order=$orderId intentId=${order.intentId}")
+    }
+
+    fun refundCharge(chargeId: String, amount: BigDecimal, reason: String? = null) {
+        val params = RefundCreateParams.builder()
+            .setCharge(chargeId)
+            .setAmount(toStripeMoney(amount))
+            .apply {
+                reason?.let {
+                    setReason(
+                        when (it.lowercase()) {
+                            RefundReason.DUPLICATE  -> RefundCreateParams.Reason.DUPLICATE
+                            RefundReason.FRAUDULENT -> RefundCreateParams.Reason.FRAUDULENT
+                            else                    -> RefundCreateParams.Reason.REQUESTED_BY_CUSTOMER
+                        }
+                    )
+                }
+            }
+            .build()
+        Refund.create(params)
+        log.info("Refunded charge=$chargeId amount=$amount")
     }
 
     fun retrieveIntent(paymentIntentId: String): PaymentIntent {
         return PaymentIntent.retrieve(paymentIntentId)
     }
 
-    fun handleSuccess(transaction: Transaction): Transaction {
-        transaction.status = TransactionStatus.SUCCESS
-        return saveTransaction(transaction)
-    }
+    private fun toStripeMoney(value: BigDecimal): Long =
+        value.multiply(BigDecimal(100)).toLong()
 
-    fun handleFail(transaction: Transaction): Transaction {
-        transaction.status = TransactionStatus.FAILED
-        return saveTransaction(transaction)
-    }
-
-    private fun toStripeMoney(value: BigDecimal): Long {
-        return value.multiply(BigDecimal(100)).toLong()
-    }
-
-    fun saveTransaction(transaction: Transaction): Transaction {
-        return transactionRepository.save(transaction)
-    }
-
-    fun getByExternalId(externalId: String): Transaction {
-        return transactionRepository.findByExternalId(externalId)
-            ?: throw AppException(TransactionError.TRANSACTION_NOT_FOUND)
-    }
-
+    private fun fromStripeMoney(cents: Long): BigDecimal =
+        BigDecimal(cents).divide(BigDecimal(100))
 }

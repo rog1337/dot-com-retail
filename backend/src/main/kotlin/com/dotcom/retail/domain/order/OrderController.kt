@@ -2,7 +2,6 @@ package com.dotcom.retail.domain.order
 
 import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.domain.cart.CartService
-import com.dotcom.retail.domain.order.dto.CreateOrderResponse
 import com.dotcom.retail.domain.order.dto.OrderDto
 import com.dotcom.retail.domain.order.dto.SubmitOrderRequest
 import jakarta.validation.Valid
@@ -25,15 +24,6 @@ class OrderController(
     ): ResponseEntity<OrderDto> {
         val order = orderService.getOrder(id, paymentIntentId)
         return ResponseEntity.ok(orderMapper.toDto(order))
-    }
-
-    @PostMapping
-    fun createOrder(
-        @AuthenticationPrincipal userId: UUID?,
-        @RequestHeader(CartService.SESSION_ID_HEADER, required = false) sessionId: String?,
-    ): ResponseEntity<CreateOrderResponse> {
-        val order = orderService.createOrder(userId, sessionId)
-        return ResponseEntity.ok().body(order)
     }
 
     @PostMapping(ApiRoutes.Order.SUBMIT)

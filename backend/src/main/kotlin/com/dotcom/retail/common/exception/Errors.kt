@@ -95,11 +95,16 @@ object OrderError {
     val ORDER_ERROR = AppError("ORDER_ERROR", HttpStatus.BAD_REQUEST, "Order error")
     val ORDER_NOT_FOUND = AppError("ORDER_NOT_FOUND", HttpStatus.NOT_FOUND, "Order not found")
     val ORDER_EMAIL_REQUIRED = AppError("ORDER_EMAIL_REQUIRED", HttpStatus.BAD_REQUEST, "Email is required")
+    val ORDER_MISSING_CHARGE_ID = AppError("ORDER_MISSING_CHARGE_ID", HttpStatus.BAD_REQUEST, "Order missing charge id")
+    val ORDER_ACCESS_DENIED = AppError("ORDER_ACCESS_DENIED", HttpStatus.FORBIDDEN, "Order access denied")
 }
 
 object TransactionError {
     val TRANSACTION_NOT_FOUND = AppError("TRANSACTION_NOT_FOUND", HttpStatus.NOT_FOUND, "Transaction not found")
     val STRIPE_SIGNATURE_VERIFICATION_FAILED = AppError("STRIPE_SIGNATURE_VERIFICATION_FAILED", HttpStatus.BAD_REQUEST, "Stripe signature verification failed")
+    val PAYMENT_STATUS_CANCELLED = AppError("PAYMENT_STATUS_CANCELLED", HttpStatus.CONFLICT, "Payment status is cancelled")
+    val REFUND_ORDER_INVALID_STATE = AppError("REFUND_ORDER_INVALID_STATE", HttpStatus.BAD_REQUEST, "Order state not suitable for refund")
+    val REFUND_IDENTIFIER_REQUIRED = AppError("REFUND_IDENTIFIER_REQUIRED", HttpStatus.BAD_REQUEST, "Either userId or sessionId is required")
 }
 
 object OptimisticLockingError {
