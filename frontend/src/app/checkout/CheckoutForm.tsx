@@ -22,6 +22,7 @@ import Loading from "@components/Loading";
 import {useToastStore} from "@store/toastStore";
 import {useCheckout} from "@stripe/react-stripe-js/checkout";
 import {useCartStore} from "@store/cartStore";
+import {useRouter} from "next/navigation";
 
 type CheckoutFormProps = {
     paymentFormRef: React.RefObject<HTMLFormElement | null>
@@ -38,6 +39,7 @@ export default function CheckoutForm({ paymentFormRef }: CheckoutFormProps) {
     const [shippingType] = useState<ShippingType>(ShippingType.STANDARD)
     const [elementsReady, setElementsReady] = useState<boolean>(false)
     const [loading, setLoading] = useState(true)
+    const router = useRouter()
     let emailRef = useRef<string>(email)
 
     useEffect(() => {
@@ -112,15 +114,22 @@ export default function CheckoutForm({ paymentFormRef }: CheckoutFormProps) {
                 address: contact.address,
                 shippingType: shippingType,
             }
-            const submitOrderResponse = await orderApi.submitOrder(sessionId, requestBody)
+            await orderApi.submitOrder(sessionId, requestBody)
         } catch (e: any) {
+            const code = e?.response?.data?.code
+            if (code === "PAYMENT_STATUS_CANCELLED") {
+                show("Payment session has been cancelled, try again", "error", 5000)
+                log.d("Payment status is cancelled", e)
+                router.push("/cart")
+                return
+            }
             show("An error occurred processing your order", "error", 5000)
             log.d("Failed to submit order", e)
             return
         }
 
         try {
-            const result = await stripe.confirmPayment({
+            await stripe.confirmPayment({
                 elements,
                 confirmParams: {
                     return_url: window.location.origin + "/checkout/confirm",

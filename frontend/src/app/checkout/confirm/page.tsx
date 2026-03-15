@@ -2,6 +2,7 @@ import {orderApi} from "@lib/api/orderApi"
 import {redirect} from "next/navigation"
 import OrderItem from "@components/order/OrderItem"
 import ClearCart from "@/src/app/checkout/confirm/ClearCart";
+import NotFound from "next/dist/client/components/builtin/not-found";
 
 type SearchParams = {
     payment_intent?: string
@@ -29,11 +30,21 @@ export default async function CheckoutConfirm({ searchParams }: { searchParams: 
         try {
             return await orderApi.getOrderByPaymentIntent(params)
         } catch(e: any) {
-            if (retries === 0) throw Error("Failed to fetch order", e)
+            const code = e?.response?.data?.code
+            if (code === "ORDER_NOT_FOUND") {
+                if (retries === 0) {
+                    return null
+                }
+            } else {
+                if (retries === 0) throw Error("Failed to fetch order", e)
+            }
+
             await new Promise(resolve => setTimeout(resolve, delay))
             return fetchOrder(retries-1, delay)
         }
     }
+
+    if (!order) return NotFound()
 
     return (
 

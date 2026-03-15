@@ -12,6 +12,7 @@ import CheckoutWindow from "@/src/app/checkout/CheckoutWindow"
 import {useCartStore} from "@store/cartStore"
 import {useRouter} from "next/navigation"
 import Loading from "@/src/components/Loading"
+import {cartApi} from "@lib/api/cartApi";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -26,8 +27,8 @@ export default function Checkout() {
     useEffect(() => {
         const createIntent = async () => {
             try {
-                const res = await orderApi.createOrder(sessionId)
-                setClientSecret(res.clientSecret)
+                const { clientSecret } = await cartApi.checkout(sessionId)
+                setClientSecret(clientSecret)
             } catch (e: any) {
                 const code = e.response?.data?.code
                 if (code === "CART_NOT_FOUND") {
