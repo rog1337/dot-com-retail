@@ -8,6 +8,7 @@ import io.jsonwebtoken.JwtException
 import jakarta.servlet.ServletException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.parsing.Problem
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -19,6 +20,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.multipart.MultipartException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
 import org.springframework.web.servlet.resource.NoResourceFoundException
@@ -61,6 +63,12 @@ class GlobalExceptionHandler {
             if (error.isBindingFailure) "Field is missing or has incorrect type: ${error.field}"
             else "${error.field}: ${error.defaultMessage}"
         return ProblemDetail.forStatusAndDetail(e.statusCode, message)
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException::class)
+    fun handleMethodArgumentTypeMismatchException(e: MethodArgumentTypeMismatchException): ProblemDetail {
+        return ProblemDetail.forStatusAndDetail(
+            HttpStatus.BAD_REQUEST, "Invalid value for field '${e.name}'")
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)

@@ -13,7 +13,8 @@ export const accountPaths = {
 export const accountApi = {
     getAccount: (): Promise<User> => (api.get(accountPaths.base)),
     getAccountDetails: (): Promise<UserDetails> => (api.get(accountPaths.details())),
-    getOrders: (): Promise<OrderResponse> => (api.get(accountPaths.orders())),
+    getOrders: (params: URLSearchParams): Promise<OrderResponse> =>
+        (api.get(accountPaths.orders(), { params })),
     updateAccount: (update: UserUpdate): Promise<User> => (api.patch(accountPaths.base, update)),
     resetPassword: (): Promise<any> => (api.post(accountPaths.reset_password()))
 }

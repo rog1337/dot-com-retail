@@ -2,22 +2,18 @@ package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.UserError
-import com.dotcom.retail.domain.order.Order
 import com.dotcom.retail.domain.order.OrderRepository
 import com.dotcom.retail.domain.user.dto.CreateUserParams
 import com.dotcom.retail.domain.user.dto.UserUpdateRequest
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import java.util.UUID
+import java.util.*
 
 @Service
 class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
-    private val orderRepository: OrderRepository
 ) {
 
     companion object {
@@ -28,11 +24,6 @@ class UserService(
         val user = getById(userId)
         user.displayName = request.displayName.trim()
         return save(user)
-    }
-
-    fun getOrders(userId: UUID, page: Int, pageSize: Int): Page<Order> {
-        val pageable = PageRequest.of(page, pageSize)
-        return orderRepository.findByUserId(userId, pageable)
     }
 
     fun getById(id: UUID): User {
@@ -65,7 +56,6 @@ class UserService(
             email = email,
             passwordHash = hashedPasswordOrNull,
             displayName = params.displayName ?: DEFAULT_DISPLAY_NAME,
-            // todo picture?
         )
         return save(user)
     }

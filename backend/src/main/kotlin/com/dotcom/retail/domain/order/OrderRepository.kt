@@ -24,4 +24,18 @@ interface OrderRepository : JpaRepository<Order, UUID> {
 
     @Query("SELECT o FROM Order o WHERE o.status = :status AND o.createdAt < :cutoff")
     fun findAbandonedOrders(cutoff: Instant, status: OrderStatus = OrderStatus.PENDING_PAYMENT): List<Order>
+
+    @Query("""
+        SELECT o FROM Order o 
+        WHERE o.user.id = :userId 
+        AND (:status IS NULL OR o.status = :status)
+    """)
+    fun findByUserIdAndStatus(userId: UUID, status: OrderStatus?, pageable: Pageable): Page<Order>
+
+    @Query("""
+        SELECT o FROM Order o 
+        WHERE o.sessionId = :sessionId 
+        AND (:status IS NULL OR o.status = :status)
+    """)
+    fun findBySessionIdAndStatus(sessionId: String, status: OrderStatus?, pageable: Pageable): Page<Order>
 }

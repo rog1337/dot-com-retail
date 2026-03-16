@@ -1,6 +1,5 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.model.SortOrder
 import com.dotcom.retail.domain.catalogue.category.attribute.AttributeMetadataService
 import com.fasterxml.jackson.databind.ObjectMapper
 import jakarta.persistence.criteria.Predicate
@@ -71,14 +70,14 @@ class ProductSpecifications(
             }
 
             params.sort.let { sortOrder ->
-                if (sortOrder == SortOrder.TOP) return@let
+                if (sortOrder == ProductSortOrder.TOP) return@let
 
                 val effectivePrice = cb.coalesce(
                     root.get<BigDecimal>("salePrice"),
                     root.get<BigDecimal>("price")
                 )
 
-                val order = if (sortOrder == SortOrder.PRICE_ASC) {
+                val order = if (sortOrder == ProductSortOrder.PRICE_ASC) {
                     cb.asc(effectivePrice)
                 } else {
                     cb.desc(effectivePrice)

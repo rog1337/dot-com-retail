@@ -1,5 +1,5 @@
 import {AddressFields, Contact} from "@_types/contact"
-import {type Page} from "@_types/page"
+import {type Page, PageResponse} from "@_types/page"
 
 export interface Order {
     id: string,
@@ -40,8 +40,13 @@ export interface SubmitOrderRequest {
 
 export interface OrderResponse {
     content: Order[]
-    page: Page
+    page: PageResponse
 }
 
 export enum OrderStatus { PENDING_PAYMENT, PAID, SHIPPED, DELIVERED, CANCELLED }
 export enum ShippingType { STANDARD = "STANDARD", EXPRESS = "EXPRESS"}
+
+export interface OrderParams extends Page {
+    status: OrderStatus
+    sort: "desc" | "asc"
+}

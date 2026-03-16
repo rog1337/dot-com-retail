@@ -6,6 +6,7 @@ import com.dotcom.retail.common.exception.OrderError
 import com.dotcom.retail.common.exception.ProductError
 import com.dotcom.retail.common.exception.TransactionError
 import com.dotcom.retail.common.model.AddressFields
+import com.dotcom.retail.common.model.AuditSortOrder
 import com.dotcom.retail.common.model.Contact
 import com.dotcom.retail.domain.user.Contact as ContactEntity
 import com.dotcom.retail.common.service.EncryptionService
@@ -16,6 +17,9 @@ import com.dotcom.retail.domain.order.dto.SubmitOrderRequest
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.UserService
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.scheduling.annotation.Scheduled
@@ -195,18 +199,11 @@ class OrderService(
         }
     }
 
-    fun getOrders(userId: UUID?, sessionId: String?): Set<Order> {
-        if (userId != null) {
-            val orders = findByUserId(userId)
-            if (orders.isNotEmpty()) return orders
-            throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(userId))
-        }
-        if (sessionId != null) {
-            val orders = findBySessionId(sessionId)
-            if (orders.isNotEmpty()) return orders
-            throw AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(sessionId))
-        }
-
+    fun getOrders(userId: UUID?, sessionId: String?, status: OrderStatus?, sort: AuditSortOrder, page: Int, pageSize: Int): Page<Order> {
+        val sort = if (sort == AuditSortOrder.desc) Sort.Direction.DESC else Sort.Direction.ASC
+        val pageable = PageRequest.of(page, pageSize, Sort.by(sort, "createdAt"))
+        if (userId != null) return orderRepository.findByUserIdAndStatus(userId, status, pageable)
+        if (sessionId != null) return orderRepository.findBySessionIdAndStatus(sessionId, status, pageable)
         throw AppException(CartError.CART_IDENTIFIER_REQUIRED)
     }
 

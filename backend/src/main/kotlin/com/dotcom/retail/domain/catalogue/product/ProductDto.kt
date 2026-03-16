@@ -1,6 +1,5 @@
 package com.dotcom.retail.domain.catalogue.product
 
-import com.dotcom.retail.common.model.SortOrder
 import com.dotcom.retail.common.util.pagination.PageConstants
 import com.dotcom.retail.domain.catalogue.brand.BrandDto
 import com.dotcom.retail.domain.catalogue.filter.RangeData
@@ -73,7 +72,7 @@ data class ProductQueryParams(
     val brands: List<Long> = emptyList(),
     val page: Int = PageConstants.DEFAULT_PAGE,
     val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
-    val sort: SortOrder = SortOrder.TOP,
+    val sort: ProductSortOrder = ProductSortOrder.TOP,
     val price: RangeData? = null
 )
 
@@ -83,7 +82,7 @@ data class ProductQuery(
     val attributes: List<ProductAttributeDto> = emptyList(),
     val page: Int = PageConstants.DEFAULT_PAGE,
     val pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
-    val sort: SortOrder = SortOrder.TOP,
+    val sort: ProductSortOrder = ProductSortOrder.TOP,
     val price: RangeData? = null
 )
 
