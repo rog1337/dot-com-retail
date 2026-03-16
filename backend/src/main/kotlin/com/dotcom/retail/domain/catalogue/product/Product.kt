@@ -7,6 +7,7 @@ import com.dotcom.retail.domain.catalogue.image.Image
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
+import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
@@ -36,6 +37,7 @@ class Product(
     @JoinColumn(name = "category_id")
     var category: Category? = null,
 
+    @BatchSize(size = 50)
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     var images: MutableList<Image> = mutableListOf(),
 

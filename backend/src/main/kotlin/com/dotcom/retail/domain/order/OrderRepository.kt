@@ -26,10 +26,11 @@ interface OrderRepository : JpaRepository<Order, UUID> {
     fun findAbandonedOrders(cutoff: Instant, status: OrderStatus = OrderStatus.PENDING_PAYMENT): List<Order>
 
     @Query("""
-        SELECT o FROM Order o 
-        WHERE o.user.id = :userId 
+        SELECT o FROM Order o
+        WHERE o.user.id = :userId
         AND (:status IS NULL OR o.status = :status)
     """)
+    @EntityGraph(attributePaths = ["items", "items.product"])
     fun findByUserIdAndStatus(userId: UUID, status: OrderStatus?, pageable: Pageable): Page<Order>
 
     @Query("""
@@ -37,5 +38,6 @@ interface OrderRepository : JpaRepository<Order, UUID> {
         WHERE o.sessionId = :sessionId 
         AND (:status IS NULL OR o.status = :status)
     """)
+    @EntityGraph(attributePaths = ["items", "items.product"])
     fun findBySessionIdAndStatus(sessionId: String, status: OrderStatus?, pageable: Pageable): Page<Order>
 }

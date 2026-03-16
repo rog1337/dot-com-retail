@@ -63,8 +63,11 @@ class AccountController(
         @RequestParam(required = false) page: Int = PageConstants.DEFAULT_PAGE,
         @RequestParam(required = false) pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
     ): ResponseEntity<PagedResponse<OrderDto>> {
+        println("BIGGA")
         val orders = orderService.getOrders(userId, null, status, sort, page, pageSize)
+        println("DIGGA")
         val dtos = orders.map { orderMapper.toDto(it) }
+        println("JIGGA")
         return ResponseEntity.ok().body(PageMapper.toPagedResponse(dtos))
     }
 
