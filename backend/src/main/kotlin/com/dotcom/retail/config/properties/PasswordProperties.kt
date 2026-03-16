@@ -1,6 +1,5 @@
 package com.dotcom.retail.config.properties
 
-import com.dotcom.retail.common.constants.ApiRoutes
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.context.event.ApplicationReadyEvent
 import org.springframework.boot.context.properties.ConfigurationProperties

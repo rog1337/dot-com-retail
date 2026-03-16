@@ -55,25 +55,25 @@ class PaymentConsumer(
                         return
                     }
                     val updated = orderService.handleSuccess(order, event.chargeId)
-//                    emailService.sendOrderConfirmation(updated)
+                    emailService.sendOrderConfirmation(updated)
                     log.info("Order ${order.id} PAID — chargeId=${event.chargeId}")
                 }
 
                 TransactionStatus.CANCELLED -> {
                     val updated = orderService.handleCancel(order, event.failureReason)
-//                    emailService.sendPaymentFailed(updated)
+                    emailService.sendPaymentFailed(updated)
                     log.warn("Order ${order.id} CANCELLED — reason=${event.failureReason}")
                 }
 
                 TransactionStatus.REFUNDED -> {
                     val updated = orderService.handleRefund(order, event.refundId)
-//                    emailService.sendRefundConfirmation(updated)
+                    emailService.sendRefundConfirmation(updated)
                     log.info("Order ${order.id} REFUNDED — refundId=${event.refundId}")
                 }
 
                 TransactionStatus.REFUND_FAILED -> {
                     val updated = orderService.handleRefundFail(order, event.failureReason)
-//                    emailService.sendRefundFailed(updated)
+                    emailService.sendRefundFailed(updated)
                     log.error("Order ${order.id} REFUND_FAILED — needs manual review")
                 }
 
