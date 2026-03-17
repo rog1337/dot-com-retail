@@ -1,9 +1,11 @@
 import axios, {InternalAxiosRequestConfig} from "axios"
-import qs from "qs"
 import {tokenManager} from "@lib/auth/tokenManager"
 import { logger as log } from "@lib/logger"
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+const API_URL = typeof window === "undefined"
+    ? process.env.BACKEND_URL
+    : process.env.NEXT_PUBLIC_API_URL
+
 export const AUTHORIZATION_HEADER_BEARER = "Bearer"
 
 export const api = axios.create({

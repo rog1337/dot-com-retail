@@ -7,12 +7,16 @@ const nextConfig: NextConfig = {
                 protocol: "http",
                 hostname: "localhost",
                 port: "8080",
-                // pathname: "/api/v1/product/**"
+            },
+            {
+                protocol: "http",
+                hostname: "backend",
+                port: "8080",
             }
         ],
-        unoptimized: process.env.NODE_ENV === "development"
-    }
-  /* config options here */
+        unoptimized: true
+    },
+    output: "standalone",
 };
 
 export default nextConfig;
