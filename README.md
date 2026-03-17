@@ -84,25 +84,9 @@ via **email/password** or **OAuth2** (Google)
 
 - Spring Security–based configuration and route protection
 
-
-#### Infrastructure & tooling
-
-
-- PostgreSQL as the primary database
-- Redis for caching / token versioning
-- Database seeding via `DatabaseInitializer` for product catalogue
-- Email sending via SMTP (Spring Mail)
-- Cloudflare Turnstile CAPTCHA integration
-- dev.samstevens.totp to generate and validate TOTP codes for 2FA.
-
-The backend is designed to sit behind a separate frontend which is going to be implemented
-in the next task and exposes its API under `/api/v1/**`.
-
-
 ### Entity Relationship Diagram
 
-![Entity Relationship Diagram](./shopping_erd.png)
-
+![Entity Relationship Diagram](./database-erd.png)
 
 ## Setup
 
