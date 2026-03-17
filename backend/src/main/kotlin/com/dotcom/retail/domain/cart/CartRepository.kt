@@ -16,7 +16,7 @@ interface CartRepository : JpaRepository<Cart, UUID> {
     fun findBySessionId(sessionId: String): Cart?
 
     @EntityGraph(attributePaths = ["items"])
-    override fun findById(id: UUID): Optional<Cart?>
+    override fun findById(id: UUID): Optional<Cart>
 
     fun findByIntentId(intentId: String): Cart?
 

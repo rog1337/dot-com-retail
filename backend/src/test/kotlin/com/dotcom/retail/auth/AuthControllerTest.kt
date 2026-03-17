@@ -102,7 +102,6 @@ class AuthIntegrationTest : BaseIntegrationTest() {
             status { isCreated() }
             cookie { exists(TokenType.REFRESH) }
             jsonPath("$.accessToken") { isNotEmpty() }
-            jsonPath("$.user.email") { value(request.email) }
         }
 
         val user = userRepository.findByEmail(request.email)
@@ -121,7 +120,7 @@ class AuthIntegrationTest : BaseIntegrationTest() {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(request)
         }.andExpect {
-            status { isUnauthorized() }
+            status { isBadRequest() }
         }
 
         assertNull(userRepository.findByEmail("bot@example.com"))

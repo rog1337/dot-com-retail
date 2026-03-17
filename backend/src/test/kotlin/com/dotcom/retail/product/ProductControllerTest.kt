@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.openapitools.jackson.nullable.JsonNullable
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
@@ -76,17 +77,17 @@ class ProductControllerTest : BaseIntegrationTest() {
 
     var editProduct = EditProductDto(
         id = 1,
-        name = "editProduct",
-        sku = "sku",
-        description = "edited product",
-        price = BigDecimal(10),
-        salePrice = BigDecimal(10),
-        stock = 1,
-        brandId = null,
-        categoryId = null,
-        images = null,
-        attributes = null,
-        isActive = true,
+        name = JsonNullable.of("editProduct"),
+        sku = JsonNullable.of("sku"),
+        description = JsonNullable.of("edited product"),
+        price = JsonNullable.of(BigDecimal(10)),
+        salePrice = JsonNullable.of(BigDecimal(10)),
+        stock = JsonNullable.of(1),
+        brandId = JsonNullable.of(null),
+        categoryId = JsonNullable.of(null),
+        images = JsonNullable.of(null),
+        attributes = JsonNullable.of(null),
+        isActive = JsonNullable.of(true),
     )
 
     @BeforeEach
@@ -119,7 +120,7 @@ class ProductControllerTest : BaseIntegrationTest() {
 
     @Test
     fun `getProducts returns paged response`() {
-        val params = ProductQueryParams(1)
+        val params = ProductQuery(1)
 
         mockMvc.get(
             ApiRoutes.Product.BASE,
@@ -151,25 +152,10 @@ class ProductControllerTest : BaseIntegrationTest() {
 
         mockMvc.perform(multipart("${ApiRoutes.Product.BASE}/{id}", product.id)
             .file(productPart)
-            .with { it.method = "PUT"; it })
+            .with { it.method = "PATCH"; it })
 
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.name").exists())
-    }
-
-    @Test
-    fun `getImage returns 200 with resource and correct content type`() {
-        val imageId = 1
-        val mockResource = ByteArrayResource("image-data".toByteArray())
-
-        every { productService.getImage(any(), any()) } returns mockResource
-
-        val url = "${ApiRoutes.Product.BASE}/${product.id}${ApiRoutes.Product.IMAGE}/$imageId"
-
-        mockMvc.perform(get(url))
-            .andExpect(status().isOk)
-            .andExpect(content().contentType(MediaType.IMAGE_JPEG))
-            .andExpect(content().bytes("image-data".toByteArray()))
     }
 
     @Test

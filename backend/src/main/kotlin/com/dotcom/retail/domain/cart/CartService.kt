@@ -182,7 +182,7 @@ class CartService(
 
     fun getCartById(cartId: UUID): Cart {
         return cartRepository.findById(cartId)
-            .orElseThrow { AppException(CartError.CART_NOT_FOUND.withIdentifier(cartId)) }!!
+            .orElseThrow { AppException(CartError.CART_NOT_FOUND.withIdentifier(cartId)) }
     }
 
     fun findByUserId(userId: UUID): Cart? {

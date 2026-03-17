@@ -65,7 +65,7 @@ password:
   reset:
     duration: 15m
 file:
-  root: ${UPLOAD_PATH}
+  root: ../uploads
   structure:
     images: images
     products: product
@@ -75,3 +75,6 @@ cloudflare:
   turnstile:
     secret-key: ${TURNSTILE_SECRET_KEY}
     verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+
+encryption:
+  secret-key: dGVzdC1zZWNyZXQta2V5LTMyLWNoYXJzLWxvbmch

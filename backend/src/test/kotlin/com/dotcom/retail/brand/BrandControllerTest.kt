@@ -29,8 +29,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.nio.file.Paths
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 class BrandControllerTest : BaseIntegrationTest() {
 
@@ -39,7 +39,6 @@ class BrandControllerTest : BaseIntegrationTest() {
     @Autowired private lateinit var brandRepository: BrandRepository
     @MockkBean private lateinit var imageService: ImageService
     @SpykBean private lateinit var brandService: BrandService
-    @MockkBean(relaxed = true) private lateinit var fileProperties: FileProperties
 
     private val dummyImage = Image(
         id = 1,

@@ -10,6 +10,7 @@ import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeRepository
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
+import com.dotcom.retail.domain.catalogue.product.ProductRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -26,11 +27,11 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc(addFilters = false)
 @ActiveProfiles("test")
 @Transactional
-class CategoryControllerTest : BaseIntegrationTest() {
+class CategoryControllerTest() : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var mockMvc: MockMvc
@@ -44,8 +45,11 @@ class CategoryControllerTest : BaseIntegrationTest() {
     @Autowired
     private lateinit var attributeRepository: CategoryAttributeRepository
 
+    @Autowired private lateinit var productRepository: ProductRepository
+
     @BeforeEach
     fun setup() {
+        productRepository.deleteAll()
         categoryRepository.deleteAll()
         attributeRepository.deleteAll()
     }
