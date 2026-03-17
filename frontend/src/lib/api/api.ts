@@ -2,7 +2,7 @@ import axios, {InternalAxiosRequestConfig} from "axios"
 import {tokenManager} from "@lib/auth/tokenManager"
 import { logger as log } from "@lib/logger"
 
-const API_URL = typeof window === "undefined"
+const API_URL = typeof window === "undefined" && process.env.NODE_ENV !== "development"
     ? process.env.BACKEND_URL
     : process.env.NEXT_PUBLIC_API_URL
 
