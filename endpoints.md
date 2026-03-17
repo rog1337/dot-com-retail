@@ -1,66 +1,81 @@
 # API Endpoints
 
+Visit Swagger UI (http://localhost:8080/swagger-ui/index.html) for a more detailed overview. The backend has to be running.
+
 ---
 
 ## Table of Contents
 
-- [Authentication](#authentication)
+- [Authentication](#auth)
 - [Two-Factor Authentication](#two-factor-authentication)
 - [Products](#products)
 - [Categories](#categories)
 - [Category Attributes](#category-attributes)
 - [Brands](#brands)
 - [Filters](#filters)
-- [Misc](#misc)
-- [Data Models](#data-models)
+- [Cart](#cart)
+- [Orders](#orders)
+- [Payments](#payments)
 
 ---
 
-## Authentication
+# API Endpoints
 
-### `POST /api/v1/auth/register`
+Base URL: `http://localhost:8080/api/v1`
+
+---
+
+## Auth
+
+### `POST /auth/register`
 Register a new user account.
 
-**Request Body** `application/json`
-```json
-{
-  "email": "string",         // required, valid email
-  "password": "string",      // required, 5–100 chars
-  "displayName": "string",   // required, 1–30 chars
-  "captchaToken": "string"   // required
-}
-```
+**Request Body**
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `email` | string (email) | ✅ | min 1 char |
+| `password` | string | ✅ | 5–100 chars |
+| `displayName` | string | ✅ | 1–30 chars |
+| `captchaToken` | string | ✅ | min 1 char |
 
-**Response** `200 OK`
+**Response `200`**
 ```json
 {
   "accessToken": "string",
-  "user": { "id": "string", "email": "string", "displayName": "string" }
+  "user": {
+    "id": "uuid",
+    "displayName": "string"
+  }
 }
 ```
 
 ---
 
-### `POST /api/v1/auth/login`
-Authenticate a user.
+### `POST /auth/login`
+Authenticate and receive an access token. Include `twoFactorCode` if 2FA is enabled.
 
-**Request Body** `application/json`
-```json
-{
-  "email": "string",         // required
-  "password": "string",      // required
-  "twoFactorCode": "string"  // optional
-}
-```
+**Request Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `email` | string | ✅ | |
+| `password` | string | ✅ | |
+| `twoFactorCode` | string | ❌ | Required if 2FA is enabled |
 
-**Response** `200 OK` — Returns user session object.
+**Response `200`** — returns auth object
 
 ---
 
-### `GET /api/v1/auth/refresh`
-Refresh the access token using the refresh cookie.
+### `POST /auth/logout`
+Invalidates the current session.
 
-**Response** `200 OK`
+**Response `200`** — empty body
+
+---
+
+### `GET /auth/refresh`
+Exchange a refresh token for a new access token.
+
+**Response `200`**
 ```json
 {
   "accessToken": "string"
@@ -69,48 +84,47 @@ Refresh the access token using the refresh cookie.
 
 ---
 
-### `GET /api/v1/auth/logout`
-Log the current user out.
+### `POST /auth/reset-password`
+Send a password reset email.
 
-**Response** `200 OK`
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `email` | string (email) | ✅ |
 
----
-
-### `POST /api/v1/auth/reset-password`
-Initiate a password reset. Sends a reset email.
-
-**Request Body** `application/json`
-```json
-{
-  "email": "string"  // required
-}
-```
-
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
-### `POST /api/v1/auth/reset-password-verify`
-Complete a password reset using a token.
+### `POST /auth/reset-password-verify`
+Complete a password reset using a token from email.
 
-**Request Body** `application/json`
-```json
-{
-  "token": "string",     // required
-  "password": "string"   // required
-}
-```
+**Request Body**
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `token` | string | ✅ | min 1 char |
+| `password` | string | ✅ | 6–80 chars |
 
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
 ## Two-Factor Authentication
 
-### `POST /api/v1/2fa/setup`
-Generate a 2FA secret and QR code for the authenticated user.
+### `GET /2fa`
+Get current 2FA status.
 
-**Response** `200 OK`
+**Response `200`**
+```json
+{ "isEnabled": true }
+```
+
+---
+
+### `POST /2fa/setup`
+Begin 2FA setup. Returns a TOTP secret and QR code (base64 image).
+
+**Response `200`**
 ```json
 {
   "secret": "string",
@@ -120,430 +134,587 @@ Generate a 2FA secret and QR code for the authenticated user.
 
 ---
 
-### `POST /api/v1/2fa/verify`
-Verify and enable 2FA using a TOTP code.
+### `POST /2fa/verify`
+Confirm a TOTP code to complete 2FA setup.
 
-**Request Body** `application/json`
-```json
-{
-  "code": "string"  // required
-}
-```
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `code` | string | ✅ |
 
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
-### `POST /api/v1/2fa/disable`
+### `POST /2fa/disable`
 Disable 2FA for the authenticated user.
 
-**Response** `200 OK`
+**Response `200`** — empty body
+
+---
+
+## Account
+
+### `GET /account`
+Get basic info for the authenticated user.
+
+**Response `200`**
+```json
+{
+  "id": "uuid",
+  "displayName": "string"
+}
+```
+
+---
+
+### `PATCH /account`
+Update the authenticated user's display name.
+
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `displayName` | string | ✅ |
+
+**Response `200`** — returns updated `UserDto`
+
+---
+
+### `GET /account/details`
+Get full account info including contact details.
+
+**Response `200`**
+```json
+{
+  "id": "uuid",
+  "displayName": "string",
+  "email": "string",
+  "contact": {
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "address": {
+      "streetLine1": "string",
+      "streetLine2": "string",
+      "city": "string",
+      "stateOrProvince": "string",
+      "postalCode": "string",
+      "country": "string"
+    }
+  }
+}
+```
+
+---
+
+### `GET /account/orders`
+Get paginated order history for the authenticated user.
+
+**Query Parameters**
+| Param | Type | Required | Values |
+|-------|------|----------|--------|
+| `status` | string | ❌ | `PENDING_PAYMENT`, `PAID`, `FAILED`, `SHIPPED`, `DELIVERED`, `CANCELLED`, `REFUND_PENDING`, `REFUNDED`, `REFUND_FAILED` |
+| `sort` | string | ❌ | `asc`, `desc` |
+| `page` | integer | ❌ | |
+| `pageSize` | integer | ❌ | |
+
+**Response `200`** — `PagedResponseOrderDto` (see Orders section for `OrderDto` shape)
+
+---
+
+### `POST /account/reset-password`
+Trigger a password reset email for the authenticated user.
+
+**Response `200`** — empty body
 
 ---
 
 ## Products
 
-### `GET /api/v1/product`
-Get a paginated list of products with filtering and sorting.
+### `GET /product`
+Get a paginated list of products with optional filtering.
 
-**Query Parameters** — `params` (object)
+**Query Parameters**
+| Param | Type | Required | Notes |
+|-------|------|----------|-------|
+| `page` | integer | ✅ | |
+| `pageSize` | integer | ✅ | |
+| `sort` | string | ✅ | `TOP`, `PRICE_ASC`, `PRICE_DESC` |
+| `brands` | integer[] | ✅ | Can be empty array |
+| `categoryId` | integer | ❌ | |
+| `price.min` | number | ❌ | |
+| `price.max` | number | ❌ | |
+| `attributes` | map | ❌ | Key-value attribute filters e.g. `color=red` |
 
-| Field | Type | Required | Description |
-|---|---|---|---|
-| `categoryId` | `Long` | No | Filter by category |
-| `brands` | `Long[]` | Yes | Filter by brand IDs |
-| `attributes` | `ProductAttributeDto[]` | No | Filter by attributes |
-| `page` | `Int` | Yes | Page number |
-| `pageSize` | `Int` | Yes | Items per page |
-| `sort` | `String` | Yes | `TOP` \| `PRICE_ASC` \| `PRICE_DESC` |
-| `price` | `RangeData` | No | Min/max price filter |
-
-**Response** `200 OK` — `PagedResponseProductDto`
-
----
-
-### `POST /api/v1/product`
-Create a new product.
-
-**Request Body** `application/json`
-
-| Field | Type | Required |
-|---|---|---|
-| `product` | `CreateProduct` | Yes |
-| `images` | `binary[]` | Yes |
-
-**`CreateProduct` fields:**
-
-| Field | Type | Required |
-|---|---|---|
-| `name` | `String` | Yes |
-| `sku` | `String` | Yes |
-| `description` | `String` | No |
-| `price` | `Number` | Yes |
-| `salePrice` | `Number` | Yes |
-| `stock` | `Int` | Yes |
-| `brandId` | `Long` | No |
-| `categoryId` | `Long` | No |
-| `images` | `ImageMetadata[]` | No |
-| `attributes` | `ProductAttributeDto[]` | No |
-| `isActive` | `Boolean` | Yes |
-
-**Response** `200 OK` — `ProductDto`
+**Response `200`**
+```json
+{
+  "content": [ ],
+  "page": {
+    "page": 0,
+    "size": 20,
+    "elements": 20,
+    "totalElements": 100,
+    "totalPages": 5,
+    "isFirst": true,
+    "isLast": false
+  }
+}
+```
 
 ---
 
-### `GET /api/v1/product/{id}`
+### `POST /product`
+Create a new product with images.
+
+**Request Body** (`multipart/form-data`)
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `product` | object | ✅ | See below |
+| `images` | binary[] | ✅ | Image files |
+
+**`product` object**
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | min 1 char |
+| `sku` | string | ✅ | min 1 char |
+| `price` | number | ✅ | |
+| `salePrice` | number | ✅ | |
+| `stock` | integer | ✅ | |
+| `isActive` | boolean | ✅ | |
+| `description` | string | ❌ | |
+| `brandId` | integer | ❌ | |
+| `categoryId` | integer | ❌ | |
+| `images` | ImageMetadata[] | ❌ | `{ fileName, sortOrder, altText? }` |
+| `attributes` | ProductAttributeDto[] | ❌ | `{ name, values[] }` |
+
+**Response `200`** — returns created `ProductDto`
+
+---
+
+### `GET /product/{id}`
 Get a single product by ID.
 
-**Path Parameters:** `id` (Long) — required
+**Path Parameters** — `id` (integer)
 
-**Response** `200 OK` — `ProductDto`
+**Response `200`**
+```json
+{
+  "id": 1,
+  "name": "string",
+  "description": "string",
+  "sku": "string",
+  "price": 99.99,
+  "salePrice": 79.99,
+  "stock": 50,
+  "isActive": true,
+  "brand": { "id": 1, "name": "string", "isActive": true },
+  "category": { "id": 1 },
+  "attributes": [ { "name": "color", "values": ["red"] } ],
+  "images": [ { "id": 1, "url": "string", "sortOrder": 0, "altText": "string" } ]
+}
+```
 
 ---
 
-### `PUT /api/v1/product/{id}`
-Update a product by ID.
+### `PATCH /product/{id}`
+Partially update a product and its images. All product fields are optional (JSON Nullable pattern — omit a field to leave it unchanged).
 
-**Path Parameters:** `id` (Long) — required
+**Path Parameters** — `id` (integer)
 
-**Request Body** `multipart/form-data`
-
+**Request Body** (`multipart/form-data`)
 | Field | Type | Required |
-|---|---|---|
-| `product` | `EditProductDto` | Yes |
-| `images` | `binary[]` | Yes |
+|-------|------|----------|
+| `product` | EditProductDto | ✅ |
+| `images` | binary[] | ✅ |
+| `image_metadata` | ImageMetadata[] | ✅ |
 
-**Response** `200 OK` — `ProductDto`
+**Response `200`** — returns updated `ProductDto`
 
 ---
 
-### `DELETE /api/v1/product/{id}`
+### `DELETE /product/{id}`
 Delete a product by ID.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
-### `GET /api/v1/product/search`
-Search products by query string.
+### `GET /product/search`
+Search products by keyword.
 
-**Query Parameters:**
+**Query Parameters**
+| Param | Type | Required |
+|-------|------|----------|
+| `query` | string | ✅ |
 
-| Field | Type | Required |
-|---|---|---|
-| `query` | `String` | Yes |
-
-**Response** `200 OK` — `PagedResponseProductDto`
-
----
-
-### `GET /api/v1/product/{productId}/image/{imageId}`
-Retrieve a specific product image.
-
-**Path Parameters:** `productId` (Long), `imageId` (Long) — both required
-
-**Response** `200 OK` — Binary image data
+**Response `200`** — `PagedResponseProductDto`
 
 ---
 
 ## Categories
 
-### `POST /api/v1/category`
+### `POST /category`
 Create a new category.
 
-**Request Body** `application/json`
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `name` | string | ✅ |
+| `attributeIds` | integer[] | ❌ |
+| `parentId` | integer | ❌ |
+
+**Response `200`** — returns `CategoryDto`
+
+---
+
+### `GET /category/{id}`
+Get a category by ID, including its attributes and child category IDs.
+
+**Response `200`**
 ```json
 {
-  "name": "string",          // required
-  "attributeIds": [0],       // optional, Long[]
-  "parentId": 0              // optional
+  "id": 1,
+  "name": "string",
+  "parentId": null,
+  "childrenIds": [2, 3],
+  "attributes": [ ]
 }
 ```
 
-**Response** `200 OK` — `CategoryDto`
+---
+
+### `PUT /category/{id}`
+Replace a category's data.
+
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `id` | integer | ✅ |
+| `name` | string | ✅ |
+| `attributeIds` | integer[] | ❌ |
+| `parentId` | integer | ❌ |
+
+**Response `200`** — returns updated `CategoryDto`
 
 ---
 
-### `GET /api/v1/category/{id}`
-Get a category by ID.
+### `DELETE /category/{id}`
+Delete a category.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK` — `CategoryDto`
-
----
-
-### `PUT /api/v1/category/{id}`
-Update a category by ID.
-
-**Path Parameters:** `id` (Long) — required
-
-**Request Body** `application/json`
-```json
-{
-  "id": 0,                   // required
-  "name": "string",          // required
-  "attributeIds": [0],       // optional, Long[]
-  "parentId": 0              // optional
-}
-```
-
-**Response** `200 OK` — `CategoryDto`
-
----
-
-### `DELETE /api/v1/category/{id}`
-Delete a category by ID.
-
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
 ## Category Attributes
 
-### `POST /api/v1/category/attribute`
+### `POST /category/attribute`
 Create a new category attribute.
 
-**Request Body** `application/json`
+**Request Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `attribute` | string | ✅ | Internal key name |
+| `label` | string | ✅ | Display label |
+| `dataType` | string | ✅ | `TEXT`, `NUMBER`, `BOOLEAN` |
+| `filterType` | string | ✅ | `CHECKBOX`, `SLIDER`, `DROPDOWN` |
+| `displayOrder` | integer | ✅ | |
+| `isPublic` | boolean | ✅ | |
+| `unit` | string | ❌ | e.g. `kg`, `cm` |
+| `categories` | integer[] | ❌ | Category IDs to associate |
 
-| Field          | Type      | Required | Notes                                |
-|----------------|-----------|----------|--------------------------------------|
-| `attribute`    | `String`  | Yes      |                                      |
-| `label`        | `String`  | Yes      |                                      |
-| `unit`         | `String`  | No       |                                      |
-| `dataType`     | `String`  | Yes      | `TEXT` \| `NUMBER` \| `BOOLEAN`      |
-| `filterType`   | `String`  | Yes      | `CHECKBOX` \| `DROPDOWN` \| `SLIDER` |
-| `displayOrder` | `Int`     | Yes      |                                      |
-| `isPublic`     | `Boolean` | Yes      |                                      |
-| `categories`   | `Long[]`  | No       |                                      |
-
-**Response** `200 OK` — `CategoryAttributeDto`
+**Response `200`** — returns `CategoryAttributeDto`
 
 ---
 
-### `GET /api/v1/category/attribute/{id}`
+### `GET /category/attribute/{id}`
 Get a category attribute by ID.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK` — `CategoryAttributeDto`
+**Response `200`** — returns `CategoryAttributeDto`
 
 ---
 
-### `PUT /api/v1/category/attribute/{id}`
-Update a category attribute.
+### `PUT /category/attribute/{id}`
+Update a category attribute. Accepts same fields as `POST`.
 
-**Request Body** `application/json` — Same fields as create, plus required `id` (Long).
-
-**Response** `200 OK` — `CategoryAttributeDto`
+**Response `200`** — returns updated `CategoryAttributeDto`
 
 ---
 
-### `DELETE /api/v1/category/attribute/{id}`
-Delete a category attribute by ID.
+### `DELETE /category/attribute/{id}`
+Delete a category attribute.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
 ## Brands
 
-### `POST /api/v1/brand`
+### `POST /brand`
 Create a new brand.
 
-**Request Body** `application/json`
-```json
-{
-  "name": "string",    // required
-  "image": 0,          // optional, image ID (Long)
-  "isActive": true     // required
-}
-```
+**Request Body**
+| Field | Type | Required |
+|-------|------|----------|
+| `name` | string | ✅ |
+| `isActive` | boolean | ✅ |
+| `image` | integer | ❌ | Image ID |
 
-**Response** `200 OK` — `BrandDto`
+**Response `200`** — returns `BrandDto`
 
 ---
 
-### `GET /api/v1/brand/{id}`
+### `GET /brand/{id}`
 Get a brand by ID.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK` — `BrandDto`
-
----
-
-### `PUT /api/v1/brand/{id}`
-Update a brand by ID.
-
-**Request Body** `application/json`
+**Response `200`**
 ```json
 {
-  "id": 0,             // required
-  "name": "string",    // required
-  "image": 0,          // optional, image ID (Long)
-  "isActive": true     // required
+  "id": 1,
+  "name": "string",
+  "isActive": true,
+  "image": { "id": 1, "url": "string", "sortOrder": 0, "altText": "string" }
 }
 ```
 
-**Response** `200 OK` — `BrandDto`
+---
+
+### `PUT /brand/{id}`
+Update a brand.
+
+**Request Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `id` | integer | ✅ | |
+| `name` | string | ✅ | |
+| `isActive` | boolean | ✅ | |
+| `image` | integer | ❌ | Image ID |
+
+**Response `200`** — returns updated `BrandDto`
 
 ---
 
-### `DELETE /api/v1/brand/{id}`
-Delete a brand by ID.
+### `DELETE /brand/{id}`
+Delete a brand.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK`
+**Response `200`** — empty body
 
 ---
 
-### `GET /api/v1/brand/{id}/image`
-Retrieve the image for a brand.
+### `GET /brand/{id}/image`
+Stream the brand's image as binary.
 
-**Path Parameters:** `id` (Long) — required
-
-**Response** `200 OK` — Binary image data
+**Response `200`** — binary image data
 
 ---
 
 ## Filters
 
-### `GET /api/v1/filter`
-Get available filter options for a category.
+### `GET /filter`
+Get all available filter options for a given category (attributes, brands, price range).
 
-**Query Parameters:**
+**Query Parameters**
+| Param | Type | Required |
+|-------|------|----------|
+| `categoryId` | integer | ✅ |
 
-| Field | Type | Required |
-|---|---|---|
-| `categoryId` | `Long` | Yes |
-
-**Response** `200 OK` — `Filter`
-
+**Response `200`**
 ```json
 {
-  "categoryId": 0,
-  "attributes": [ /* FilterAttribute[] */ ],
-  "brands": [ /* ProductBrandCount[] */ ],
-  "price": { "min": 0.0, "max": 0.0 }
+  "categoryId": 1,
+  "price": { "min": 0.0, "max": 999.99 },
+  "brands": [
+    { "id": 1, "name": "string", "count": 12 }
+  ],
+  "attributes": [
+    {
+      "id": 1,
+      "attribute": "color",
+      "label": "Color",
+      "filterType": "CHECKBOX",
+      "displayOrder": 1,
+      "values": [ ]
+    }
+  ]
 }
 ```
 
 ---
 
-## Misc
+## Cart
 
-### `GET /`
-Health check / home.
+> Cart sessions are tracked via the optional `X-Session-Id` header for guest carts. Omit for authenticated users.
 
-**Response** `200 OK` — `String`
+### `GET /cart`
+Retrieve the current cart.
 
----
+**Headers**
+| Header | Required |
+|--------|----------|
+| `X-Session-Id` | ❌ |
 
-### `GET /info`
-Server info.
-
-**Response** `200 OK` — Object
-
----
-
-### `POST /test`
-Dev test endpoint.
-
-**Request Body** `application/json`
+**Response `200`**
 ```json
 {
-  "test": "string"  // required, 5–10 chars
+  "id": "uuid",
+  "sessionId": "string",
+  "shippingType": "STANDARD",
+  "shippingCost": 5.99,
+  "subTotalPrice": 49.99,
+  "totalPrice": 55.98,
+  "totalQuantity": 2,
+  "items": [
+    {
+      "productId": 1,
+      "productName": "string",
+      "imageUrl": "string",
+      "price": 24.99,
+      "quantity": 2
+    }
+  ]
 }
 ```
 
-**Response** `200 OK` — `String`
+---
+
+### `PUT /cart`
+Update cart items and/or shipping type.
+
+**Headers**
+| Header | Required |
+|--------|----------|
+| `X-Session-Id` | ❌ |
+
+**Request Body**
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `items` | ItemUpdateRequest[] | ❌ | `{ productId, quantity }` — set `quantity: 0` to remove |
+| `shippingType` | string | ❌ | `STANDARD`, `EXPRESS` |
+
+**Response `200`** — returns updated `CartDto`
 
 ---
 
-## Data Models
+### `POST /cart/checkout`
+Initiate Stripe checkout for the current cart. Returns a `clientSecret` to complete payment on the frontend.
 
-### `ProductDto`
+**Headers**
+| Header | Required |
+|--------|----------|
+| `X-Session-Id` | ❌ |
+
+**Response `200`**
+```json
+{ "clientSecret": "string" }
+```
+
+---
+
+## Orders
+
+### `POST /order/submit`
+Submit an order with contact and shipping details.
+
+**Headers**
+| Header | Required |
+|--------|----------|
+| `X-Session-Id` | ❌ |
+
+**Request Body**
+| Field | Type | Required | Constraints |
+|-------|------|----------|-------------|
+| `name` | string | ✅ | min 1 char |
+| `phone` | string | ✅ | min 1 char |
+| `email` | string (email) | ✅ | min 1 char |
+| `shippingType` | string | ✅ | `STANDARD`, `EXPRESS` |
+| `address` | object | ✅ | See below |
+| `notes` | string | ❌ | |
+
+**`address` fields**
 | Field | Type | Required |
-|---|---|---|
-| `id` | `Long` | Yes |
-| `name` | `String` | Yes |
-| `description` | `String` | No |
-| `sku` | `String` | Yes |
-| `price` | `Number` | Yes |
-| `salePrice` | `Number` | Yes |
-| `stock` | `Int` | Yes |
-| `brand` | `BrandDto` | No |
-| `category` | `CategoryDto` | No |
-| `attributes` | `ProductAttributeDto[]` | No |
-| `images` | `ImageDto[]` | No |
-| `isActive` | `Boolean` | Yes |
+|-------|------|----------|
+| `streetLine1` | string | ✅ |
+| `city` | string | ✅ |
+| `postalCode` | string | ✅ |
+| `country` | string | ✅ |
+| `streetLine2` | string | ❌ |
+| `stateOrProvince` | string | ❌ |
 
-### `CategoryDto`
+**Response `200`** — returns `OrderDto`
+
+---
+
+### `GET /order`
+Look up an order by Stripe payment intent ID.
+
+**Query Parameters**
+| Param | Type | Required |
+|-------|------|----------|
+| `paymentIntentId` | string | ❌ |
+
+**Response `200`**
+```json
+{
+  "id": "uuid",
+  "status": "PAID",
+  "paymentId": "string",
+  "sessionId": "string",
+  "shippingType": "STANDARD",
+  "shippingCost": 5.99,
+  "totalAmount": 55.98,
+  "date": 1713000000000,
+  "notes": "string",
+  "items": [
+    {
+      "productId": 1,
+      "productName": "string",
+      "imageUrl": "string",
+      "price": 24.99,
+      "quantity": 2,
+      "totalAmount": 49.98
+    }
+  ],
+  "contact": {
+    "name": "string",
+    "email": "string",
+    "phone": "string",
+    "address": { "streetLine1": "string", "city": "string", "country": "string" }
+  }
+}
+```
+
+**Order statuses:** `PENDING_PAYMENT` · `PAID` · `FAILED` · `SHIPPED` · `DELIVERED` · `CANCELLED` · `REFUND_PENDING` · `REFUNDED` · `REFUND_FAILED`
+
+---
+
+## Payments
+
+### `POST /payment/refund`
+Request a refund for an existing order.
+
+**Headers**
+| Header | Required |
+|--------|----------|
+| `X-Session-Id` | ❌ |
+
+**Request Body**
 | Field | Type | Required |
-|---|---|---|
-| `id` | `Long` | Yes |
-| `name` | `String` | Yes |
-| `attributes` | `CategoryAttributeDto[]` | Yes |
-| `childrenIds` | `Long[]` | No |
-| `parentId` | `Long` | No |
+|-------|------|----------|
+| `orderId` | string (uuid) | ✅ |
+| `reason` | string | ❌ |
 
-### `CategoryAttributeDto`
-| Field          | Type                             | Required |
-|----------------|----------------------------------|----------|
-| `id`           | `Long`                           | Yes      |
-| `attribute`    | `String`                         | Yes      |
-| `label`        | `String`                         | Yes      |
-| `unit`         | `String`                         | No       |
-| `dataType`     | `TEXT \| NUMBER \| BOOLEAN`      | Yes      |
-| `filterType`   | `CHECKBOX \| DROPDOWN \| SLIDER` | Yes      |
-| `displayOrder` | `Int`                            | Yes      |
-| `isPublic`     | `Boolean`                        | Yes      |
-| `categories`   | `Long[]`                         | No       |
+**Response `200`** — empty body
 
-### `BrandDto`
-| Field | Type | Required |
-|---|---|---|
-| `id` | `Long` | Yes |
-| `name` | `String` | Yes |
-| `image` | `ImageDto` | No |
-| `isActive` | `Boolean` | Yes |
+---
 
-### `ImageDto`
-| Field | Type | Required |
-|---|---|---|
-| `id` | `Long` | Yes |
-| `url` | `String` | Yes |
-| `sortOrder` | `Int` | Yes |
-| `altText` | `String` | No |
+### `POST /payment/webhook/stripe`
+Stripe webhook receiver. Should only be called by Stripe.
 
-### `PagedResponseProductDto`
-| Field | Type |
-|---|---|
-| `content` | `ProductDto[]` |
-| `page` | `PageDto` |
+**Headers**
+| Header | Required |
+|--------|----------|
+| `Stripe-Signature` | ✅ |
 
-### `PageDto`
-| Field | Type |
-|---|---|
-| `page` | `Int` |
-| `size` | `Int` |
-| `elements` | `Int` |
-| `totalElements` | `Long` |
-| `totalPages` | `Int` |
-| `isLast` | `Boolean` |
-| `isFirst` | `Boolean` |
+**Request Body** — raw Stripe event payload (string)
 
-### `UserDto`
-| Field | Type |
-|---|---|
-| `id` | `String` |
-| `email` | `String` |
-| `displayName` | `String` |
+**Response `200`** — empty body
