@@ -49,11 +49,10 @@ export default function CheckoutForm({ paymentFormRef }: CheckoutFormProps) {
                 setContact(contact)
             } catch(e: any) {
                 logger.d("Error fetching contact", e)
-            } finally {
-                setLoading(false)
             }
         }
         if (user) fetchContact()
+        setLoading(false)
     }, [])
 
     const handleEmailChange = (e: StripeLinkAuthenticationElementChangeEvent) => {
