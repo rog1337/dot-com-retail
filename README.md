@@ -121,7 +121,7 @@ cp sample.env .env
 | `MAIL_PASSWORD`         | Gmail [app password](https://support.google.com/accounts/answer/185833). Your regular password won't work — Google requires 2FA + a generated app password. |
 | `TURNSTILE_SECRET_KEY`  | Cloudflare Turnstile CAPTCHA for registration. `sample.env` includes dummy keys that always pass or always fail.                                            |
 | `STRIPE_SECRET_KEY`     | Stripe secret key from your [Stripe dashboard](https://dashboard.stripe.com/apikeys).                                                                       |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret. Run `stripe listen --forward-to localhost:8080/api/v1/payments/webhook/stripe` to get it during development.                        |
+| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret. Run `stripe listen --forward-to localhost:8080/api/v1/payment/webhook/stripe` to get it during development.                         |
 
 For frontend copy `.env.example` to `.env.local`:
 
@@ -161,7 +161,7 @@ Spring starts on **port 8080**, Next.js on **port 3000** by default.
 Install the [Stripe CLI](https://stripe.com/docs/stripe-cli) and forward events to your local server:
 
 ```bash
-stripe listen --forward-to localhost:8080/api/payments/webhook
+stripe listen --forward-to localhost:8080/api/v1/payment/webhook/stripe
 ```
 
 Copy the webhook signing secret it outputs into your `.env` as `STRIPE_WEBHOOK_SECRET`.
