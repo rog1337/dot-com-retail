@@ -111,17 +111,17 @@ Copy `sample.env` to `.env` and fill in the values:
 cp sample.env .env
 ```
 
-| Variable                | Required                                                                                                                                                    | Description |
-|-------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| `UPLOAD_PATH`           | File upload directory. Default works out of the box.                                                                                                        |
-| `JWT_SECRET`            | Pre-defined in sample.env.                                                                                                                                  |
-| `GOOGLE_CLIENT_ID`      | OAuth2 login via Google.                                                                                                                                    |
-| `GOOGLE_CLIENT_SECRET`  | OAuth2 login via Google.                                                                                                                                    |
-| `MAIL_USERNAME`         | Gmail address for sending emails.                                                                                                                           |
-| `MAIL_PASSWORD`         | Gmail [app password](https://support.google.com/accounts/answer/185833). Your regular password won't work — Google requires 2FA + a generated app password. |
-| `TURNSTILE_SECRET_KEY`  | Cloudflare Turnstile CAPTCHA for registration. `sample.env` includes dummy keys that always pass or always fail.                                            |
-| `STRIPE_SECRET_KEY`     | Stripe secret key from your [Stripe dashboard](https://dashboard.stripe.com/apikeys).                                                                       |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signing secret. Run `stripe listen --forward-to localhost:8080/api/v1/payment/webhook/stripe` to get it during development.                         |
+| Variable                | Required | Description                                                                                                                                                 |
+|-------------------------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `UPLOAD_PATH`           | No       | File upload directory. Default works out of the box.                                                                                                        |
+| `JWT_SECRET`            | No       | Pre-defined in sample.env.                                                                                                                                  |
+| `GOOGLE_CLIENT_ID`      | No       | OAuth2 login via Google.                                                                                                                                    |
+| `GOOGLE_CLIENT_SECRET`  | No       | OAuth2 login via Google.                                                                                                                                    |
+| `MAIL_USERNAME`         | Yes      | Gmail address for sending emails.                                                                                                                           |
+| `MAIL_PASSWORD`         | Yes      | Gmail [app password](https://support.google.com/accounts/answer/185833). Your regular password won't work — Google requires 2FA + a generated app password. |
+| `TURNSTILE_SECRET_KEY`  | No       | Cloudflare Turnstile CAPTCHA for registration. `sample.env` includes dummy keys that always pass or always fail.                                            |
+| `STRIPE_SECRET_KEY`     | Yes      | Stripe secret key from your [Stripe dashboard](https://dashboard.stripe.com/apikeys).                                                                       |
+| `STRIPE_WEBHOOK_SECRET` | Yes      | Webhook signing secret. Run `stripe listen --forward-to localhost:8080/api/v1/payment/webhook/stripe` to get it during development.                         |
 
 For frontend copy `.env.example` to `.env.local`:
 
@@ -129,10 +129,10 @@ For frontend copy `.env.example` to `.env.local`:
 cp sample.env .env
 ```
 
-| Variable                             | Description                                                                                 |
-|--------------------------------------|---------------------------------------------------------------------------------------------|
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`     | Cloudflare Turnstile CAPTCHA for registration. Contains dummy keys that always pass or fail |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key from Stripe dashboard                                                |
+| Variable                             | Required | Description                                                                                 |
+|--------------------------------------|----------|---------------------------------------------------------------------------------------------|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY`     | No       | Cloudflare Turnstile CAPTCHA for registration. Contains dummy keys that always pass or fail |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Yes      | Stripe publishable key from Stripe dashboard                                                |
 
 ### Run with Docker
 
