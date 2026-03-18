@@ -25,6 +25,7 @@ object SecurityMatchers {
     val OPTIONAL_AUTH_ENDPOINTS = arrayOf(
         ApiRoutes.Cart.BASE,
         ApiRoutes.Order.BASE,
+        "${ApiRoutes.Cart.BASE}${ApiRoutes.Cart.CHECKOUT}",
         "${ApiRoutes.Order.BASE}${ApiRoutes.Order.SUBMIT}",
     )
 }
