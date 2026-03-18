@@ -36,6 +36,7 @@ export default function Browse({params, products, page} : { params: ProductQuery
             const code = e.response?.data?.code
             if (code === "PRODUCT_INSUFFICIENT_STOCK") {
                 show("Can't add this product to cart, not enough in stock", "error", 5000)
+                setIsLoading(false)
                 return
             }
             console.log("Error adding to cart: ", e)
