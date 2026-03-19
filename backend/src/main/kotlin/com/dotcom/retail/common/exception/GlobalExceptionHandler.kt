@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.parsing.Problem
+import org.springframework.context.support.DefaultMessageSourceResolvable
 import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.http.HttpStatus
@@ -20,6 +21,7 @@ import org.springframework.web.HttpRequestMethodNotSupportedException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
+import org.springframework.web.method.annotation.HandlerMethodValidationException
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException
 import org.springframework.web.multipart.MultipartException
 import org.springframework.web.multipart.support.MissingServletRequestPartException
@@ -69,6 +71,16 @@ class GlobalExceptionHandler {
     fun handleMethodArgumentTypeMismatchException(e: MethodArgumentTypeMismatchException): ProblemDetail {
         return ProblemDetail.forStatusAndDetail(
             HttpStatus.BAD_REQUEST, "Invalid value for field '${e.name}'")
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException::class)
+    fun handleHandlerMethodValidationException(e: HandlerMethodValidationException): ProblemDetail {
+        val message = e.allErrors.firstOrNull()?.let { error ->
+            (error.arguments?.firstOrNull() as DefaultMessageSourceResolvable).defaultMessage?.let {
+                "$it: ${error.defaultMessage}"
+            }?: error.defaultMessage
+        }
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message ?: "Bad Request")
     }
 
     @ExceptionHandler(HttpMessageNotReadableException::class)

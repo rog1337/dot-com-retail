@@ -45,6 +45,9 @@ class Product(
     @Column(columnDefinition = "jsonb")
     var attributes: MutableMap<String, MutableList<Any>>? = mutableMapOf(),
 
+    var reviewCount: Int = 0,
+    var averageRating: Double = 0.0,
+
     var isActive: Boolean = false,
 
     @JsonIgnore

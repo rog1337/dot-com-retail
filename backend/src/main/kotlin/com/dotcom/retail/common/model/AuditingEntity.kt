@@ -9,10 +9,10 @@ import java.time.Instant
 abstract class AuditingEntity {
 
     @CreationTimestamp
-    val createdAt: Instant = Instant.now()
+    lateinit var createdAt: Instant
 
     @UpdateTimestamp
-    var updatedAt: Instant = Instant.now()
+    lateinit var updatedAt: Instant
 
     override fun toString(): String {
         return "createdAt=$createdAt, updatedAt=$updatedAt"

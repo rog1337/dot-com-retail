@@ -45,6 +45,7 @@ object ApiRoutes {
         const val BASE = "$V1/product"
         const val IMAGE = "/image"
         const val SEARCH = "/search"
+        const val REVIEW = "/review"
     }
 
     object Brand {
@@ -85,5 +86,10 @@ object ApiRoutes {
         const val BASE = "$V1/payment"
         const val STRIPE = "/webhook/stripe"
         const val REFUND = "/refund"
+    }
+
+    object Review {
+        const val BASE = "$V1/review"
+        const val VOTE = "/vote"
     }
 }

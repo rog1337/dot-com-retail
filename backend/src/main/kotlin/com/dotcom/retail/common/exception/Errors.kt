@@ -110,3 +110,10 @@ object TransactionError {
 object OptimisticLockingError {
     val CONCURRENT_UPDATE_CONFLICT = AppError("CONCURRENT_UPDATE_CONFLICT", HttpStatus.CONFLICT, "Conflict updating an entity concurrently")
 }
+
+object ReviewError {
+    val REVIEW_ALREADY_EXISTS = AppError("REVIEW_ALREADY_EXISTS", HttpStatus.BAD_REQUEST, "Review already exists")
+    val REVIEW_NOT_FOUND = AppError("REVIEW_NOT_FOUND", HttpStatus.NOT_FOUND, "Review not found")
+    val REVIEW_INSUFFICIENT_PRIVILEGES = AppError("REVIEW_INSUFFICIENT_PRIVILEGES", HttpStatus.UNAUTHORIZED, "Insufficient privileges")
+    val REVIEW_VOTE_NOT_FOUND = AppError("REVIEW_VOTE_NOT_FOUND", HttpStatus.NOT_FOUND, "Review vote not found")
+}
