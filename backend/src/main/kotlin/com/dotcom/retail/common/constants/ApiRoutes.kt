@@ -103,5 +103,9 @@ object ApiRoutes {
         object Brand {
             const val BASE = "${Admin.BASE}/brand"
         }
+
+        object Review {
+            const val BASE = "${Admin.BASE}/review"
+        }
     }
 }

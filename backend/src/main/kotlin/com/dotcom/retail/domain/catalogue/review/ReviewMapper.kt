@@ -1,5 +1,6 @@
 package com.dotcom.retail.domain.catalogue.review
 
+import com.dotcom.retail.domain.admin.review.dto.AdminReviewDto
 import com.dotcom.retail.domain.catalogue.review.dto.ReviewAuthorDto
 import com.dotcom.retail.domain.catalogue.review.dto.ReviewDto
 import com.dotcom.retail.domain.user.User
@@ -24,5 +25,13 @@ class ReviewMapper {
     fun toAuthorDto(user: User): ReviewAuthorDto = ReviewAuthorDto(
         id = user.id,
         displayName = user.displayName
+    )
+
+    fun toAdminDto(review: Review): AdminReviewDto = AdminReviewDto(
+        id = review.id,
+        rating = review.rating,
+        body = review.body,
+        votes = review.votes.size,
+        author = toAuthorDto(review.user)
     )
 }

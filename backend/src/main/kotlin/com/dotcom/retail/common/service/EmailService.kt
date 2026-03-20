@@ -23,6 +23,24 @@ class EmailService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async
+    fun sendReviewRemoved(email: String, reviewId: Long, reviewBody: String?, cause: String?) {
+        val subject = "Your review was removed"
+
+        //language=html
+        val body = """
+            <h2>Your review with id $reviewId was removed.</h2>
+            <p>Review body:
+                <p>$$reviewBody</p>    
+            </p>
+            <p>Cause: 
+                <p>$cause</p>
+            </p>
+        """.trimIndent()
+
+        send(email, subject, body)
+    }
+
+    @Async
     fun sendPasswordReset(to: String, token: String) {
         val url = getPasswordResetUrl(token)
 
