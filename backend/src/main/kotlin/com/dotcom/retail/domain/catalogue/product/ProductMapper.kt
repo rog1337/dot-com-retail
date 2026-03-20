@@ -1,5 +1,6 @@
 package com.dotcom.retail.domain.catalogue.product
 
+import com.dotcom.retail.domain.admin.product.dto.AdminProductDto
 import com.dotcom.retail.domain.catalogue.brand.BrandMapper
 import com.dotcom.retail.domain.catalogue.image.ImageMapper
 import org.springframework.stereotype.Component
@@ -21,6 +22,8 @@ class ProductMapper(
         category = p.category?.let { ProductCategoryDto(it.id) },
         attributes = p.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
         images = p.images.map { image -> imageMapper.toProductImageDto(image) },
+        reviewCount = p.reviewCount,
+        averageRating = p.averageRating,
         isActive = p.isActive,
     )
 
@@ -35,4 +38,21 @@ class ProductMapper(
             price = params.price
         )
     }
+
+    fun toAdminDto(p: Product): AdminProductDto = AdminProductDto(
+        id = p.id,
+        name = p.name,
+        sku = p.sku,
+        description = p.description,
+        price = p.price,
+        salePrice = p.salePrice,
+        stock = p.stock,
+        brand = p.brand?.let { brandMapper.toDto(it) },
+        category = p.category?.let { ProductCategoryDto(it.id) },
+        attributes = p.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
+        images = p.images.map { image -> imageMapper.toProductImageDto(image) },
+        reviewCount = p.reviewCount,
+        averageRating = p.averageRating,
+        isActive = p.isActive,
+    )
 }

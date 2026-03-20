@@ -22,6 +22,8 @@ data class ProductDto (
     val category: ProductCategoryDto?,
     val attributes: List<ProductAttributeDto>?,
     val images: List<ImageDto>?,
+    val reviewCount: Int?,
+    val averageRating: Double?,
     val isActive: Boolean,
 )
 

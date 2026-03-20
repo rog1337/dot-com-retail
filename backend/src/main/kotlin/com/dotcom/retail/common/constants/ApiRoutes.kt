@@ -4,11 +4,6 @@ object ApiRoutes {
     const val BASE_API = "/api"
     const val V1 = "$BASE_API/v1"
 
-    object Admin {
-        const val BASE = "$V1/admin"
-        const val ADMIN = "/admin"
-    }
-
     object User {
         const val BASE = "$V1/user"
     }
@@ -43,7 +38,6 @@ object ApiRoutes {
 
     object Product {
         const val BASE = "$V1/product"
-        const val IMAGE = "/image"
         const val SEARCH = "/search"
         const val REVIEW = "/review"
     }
@@ -91,5 +85,13 @@ object ApiRoutes {
     object Review {
         const val BASE = "$V1/review"
         const val VOTE = "/vote"
+    }
+
+    object Admin {
+        const val BASE = "$V1/admin"
+
+        object Product {
+            const val BASE = "${Admin.BASE}/product"
+        }
     }
 }
