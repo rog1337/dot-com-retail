@@ -44,13 +44,13 @@ class AdminCategoryController(
         return noContent().build()
     }
 
-    @PostMapping
+    @PostMapping(Admin.Category.ATTRIBUTE)
     fun createAttribute(@RequestBody data: CreateCategoryAttribute): ResponseEntity<CategoryAttributeDto> {
         val attribute = categoryAttributeService.create(data)
         return status(HttpStatus.CREATED).body(categoryAttributeMapper.toAdminDto(attribute))
     }
 
-    @PutMapping("{id}")
+    @PutMapping(Admin.Category.ATTRIBUTE + "{id}")
     fun editAttribute(@RequestBody data: EditCategoryAttribute): ResponseEntity<CategoryAttributeDto> {
         val attribute = categoryAttributeService.edit(data)
         return ok().body(categoryAttributeMapper.toDto(attribute))
