@@ -2,13 +2,12 @@ package com.dotcom.retail.domain.catalogue.brand
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.BrandError
-import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.config.properties.FileProperties
-import com.dotcom.retail.domain.catalogue.image.Image
+import com.dotcom.retail.domain.admin.brand.dto.CreateBrand
+import com.dotcom.retail.domain.admin.brand.dto.EditBrand
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
 import com.dotcom.retail.domain.catalogue.image.ImageService
 import org.springframework.context.ApplicationEventPublisher
-import org.springframework.core.io.Resource
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -79,12 +78,5 @@ class BrandService(
         }
 
         brandRepository.delete(brand)
-    }
-
-    fun getImage(id: Long): Resource {
-        val imageFileName = imageService.getActiveBrandImagePath(id)
-        val imagePath = fileProperties.brandPath.resolve(imageFileName)
-        val imageFile = imageService.findFile(imagePath) ?: throw AppException(ImageError.IMAGE_NOT_FOUND.withIdentifier(id))
-        return imageFile
     }
 }

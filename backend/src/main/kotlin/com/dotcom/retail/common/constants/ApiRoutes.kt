@@ -99,5 +99,9 @@ object ApiRoutes {
 
             const val ATTRIBUTE = "/attribute"
         }
+
+        object Brand {
+            const val BASE = "${Admin.BASE}/brand"
+        }
     }
 }
