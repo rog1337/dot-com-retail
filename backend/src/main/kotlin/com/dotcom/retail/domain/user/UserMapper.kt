@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.user
 
 import com.dotcom.retail.common.ContactMapper
+import com.dotcom.retail.domain.admin.user.dto.AdminUserDto
 import com.dotcom.retail.domain.user.dto.UserDetailsDto
 import com.dotcom.retail.domain.user.dto.UserDto
 import org.springframework.stereotype.Component
@@ -25,4 +26,13 @@ class UserMapper(
             contact = user.contact?.let { contactMapper.decryptContact(it.contact) }
         )
     }
+
+    fun toAdminDto(u: User): AdminUserDto = AdminUserDto(
+        id = u.id,
+        displayName = u.displayName,
+        email = u.email,
+        contact = u.contact?.let { contactMapper.decryptContact(it.contact) },
+        twoFactorEnabled = u.twoFactorEnabled,
+        role = u.role,
+    )
 }
