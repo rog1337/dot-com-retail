@@ -2,9 +2,9 @@ package com.dotcom.retail.domain.admin.product
 
 import com.dotcom.retail.common.constants.ApiRoutes.Admin
 import com.dotcom.retail.domain.admin.product.dto.AdminProductDto
+import com.dotcom.retail.domain.admin.product.dto.CreateProduct
+import com.dotcom.retail.domain.admin.product.dto.EditProductDto
 import com.dotcom.retail.domain.catalogue.image.ImageMetadata
-import com.dotcom.retail.domain.catalogue.product.CreateProduct
-import com.dotcom.retail.domain.catalogue.product.EditProductDto
 import com.dotcom.retail.domain.catalogue.product.ProductMapper
 import com.dotcom.retail.domain.catalogue.product.ProductService
 import org.springframework.http.HttpStatus

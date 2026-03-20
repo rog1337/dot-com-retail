@@ -7,6 +7,8 @@ import com.dotcom.retail.common.exception.ProductError
 import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.config.properties.FileProperties
+import com.dotcom.retail.domain.admin.product.dto.CreateProduct
+import com.dotcom.retail.domain.admin.product.dto.EditProductDto
 import com.dotcom.retail.domain.catalogue.brand.BrandService
 import com.dotcom.retail.domain.catalogue.category.CategoryService
 import com.dotcom.retail.domain.catalogue.filter.ValueCount
