@@ -1,5 +1,6 @@
 package com.dotcom.retail.config.security
 
+import com.dotcom.retail.domain.user.Role
 import com.dotcom.retail.security.jwt.JwtAuthFilter
 import com.dotcom.retail.security.oauth2.OAuth2SuccessHandler
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -40,6 +41,7 @@ class SecurityConfig(
             .csrf { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth -> auth
+                .requestMatchers(*SecurityMatchers.ADMIN_ENDPOINTS).hasRole(Role.ADMIN.name)
                 .requestMatchers(*SecurityMatchers.PUBLIC_ENDPOINTS).permitAll()
                 .requestMatchers(*SecurityMatchers.OPTIONAL_AUTH_ENDPOINTS).permitAll()
                 .anyRequest().authenticated()

@@ -3,6 +3,7 @@ package com.dotcom.retail.security.jwt
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.JwtError
 import com.dotcom.retail.config.security.SecurityMatchers
+import com.dotcom.retail.domain.user.Role
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component
 import org.springframework.util.AntPathMatcher
 import org.springframework.web.filter.OncePerRequestFilter
 import org.springframework.web.servlet.HandlerExceptionResolver
-import java.util.UUID
+import java.util.*
 
 @Component
 class JwtAuthFilter(
@@ -64,8 +65,10 @@ class JwtAuthFilter(
             val id = claims.subject
             if (id.isNullOrBlank()) throw Exception()
             val userId = UUID.fromString(id)
+            val role = claims[JwtService.TOKEN_ROLE_CLAIM].toString()
+            val authorities = listOf(Role.valueOf(role))
 
-            val authToken = UsernamePasswordAuthenticationToken(userId, null, null)
+            val authToken = UsernamePasswordAuthenticationToken(userId, null, authorities)
             authToken.details = WebAuthenticationDetails(request)
             SecurityContextHolder.getContext().authentication = authToken
 

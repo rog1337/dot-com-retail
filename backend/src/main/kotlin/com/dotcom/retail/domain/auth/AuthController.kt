@@ -36,7 +36,7 @@ class AuthController(
     @PostMapping(Auth.REGISTER)
     fun register(@Valid @RequestBody registerRequest: RegisterRequest): ResponseEntity<RegisterResponse> {
         val user = authService.register(registerRequest)
-        val tokenPair = jwtService.rotateTokens(user.id)
+        val tokenPair = jwtService.rotateTokens(user.id, user.role)
         val cookie = authService.createRefreshTokenCookie(tokenPair.refreshToken)
 
         return ResponseEntity

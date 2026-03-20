@@ -2,11 +2,13 @@ package com.dotcom.retail.security.jwt
 
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
+import com.dotcom.retail.domain.user.Role
 import com.dotcom.retail.security.jwt.TokenPair
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
+import io.lettuce.core.KillArgs.Builder.user
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -30,6 +32,7 @@ class JwtService(
         private const val USER_PREFIX: String = "u:"
         const val TOKEN_TYPE_CLAIM = "typ"
         const val TOKEN_VERSION_CLAIM = "ver"
+        const val TOKEN_ROLE_CLAIM = "role"
         const val BEARER_PREFIX = "Bearer "
         const val BEARER_PREFIX_LENGTH = BEARER_PREFIX.length
     }
@@ -38,10 +41,10 @@ class JwtService(
         redisTemplate.delete("$USER_PREFIX$userId")
     }
 
-    fun rotateTokens(userId: UUID): TokenPair {
+    fun rotateTokens(userId: UUID, role: Role): TokenPair {
         val version = updateTokenVersion(userId)
-        val refreshToken = generateRefreshToken(userId, version)
-        val accessToken = generateAccessToken(userId, version)
+        val refreshToken = generateRefreshToken(userId, role, version)
+        val accessToken = generateAccessToken(userId, role, version)
         return TokenPair(accessToken, refreshToken)
     }
 
@@ -56,22 +59,24 @@ class JwtService(
         return version
     }
 
-    fun generateAccessToken(userId: UUID, version: String): String {
+    fun generateAccessToken(userId: UUID, role: Role, version: String): String {
         return Jwts
             .builder()
             .claim(TOKEN_TYPE_CLAIM, TokenType.ACCESS)
             .claim(TOKEN_VERSION_CLAIM, version)
+            .claim(TOKEN_ROLE_CLAIM, role)
             .subject(userId.toString())
             .expiration(Date(System.currentTimeMillis() + jwtProperties.access.exp))
             .signWith(KEY)
             .compact()
     }
 
-    fun generateRefreshToken(userId: UUID, version: String?): String {
+    fun generateRefreshToken(userId: UUID, role: Role, version: String?): String {
         return Jwts
             .builder()
             .claim(TOKEN_TYPE_CLAIM, TokenType.REFRESH)
             .claim(TOKEN_VERSION_CLAIM, version)
+            .claim(TOKEN_ROLE_CLAIM, role)
             .subject(userId.toString())
             .expiration(Date(System.currentTimeMillis() + jwtProperties.refresh.exp))
             .signWith(KEY)

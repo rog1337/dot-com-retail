@@ -4,6 +4,8 @@ import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.order.Order
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.FetchType
 import jakarta.persistence.Id
 import jakarta.persistence.ManyToOne
@@ -32,12 +34,15 @@ class User(
     @OneToOne(cascade = [CascadeType.ALL])
     var contact: Contact? = null,
 
+    @Enumerated(EnumType.STRING)
+    var role: Role = Role.USER,
+
     ) : AuditingEntity(), UserDetails {
 
     override fun toString(): String {
-        return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', ${super.toString()})"
+        return "User(id=$id, email='$email', passwordHash=$passwordHash, displayName='$displayName', twoFactorSecret=$twoFactorSecret, twoFactorEnabled=$twoFactorEnabled, role=$role, ${super.toString()})"
     }
-    override fun getAuthorities(): Collection<GrantedAuthority?> = emptyList()
+    override fun getAuthorities(): Collection<Role> = listOf(role)
     override fun getUsername(): String = email
     override fun getPassword(): String? = passwordHash
 }

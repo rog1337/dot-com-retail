@@ -1,25 +1,17 @@
 package com.dotcom.retail.domain.auth
 
-import com.dotcom.retail.common.exception.AppException
-import com.dotcom.retail.common.exception.AuthError
-import com.dotcom.retail.common.exception.CaptchaError
-import com.dotcom.retail.common.exception.JwtError
-import com.dotcom.retail.common.exception.TwoFactorAuthError
-import com.dotcom.retail.common.exception.UserError
+import com.dotcom.retail.common.exception.*
 import com.dotcom.retail.common.model.TokenType
 import com.dotcom.retail.config.properties.JwtProperties
 import com.dotcom.retail.config.properties.TurnstileProperties
-import com.dotcom.retail.domain.auth.dto.LoginRequest
-import com.dotcom.retail.domain.auth.dto.LoginResult
-import com.dotcom.retail.domain.auth.dto.RegisterOAuthUser
-import com.dotcom.retail.domain.auth.dto.RegisterRequest
-import com.dotcom.retail.security.jwt.TokenPair
-import com.dotcom.retail.domain.auth.dto.TurnstileResponse
-import com.dotcom.retail.domain.user.dto.CreateUserParams
+import com.dotcom.retail.domain.auth.dto.*
+import com.dotcom.retail.domain.user.Role
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserMapper
 import com.dotcom.retail.domain.user.UserService
+import com.dotcom.retail.domain.user.dto.CreateUserParams
 import com.dotcom.retail.security.jwt.JwtService
+import com.dotcom.retail.security.jwt.TokenPair
 import jakarta.servlet.http.HttpServletRequest
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseCookie
@@ -28,7 +20,7 @@ import org.springframework.stereotype.Service
 import org.springframework.util.LinkedMultiValueMap
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.toEntity
-import java.util.UUID
+import java.util.*
 import java.util.concurrent.TimeUnit
 
 
@@ -129,7 +121,7 @@ class AuthService(
                  throw AppException(TwoFactorAuthError.INVALID_TWO_FACTOR_CODE)
          }
 
-         val tokenPair = jwtService.rotateTokens(user.id)
+         val tokenPair = jwtService.rotateTokens(user.id, user.role)
 
          return LoginResult.Success(
              accessToken = tokenPair.accessToken,
@@ -149,7 +141,16 @@ class AuthService(
         val version = claims.getValue(JwtService.TOKEN_VERSION_CLAIM).toString()
         if (!jwtService.isValidTokenVersion(userId, version)) throw AppException(JwtError.JWT_REFRESH_REVOKED)
 
-        return TokenPair(jwtService.rotateTokens(UUID.fromString(userId)).accessToken, jwtService.rotateTokens(UUID.fromString(userId)).refreshToken)
+        val role = try {
+            Role.valueOf(claims.getValue(JwtService.TOKEN_ROLE_CLAIM).toString())
+        } catch(_: NoSuchElementException) {
+            throw AppException(JwtError.JWT_ROLE_MISSING)
+        }
+
+        return TokenPair(
+            jwtService.rotateTokens(UUID.fromString(userId), role).accessToken,
+            jwtService.rotateTokens(UUID.fromString(userId), role).refreshToken
+        )
     }
 
      fun createRefreshTokenCookie(refreshToken: String): ResponseCookie {

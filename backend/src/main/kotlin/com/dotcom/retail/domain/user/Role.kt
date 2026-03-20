@@ -1,5 +1,11 @@
 package com.dotcom.retail.domain.user
 
-enum class Role {
-    ADMIN, USER
+import org.springframework.security.core.GrantedAuthority
+
+enum class Role : GrantedAuthority {
+    ADMIN, USER;
+
+    override fun getAuthority(): String {
+        return "ROLE_$name"
+    }
 }

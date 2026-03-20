@@ -55,7 +55,7 @@ class OAuth2SuccessHandler(
             }
 
             val version = jwtService.updateTokenVersion(user.id)
-            val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, version))
+            val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, user.role, version))
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
 
             response.sendRedirect(frontendProperties.url)

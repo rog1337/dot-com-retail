@@ -11,12 +11,14 @@ object SecurityMatchers {
         "${Auth.BASE}${Auth.REFRESH}",
         "${Auth.BASE}${Auth.RESET_PASSWORD}",
         "${Auth.BASE}${Auth.RESET_PASSWORD_VERIFY}",
+
         "${ApiRoutes.Filter.BASE}",
+
         "${ApiRoutes.Product.BASE}",
         "${ApiRoutes.Product.BASE}/*",
-        "${ApiRoutes.Product.BASE}${ApiRoutes.Product.IMAGE}",
-        "${ApiRoutes.Product.BASE}${ApiRoutes.Product.SEARCH}",
+
         "${ApiRoutes.Image.SERVE}",
+
         "${ApiRoutes.Payment.BASE}${ApiRoutes.Payment.STRIPE}",
 
         "/error"
@@ -27,5 +29,9 @@ object SecurityMatchers {
         ApiRoutes.Order.BASE,
         "${ApiRoutes.Cart.BASE}${ApiRoutes.Cart.CHECKOUT}",
         "${ApiRoutes.Order.BASE}${ApiRoutes.Order.SUBMIT}",
+    )
+
+    val ADMIN_ENDPOINTS = arrayOf(
+        ApiRoutes.Admin.BASE + "/**",
     )
 }
