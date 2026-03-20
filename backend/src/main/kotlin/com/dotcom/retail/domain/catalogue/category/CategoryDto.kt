@@ -9,16 +9,3 @@ data class CategoryDto(
     val childrenIds: List<Long>?,
     val parentId: Long?
 )
-
-data class CreateCategoryRequest(
-    val name: String,
-    val attributeIds: List<Long>? = null,
-    val parentId: Long?,
-)
-
-data class EditCategoryRequest(
-    val id: Long,
-    val name: String,
-    val attributeIds: List<Long>? = null,
-    val parentId: Long?,
-)

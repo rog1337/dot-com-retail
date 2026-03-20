@@ -2,6 +2,8 @@ package com.dotcom.retail.domain.catalogue.category.attribute
 
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.CategoryAttributeError
+import com.dotcom.retail.domain.admin.category.dto.CreateCategoryAttribute
+import com.dotcom.retail.domain.admin.category.dto.EditCategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.CategoryService
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service

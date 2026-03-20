@@ -93,5 +93,11 @@ object ApiRoutes {
         object Product {
             const val BASE = "${Admin.BASE}/product"
         }
+
+        object Category {
+            const val BASE = "${Admin.BASE}/category"
+
+            const val ATTRIBUTE = "/attribute"
+        }
     }
 }
