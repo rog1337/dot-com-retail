@@ -14,9 +14,12 @@ import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserService
 import com.stripe.exception.InvalidRequestException
 import org.slf4j.LoggerFactory
+import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 @Service
@@ -33,6 +36,35 @@ class CartService(
         const val SESSION_ID_HEADER = "X-Session-Id"
         val SHIPPING_STANDARD_PRICE = BigDecimal(5)
         val SHIPPING_EXPRESS_PRICE = BigDecimal(15)
+    }
+
+    @Scheduled(fixedRate = 86_400_000)
+    @Transactional
+    fun removeAbandonedCarts() {
+        log.info("Running scheduled abandoned cart cleanup job")
+        val guestCutoff = Instant.now().minus(Duration.ofDays(1))
+        val userCutoff = Instant.now().minus(Duration.ofDays(7))
+        val abandoned = cartRepository.findAbandonedGuestCarts(guestCutoff) +
+                        cartRepository.findAbandonedUserCarts(userCutoff)
+
+        if (abandoned.isEmpty()) return
+        val skipList = mutableSetOf<Cart>()
+
+        abandoned.forEach { cart ->
+            cart.intentId?.let {
+                try {
+                    paymentService.cancelPaymentIntent(it)
+                } catch (ex: Exception) {
+                    log.error("Failed to cancel abandoned cart payment intent=${cart.id} - skipping", ex)
+                    skipList.add(cart)
+                }
+            }
+        }
+
+        val toDelete = abandoned.minus(skipList)
+        if (toDelete.isEmpty()) return
+        log.info("Cleanup job: deleting ${toDelete.size} abandoned carts")
+        cartRepository.deleteAllInBatch(toDelete)
     }
 
     @Transactional

@@ -1,10 +1,14 @@
 package com.dotcom.retail.domain.cart
 
+import com.dotcom.retail.domain.order.OrderStatus
+import com.dotcom.retail.domain.user.User
 import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.EntityGraph
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import java.time.Instant
 import java.util.Optional
 import java.util.UUID
 
@@ -27,4 +31,11 @@ interface CartRepository : JpaRepository<Cart, UUID> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Cart c WHERE c.user.id = :userId")
     fun lockByUserId(userId: UUID): Cart?
+
+    @Query("SELECT c FROM Cart c WHERE c.user IS NOT NULL AND c.createdAt < :cutoff")
+    fun findAbandonedUserCarts(cutoff: Instant): List<Cart>
+
+    @Query("SELECT c FROM Cart c WHERE c.sessionId IS NOT NULL AND c.createdAt < :cutoff")
+    fun findAbandonedGuestCarts(cutoff: Instant): List<Cart>
+    fun user(user: User): MutableList<Cart>
 }
