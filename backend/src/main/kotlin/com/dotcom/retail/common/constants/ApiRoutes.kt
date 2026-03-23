@@ -111,5 +111,9 @@ object ApiRoutes {
         object User {
             const val BASE = "${Admin.BASE}/user"
         }
+
+        object Order {
+            const val BASE = "${Admin.BASE}/order"
+        }
     }
 }

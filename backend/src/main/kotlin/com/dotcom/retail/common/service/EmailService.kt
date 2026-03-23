@@ -23,6 +23,19 @@ class EmailService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async
+    fun sendOrderUpdated(email: String, order: Order) {
+        val subject = "Order updated"
+
+        //language=html
+        val body = """
+            <h2>Your order has been updated</h2>
+            <p>Order ID: ${order.id}</p>
+        """.trimIndent()
+
+        send(email, subject, body)
+    }
+
+    @Async
     fun sendReviewRemoved(email: String, reviewId: Long, reviewBody: String?, cause: String?) {
         val subject = "Your review was removed"
 

@@ -4,6 +4,7 @@ import com.dotcom.retail.common.ContactMapper
 import com.dotcom.retail.common.model.AddressFields
 import com.dotcom.retail.common.model.Contact
 import com.dotcom.retail.common.service.EncryptionService
+import com.dotcom.retail.domain.admin.order.dto.AdminOrderDto
 import com.dotcom.retail.domain.catalogue.image.ImageMapper
 import com.dotcom.retail.domain.order.dto.OrderDto
 import com.dotcom.retail.domain.order.dto.OrderItemDto
@@ -39,4 +40,19 @@ class OrderMapper(
             totalAmount = o.totalAmount(),
         )
     }
+
+    fun toAdminDto(o: Order): AdminOrderDto = AdminOrderDto(
+        id = o.id,
+        date = o.createdAt.toEpochMilli(),
+        status = o.status,
+        totalAmount = o.totalAmount,
+        items = o.items.map { toCartItemDto(it) },
+        paymentId = o.intentId,
+        sessionId = o.sessionId,
+        shippingType = o.shippingType,
+        shippingCost = o.shippingCost,
+        contact = o.contact?.let { contactMapper.decryptContact(it) },
+        notes = o.notes
+    )
+
 }
