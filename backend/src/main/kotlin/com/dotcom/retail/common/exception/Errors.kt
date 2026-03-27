@@ -28,6 +28,7 @@ object JwtError {
     val JWT_REFRESH_REVOKED = AppError("JWT_REFRESH_REVOKED", HttpStatus.UNAUTHORIZED, "Refresh token is revoked")
     val JWT_ACCESS_REVOKED = AppError("JWT_ACCESS_REVOKED", HttpStatus.UNAUTHORIZED, "Access token is revoked")
     val JWT_ROLE_MISSING = AppError("JWT_ROLE_MISSING", HttpStatus.UNAUTHORIZED, "Missing role")
+    val JWT_EXPIRED = AppError("JWT_EXPIRED", HttpStatus.UNAUTHORIZED, "Expired JWT")
 }
 
 object PasswordResetError {

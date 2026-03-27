@@ -46,7 +46,9 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(ExpiredJwtException::class)
     fun handleExpiredJwtException(): ProblemDetail {
-        return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Expired JWT")
+        val problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Expired JWT")
+        problemDetail.setProperty("code", JwtError.JWT_EXPIRED.code)
+        return problemDetail
     }
 
     @ExceptionHandler(AppException::class)
