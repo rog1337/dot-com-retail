@@ -1,28 +1,26 @@
 package com.dotcom.retail.domain.admin.order
 
-import com.dotcom.retail.common.constants.ApiRoutes.Admin
+import com.dotcom.retail.common.constants.ApiRoutes.Admin.Order
 import com.dotcom.retail.domain.admin.order.dto.AdminOrderDto
 import com.dotcom.retail.domain.admin.order.dto.OrderCancelRequest
 import com.dotcom.retail.domain.admin.order.dto.OrderUpdateRequest
 import com.dotcom.retail.domain.order.OrderMapper
 import com.dotcom.retail.domain.order.OrderService
+import com.dotcom.retail.domain.payment.PaymentService
+import com.dotcom.retail.domain.payment.dto.RefundRequest
+import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.ok
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
+import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @RestController
-@RequestMapping(Admin.Order.BASE)
+@RequestMapping(Order.BASE)
 class AdminOrderController(
     private val orderService: OrderService,
     private val orderMapper: OrderMapper,
-    private val adminOrderService: AdminOrderService
+    private val adminOrderService: AdminOrderService,
+    private val paymentService: PaymentService
 ) {
 
     @GetMapping("{orderId}")
@@ -40,13 +38,22 @@ class AdminOrderController(
         return ok(orderMapper.toAdminDto(order))
     }
 
-    @PostMapping("{orderId}")
+    @PostMapping("{orderId}" + Order.CANCEL)
     fun cancelOrder(
         @PathVariable orderId: UUID,
         @RequestBody request: OrderCancelRequest,
     ): ResponseEntity<Void> {
-        val order = orderService.getById(orderId)
-        orderService.handleCancel(order, request.reason)
+        adminOrderService.cancelOrder(orderId, request)
         return ok().build()
     }
+
+    @PostMapping("{orderId}" + Order.REFUND)
+    fun refund(
+        @PathVariable orderId: UUID,
+        @Valid @RequestBody request: RefundRequest?,
+    ): ResponseEntity<Void> {
+        paymentService.initiateRefund(orderId, request)
+        return ResponseEntity.accepted().build()
+    }
+
 }

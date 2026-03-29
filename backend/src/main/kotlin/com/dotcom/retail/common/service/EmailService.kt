@@ -23,7 +23,22 @@ class EmailService(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @Async
-    fun sendOrderUpdated(email: String, order: Order) {
+    fun sendOrderCancelled(order: Order) {
+        val email = decryptEmail(order) ?: return
+        val subject = "Order cancelled"
+
+        //language=html
+        val body = """
+            <h2>Your order has been cancelled</h2>
+            <p>Order ID: ${order.id}</p>
+        """.trimIndent()
+
+        send(email, subject, body)
+    }
+
+    @Async
+    fun sendOrderUpdated(order: Order) {
+        val email = decryptEmail(order) ?: return
         val subject = "Order updated"
 
         //language=html
@@ -189,6 +204,7 @@ class EmailService(
     private fun decryptEmail(order: Order): String? {
         return try {
             order.contact?.email?.let { encryptionService.decrypt(it) }
+                ?: order.user?.email?.let { encryptionService.decrypt(it) }
                 ?: run { log.warn("No contact email on order ${order.id}"); null }
         } catch (ex: Exception) {
             log.error("Failed to decrypt email for order ${order.id}", ex)

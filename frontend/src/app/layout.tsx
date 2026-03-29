@@ -32,20 +32,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased
-          min-h-screen flex flex-col transition-colors
-          `}
+        className={`${geistSans.variable} ${geistMono.variable} flex min-h-screen flex-col antialiased transition-colors`}
       >
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
-              <Header/>
-                  <main className="flex-grow">
-                      {children}
-                      <Toast/>
-                  </main>
-              <Footer/>
+            {children}
+            <Toast />
           </AuthProvider>
-      </ThemeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

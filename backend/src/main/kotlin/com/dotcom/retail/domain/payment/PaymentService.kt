@@ -1,14 +1,14 @@
 package com.dotcom.retail.domain.payment
 
 import com.dotcom.retail.common.exception.AppException
-import com.dotcom.retail.common.exception.CartError
 import com.dotcom.retail.common.exception.OrderError
 import com.dotcom.retail.common.exception.TransactionError
+import com.dotcom.retail.common.service.EmailService
 import com.dotcom.retail.config.properties.StripeProperties
-import com.dotcom.retail.domain.order.Order
 import com.dotcom.retail.domain.order.OrderRepository
 import com.dotcom.retail.domain.order.OrderStatus
 import com.dotcom.retail.domain.payment.dto.PaymentEvent
+import com.dotcom.retail.domain.payment.dto.RefundRequest
 import com.dotcom.retail.domain.payment.dto.TransactionStatus
 import com.stripe.model.Charge
 import com.stripe.model.Event
@@ -21,13 +21,14 @@ import com.stripe.param.RefundCreateParams
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 @Service
 class PaymentService(
     private val stripeProperties: StripeProperties,
     private val paymentProducer: PaymentProducer,
     private val orderRepository: OrderRepository,
+    private val emailService: EmailService,
 ) {
 
     private val log = LoggerFactory.getLogger(javaClass)
@@ -140,30 +141,23 @@ class PaymentService(
         }
     }
 
-    fun initiateRefund(orderId: UUID, userId: UUID?, sessionId: String?, reason: String? = null) {
+    fun initiateRefund(orderId: UUID, request: RefundRequest?) {
         val order = orderRepository.findById(orderId)
             .orElseThrow { AppException(OrderError.ORDER_NOT_FOUND.withIdentifier(orderId)) }
 
-        if (userId != null && sessionId != null) {
-            if (order.user?.id != userId) {
-                throw AppException(OrderError.ORDER_ACCESS_DENIED.withIdentifier(userId))
-            } else if (order?.sessionId != sessionId) {
-                throw AppException(OrderError.ORDER_ACCESS_DENIED.withIdentifier(sessionId))
-            }
-        } else throw AppException(TransactionError.REFUND_IDENTIFIER_REQUIRED)
-
         if (order.status != OrderStatus.PAID) {
-            throw AppException(TransactionError.REFUND_ORDER_INVALID_STATE.withIdentifier(order.status))
+            throw AppException(TransactionError.REFUND_ORDER_ILLEGAL_STATE.withIdentifier(order.status))
         }
 
         val chargeId = order.chargeId
             ?: throw AppException(OrderError.ORDER_MISSING_CHARGE_ID)
 
-        refundCharge(chargeId, order.totalAmount, reason)
+        refundCharge(chargeId, order.totalAmount, request?.reason)
 
         order.status = OrderStatus.REFUND_PENDING
         orderRepository.save(order)
 
+        emailService.sendRefundConfirmation(order)
         log.info("Refund initiated for order=$orderId intentId=${order.intentId}")
     }
 

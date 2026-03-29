@@ -79,7 +79,6 @@ object ApiRoutes {
     object Payment {
         const val BASE = "$V1/payment"
         const val STRIPE = "/webhook/stripe"
-        const val REFUND = "/refund"
     }
 
     object Review {
@@ -92,16 +91,19 @@ object ApiRoutes {
 
         object Product {
             const val BASE = "${Admin.BASE}/product"
+            const val SEARCH = "/search"
         }
 
         object Category {
             const val BASE = "${Admin.BASE}/category"
+            const val SEARCH = "/search"
 
             const val ATTRIBUTE = "/attribute"
         }
 
         object Brand {
             const val BASE = "${Admin.BASE}/brand"
+            const val SEARCH = "/search"
         }
 
         object Review {
@@ -114,6 +116,8 @@ object ApiRoutes {
 
         object Order {
             const val BASE = "${Admin.BASE}/order"
+            const val CANCEL = "/cancel"
+            const val REFUND = "/refund"
         }
     }
 }

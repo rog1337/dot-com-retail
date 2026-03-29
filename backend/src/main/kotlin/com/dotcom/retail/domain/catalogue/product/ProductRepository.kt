@@ -15,6 +15,10 @@ interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExec
     @EntityGraph(attributePaths = ["images", "brand"])
     override fun findAll(spec: Specification<Product>?, pageable: Pageable): Page<Product>
 
+    @Query("select p from Product p")
+    @EntityGraph(attributePaths = ["images", "brand", "category.name"])
+    fun findAllAdmin(pageable: Pageable): Page<Product>
+
     @EntityGraph(attributePaths = ["images", "brand"])
     override fun findAllById(ids: Iterable<Long>): List<Product>
 

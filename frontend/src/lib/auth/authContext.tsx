@@ -1,23 +1,26 @@
 "use client"
 
-import React, {createContext, useCallback, useContext, useEffect, useState} from "react"
-import {AuthResponse, LoginCredentials, RegisterData, User} from "@/src/types/auth"
-import { useRouter } from "next/navigation"
-import {authApi} from "@lib/api/authApi";
-import {tokenManager} from "@lib/auth/tokenManager";
-import {accountApi} from "@lib/api/accountApi";
-import Loading from "@components/Loading";
-import {logger} from "@lib/logger";
+import React, { createContext, useContext, useEffect, useState } from "react"
+import {
+    AuthResponse,
+    LoginCredentials,
+    RegisterData,
+    User,
+} from "@/src/types/auth"
+import { authApi } from "@lib/api/authApi"
+import { tokenManager } from "@lib/auth/tokenManager"
+import { accountApi } from "@lib/api/accountApi"
+import Loading from "@components/Loading"
+import { logger } from "@lib/logger"
 
-const sessId = typeof window !== "undefined"
-    ? localStorage.getItem("sessionId") : null
+const sessId =
+    typeof window !== "undefined" ? localStorage.getItem("sessionId") : null
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
     const [isLoading, setIsLoading] = useState(true)
-    const router = useRouter()
     const [sessionId, _setSessionId] = useState<string | null>(sessId)
 
     useEffect(() => {
@@ -27,11 +30,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const init = async () => {
             try {
-                if (!await refresh()) return
+                if (!(await refresh())) return
                 const user = await accountApi.getAccount()
                 setUser(user)
                 setSessionId(null)
-            } catch(e: any) {
+            } catch (e: any) {
                 const code = e?.response?.data?.code
                 if (code === "JWT_REFRESH_REVOKED") {
                     // router.push("/")
@@ -45,6 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         init()
+        tokenManager.setRefreshHandler(refresh)
     }, [])
 
     const refresh = async () => {

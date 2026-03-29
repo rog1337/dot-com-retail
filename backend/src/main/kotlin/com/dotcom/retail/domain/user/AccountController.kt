@@ -5,9 +5,7 @@ import com.dotcom.retail.common.model.AuditSortOrder
 import com.dotcom.retail.common.util.pagination.PageConstants
 import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
-import com.dotcom.retail.domain.auth.AuthService
 import com.dotcom.retail.domain.auth.PasswordResetService
-import com.dotcom.retail.domain.order.Order
 import com.dotcom.retail.domain.order.OrderMapper
 import com.dotcom.retail.domain.order.OrderService
 import com.dotcom.retail.domain.order.OrderStatus
@@ -15,18 +13,10 @@ import com.dotcom.retail.domain.order.dto.OrderDto
 import com.dotcom.retail.domain.user.dto.UserDetailsDto
 import com.dotcom.retail.domain.user.dto.UserDto
 import com.dotcom.retail.domain.user.dto.UserUpdateRequest
-import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.validation.annotation.Validated
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RestController
-import java.util.UUID
+import org.springframework.web.bind.annotation.*
+import java.util.*
 
 @RestController
 @RequestMapping(ApiRoutes.Account.BASE)
@@ -34,7 +24,6 @@ class AccountController(
     private val userService: UserService,
     private val userMapper: UserMapper,
     private val orderMapper: OrderMapper,
-    private val authService: AuthService,
     private val passwordResetService: PasswordResetService,
     private val orderService: OrderService
 ) {
@@ -63,11 +52,8 @@ class AccountController(
         @RequestParam(required = false) page: Int = PageConstants.DEFAULT_PAGE,
         @RequestParam(required = false) pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
     ): ResponseEntity<PagedResponse<OrderDto>> {
-        println("BIGGA")
         val orders = orderService.getOrders(userId, null, status, sort, page, pageSize)
-        println("DIGGA")
         val dtos = orders.map { orderMapper.toDto(it) }
-        println("JIGGA")
         return ResponseEntity.ok().body(PageMapper.toPagedResponse(dtos))
     }
 

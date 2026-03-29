@@ -1,6 +1,10 @@
 package com.dotcom.retail.domain.admin.user
 
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.TwoFactorAuthError
+import com.dotcom.retail.common.exception.UserError
 import com.dotcom.retail.domain.admin.user.dto.AdminUserUpdateRequest
+import com.dotcom.retail.domain.user.Role
 import com.dotcom.retail.domain.user.User
 import com.dotcom.retail.domain.user.UserRepository
 import com.dotcom.retail.domain.user.UserService
@@ -19,6 +23,9 @@ class AdminUserService(
     @Transactional
     fun updateUser(userId: UUID, request: AdminUserUpdateRequest): User {
         val user = userService.getById(userId)
+        if (request.role == Role.ADMIN && !user.twoFactorEnabled) {
+            throw AppException(TwoFactorAuthError.TWO_FACTOR_REQUIRED)
+        }
         user.role = request.role
         userRepository.save(user)
         jwtService.revokeTokens(userId)

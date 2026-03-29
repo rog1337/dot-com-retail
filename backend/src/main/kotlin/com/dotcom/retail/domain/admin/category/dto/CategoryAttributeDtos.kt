@@ -3,6 +3,18 @@ package com.dotcom.retail.domain.admin.category.dto
 import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 
+data class AdminCategoryAttributeDto(
+    val id: Long,
+    val attribute: String,
+    val label: String,
+    val unit: String?,
+    val dataType: AttributeDataType,
+    val filterType: FilterType,
+    val displayOrder: Int,
+    val isPublic: Boolean,
+    val categories: List<Long>?
+)
+
 data class CreateCategoryAttribute(
     val attribute: String,
     val label: String,

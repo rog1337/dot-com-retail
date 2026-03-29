@@ -68,6 +68,7 @@ object CategoryError {
 object CategoryAttributeError {
     val CATEGORY_ATTRIBUTE_NOT_FOUND = AppError("CATEGORY_ATTRIBUTE_NOT_FOUND", HttpStatus.NOT_FOUND, "Category attribute not found")
     val CATEGORY_ATTRIBUTE_ALREADY_EXISTS = AppError("CATEGORY_ATTRIBUTE_ALREADY_EXISTS", HttpStatus.CONFLICT, "Category attribute already exists")
+    val CATEGORY_ATTRIBUTE_INCOMPATIBLE_TYPE = AppError("CATEGORY_ATTRIBUTE_INCOMPATIBLE_TYPE", HttpStatus.BAD_REQUEST, "Category attribute incompatible type")
 }
 
 object BrandError {
@@ -105,7 +106,7 @@ object TransactionError {
     val TRANSACTION_NOT_FOUND = AppError("TRANSACTION_NOT_FOUND", HttpStatus.NOT_FOUND, "Transaction not found")
     val STRIPE_SIGNATURE_VERIFICATION_FAILED = AppError("STRIPE_SIGNATURE_VERIFICATION_FAILED", HttpStatus.BAD_REQUEST, "Stripe signature verification failed")
     val PAYMENT_STATUS_CANCELLED = AppError("PAYMENT_STATUS_CANCELLED", HttpStatus.CONFLICT, "Payment status is cancelled")
-    val REFUND_ORDER_INVALID_STATE = AppError("REFUND_ORDER_INVALID_STATE", HttpStatus.BAD_REQUEST, "Order state not suitable for refund")
+    val REFUND_ORDER_ILLEGAL_STATE = AppError("REFUND_ORDER_ILLEGAL_STATE", HttpStatus.BAD_REQUEST, "Order state not suitable for refund")
     val REFUND_IDENTIFIER_REQUIRED = AppError("REFUND_IDENTIFIER_REQUIRED", HttpStatus.BAD_REQUEST, "Either userId or sessionId is required")
 }
 

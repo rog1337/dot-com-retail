@@ -1,9 +1,9 @@
-export interface Page {
-    page: number
-    pageSize: number
+export interface Page<T> {
+  content: T[]
+  page: PageMetadata
 }
 
-export interface PageResponse {
+export interface PageMetadata {
     page: number
     size: number
     elements: number
@@ -11,6 +11,16 @@ export interface PageResponse {
     totalPages: number
     isLast: boolean
     isFirst: boolean
+}
+
+export const defaultPageMetadata = {
+    page: 0,
+    size: 0,
+    elements: 0,
+    totalElements: 0,
+    totalPages: 0,
+    isFirst: false,
+    isLast: false,
 }
 
 export function createPage(): Page {

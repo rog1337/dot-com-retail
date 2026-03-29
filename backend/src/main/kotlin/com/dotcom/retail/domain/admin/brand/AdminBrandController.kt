@@ -1,6 +1,8 @@
 package com.dotcom.retail.domain.admin.brand
 
-import com.dotcom.retail.common.constants.ApiRoutes
+import com.dotcom.retail.common.constants.ApiRoutes.Admin
+import com.dotcom.retail.common.util.pagination.PageMapper
+import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.domain.admin.brand.dto.AdminBrandDto
 import com.dotcom.retail.domain.admin.brand.dto.CreateBrand
 import com.dotcom.retail.domain.admin.brand.dto.EditBrand
@@ -13,10 +15,11 @@ import org.springframework.http.ResponseEntity.status
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping(ApiRoutes.Admin.Brand.BASE)
+@RequestMapping(Admin.Brand.BASE)
 class AdminBrandController(
     private val brandService: BrandService,
-    private val brandMapper: BrandMapper
+    private val brandMapper: BrandMapper,
+    private val adminBrandService: AdminBrandService
 ) {
     @PostMapping
     fun create(@RequestBody brand: CreateBrand): ResponseEntity<AdminBrandDto> {
@@ -28,6 +31,16 @@ class AdminBrandController(
     fun get(@PathVariable id: Long): ResponseEntity<AdminBrandDto> {
         val brand = brandService.get(id)
         return ok(brandMapper.toAdminDto(brand))
+    }
+
+    @GetMapping(Admin.Brand.SEARCH)
+    fun search(
+        @RequestParam query: String,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+    ): ResponseEntity<PagedResponse<AdminBrandDto>> {
+        val brands = adminBrandService.search(query, page, size)
+        return ok(PageMapper.toPagedResponse(brandMapper.toPagedAdminDto(brands)))
     }
 
     @PutMapping("{id}")

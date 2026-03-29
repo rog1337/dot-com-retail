@@ -6,6 +6,4 @@ data class CategoryDto(
     val id: Long,
     val name: String,
     val attributes: List<CategoryAttributeDto>,
-    val childrenIds: List<Long>?,
-    val parentId: Long?
 )

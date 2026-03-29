@@ -64,7 +64,7 @@ class CartService(
         val toDelete = abandoned.minus(skipList)
         if (toDelete.isEmpty()) return
         log.info("Cleanup job: deleting ${toDelete.size} abandoned carts")
-        cartRepository.deleteAllInBatch(toDelete)
+        cartRepository.deleteAll(toDelete)
     }
 
     @Transactional

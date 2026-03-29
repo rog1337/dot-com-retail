@@ -1,6 +1,7 @@
 package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.CategoryAttributeError
 import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.common.exception.ImageMetadataError
 import com.dotcom.retail.common.exception.ProductError
@@ -11,6 +12,8 @@ import com.dotcom.retail.domain.admin.product.dto.CreateProduct
 import com.dotcom.retail.domain.admin.product.dto.EditProductDto
 import com.dotcom.retail.domain.catalogue.brand.BrandService
 import com.dotcom.retail.domain.catalogue.category.CategoryService
+import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
+import com.dotcom.retail.domain.catalogue.category.attribute.AttributeMetadataService
 import com.dotcom.retail.domain.catalogue.filter.ValueCount
 import com.dotcom.retail.domain.catalogue.image.Image
 import com.dotcom.retail.domain.catalogue.image.ImageDeletionEvent
@@ -38,6 +41,7 @@ class ProductService(
     private val eventPublisher: ApplicationEventPublisher,
     private val productMapper: ProductMapper,
     private val productSpecifications: ProductSpecifications,
+    private val attributeMetadataService: AttributeMetadataService,
 ) {
 
     companion object {
@@ -111,7 +115,7 @@ class ProductService(
             stock = dto.stock,
             brand = dto.brandId?.let(brandService::get),
             category = dto.categoryId?.let(categoryService::get),
-            attributes = dto.attributes?.groupBy { it.name }?.mapValues { (_, list) -> list.flatMap { it.values } } as MutableMap<String, MutableList<Any>>,
+            attributes = handleAttributes(dto.attributes),
             images = mutableListOf(),
             isActive = dto.isActive
         )
@@ -141,6 +145,26 @@ class ProductService(
         val saved = productRepository.save(product)
         logger.debug("Saved product: {}", saved)
         return saved
+    }
+
+    private fun handleAttributes(attributes: List<ProductAttributeDto>?): MutableMap<String, MutableList<Any>>? {
+        return attributes
+            ?.groupBy { it.name }
+            ?.mapValues { (_, list) ->
+                list.flatMap { attr ->
+                    val attribute = attributeMetadataService.getAttribute(attr.name)
+                    if (attribute?.dataType == AttributeDataType.NUMBER) {
+                        attr.values.map {
+                            val double = it.toString().toDoubleOrNull()
+                                ?: throw AppException(CategoryAttributeError.CATEGORY_ATTRIBUTE_INCOMPATIBLE_TYPE
+                                    .withIdentifier(it))
+                            if (double % 1.0 == 0.0) double.toInt() else double
+                        }
+                    } else {
+                        attr.values
+                    }
+                }.toMutableList()
+            }?.toMutableMap()
     }
 
     fun save(product: Product): Product {
@@ -173,12 +197,7 @@ class ProductService(
 
         if (data.attributes.isPresent) {
             val attributes = data.attributes.get()
-            if (attributes.isNullOrEmpty()) product.attributes = null
-            else {
-                product.attributes = attributes.groupBy { it.name }?.mapValues {
-                    (_, list) -> list.flatMap { it.values }
-                } as MutableMap<String, MutableList<Any>>
-            }
+            product.attributes = handleAttributes(attributes) ?: mutableMapOf()
         }
 
         if (data.images.isPresent) {

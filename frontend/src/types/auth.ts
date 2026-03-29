@@ -1,8 +1,10 @@
-import {Contact} from "@_types/contact";
+import { Contact } from "@_types/contact"
+import { Role } from "./admin"
 
 export interface User {
     id: string
     displayName: string
+    role?: Role | null
 }
 
 export interface LoginCredentials {

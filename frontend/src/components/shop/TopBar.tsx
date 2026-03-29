@@ -1,11 +1,11 @@
-import {PageResponse} from "@_types/page"
+import {PageMetadata} from "@_types/page"
 import {ChevronLeft, ChevronRight} from "lucide-react"
 import {ProductQuery, SortOrder} from "@_types/product"
 import qs from "qs"
 import {compactParams} from "@lib/params"
 import {useRouter} from "next/navigation"
 
-export default function TopBar({page: paging, params}: { page: PageResponse, params: ProductQuery }) {
+export default function TopBar({page: paging, params}: { page: PageMetadata, params: ProductQuery }) {
 
     const { page, elements, totalElements,size, totalPages,isLast, isFirst } = paging
 

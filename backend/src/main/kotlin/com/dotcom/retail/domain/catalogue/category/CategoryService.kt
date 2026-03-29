@@ -48,22 +48,12 @@ class CategoryService(
     fun create(data: CreateCategoryRequest): Category {
         if (existsByName(data.name)) throw AppException(CategoryError.CATEGORY_ALREADY_EXISTS.withIdentifier(data.name))
 
-        val parent = data.parentId?.let { get(it) }
-
         val attributes = data.attributeIds?.map {
             categoryAttributeRepository.findByIdOrNull(it) ?: throw AppException(CategoryAttributeError.CATEGORY_ATTRIBUTE_NOT_FOUND.withIdentifier(it))
         }?.toMutableList() ?: mutableListOf()
 
-        val category = Category(
-            name = data.name,
-            parent = parent,
-        )
+        val category = Category(name = data.name)
         category.attributes.addAll(attributes)
-
-        if (parent != null) {
-            parent.children.add(category)
-            save(parent)
-        }
 
         return save(category)
     }
@@ -71,21 +61,16 @@ class CategoryService(
     @Transactional
     fun edit(id: Long, data: EditCategoryRequest): Category {
         val category = get(id)
-        val parent = data.parentId?.let { get(data.parentId) }
         val attributes = data.attributeIds?.map {
             categoryAttributeRepository.findByIdOrNull(it) ?: throw AppException(CategoryAttributeError.CATEGORY_ATTRIBUTE_NOT_FOUND.withIdentifier(it))
         }?.toMutableList() ?: mutableListOf()
 
         category.apply {
             name = data.name
-            this.attributes.addAll(attributes)
-            this.parent = parent
         }
 
-        parent?.let {
-            it.children.add(category)
-            save(it)
-        }
+        category.attributes.retainAll(attributes)
+        category.attributes.addAll(attributes.filter { it !in category.attributes })
 
         return save(category)
     }

@@ -12,7 +12,7 @@ export enum Environment {
 }
 
 interface LogContext {
-    [key: string]: any
+    [key: string]: unknown
 }
 
 class Logger {
@@ -38,7 +38,7 @@ class Logger {
         }
     }
 
-    info(message: string, context?: LogContext) {
+    info(message: string, context?: unknown) {
         if (this.shouldLog(LogLevel.INFO)) {
             console.info(this.formatMessage(LogLevel.INFO, message, context), context || "")
         }
@@ -59,7 +59,7 @@ class Logger {
         }
     }
 
-    api(method: string, url: string, status: number, data: any = "") {
+    api(method: string, url: string, status: number, data: unknown = "") {
         const message = `[API] ${method.toUpperCase()} ${url}${status ? ` - ${status}` : ""}`
         const context = { method, url, status }
 
@@ -72,7 +72,7 @@ class Logger {
         // }
     }
 
-    d(message: string, context?: LogContext) { this.debug(message, context) }
+    d(message: string, context?: unknown) { this.debug(message, context) }
     i(message: string, context?: LogContext) { this.info(message, context) }
     w(message: string, context?: LogContext) { this.warn(message, context) }
     e(message: string, error?: Error, context?: LogContext) { this.error(message, error, context) }

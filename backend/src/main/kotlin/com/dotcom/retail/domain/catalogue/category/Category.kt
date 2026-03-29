@@ -22,13 +22,6 @@ class Category(
 
     var name: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    var parent: Category? = null,
-
-    @OneToMany(mappedBy = "parent", cascade = [CascadeType.ALL])
-    var children: MutableList<Category> = mutableListOf(),
-
     @ManyToMany
     @JoinTable(
         name = "category_attributes",
@@ -41,6 +34,6 @@ class Category(
 ) : AuditingEntity() {
 
     override fun toString(): String {
-        return "Category(id=$id, name='$name', parent=$parent, children=$children, ${super.toString()})"
+        return "Category(id=$id, name='$name', ${super.toString()})"
     }
 }

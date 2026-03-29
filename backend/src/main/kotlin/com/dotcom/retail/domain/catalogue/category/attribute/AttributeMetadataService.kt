@@ -14,6 +14,10 @@ class AttributeMetadataService(private val categoryAttributeService: CategoryAtt
         refresh()
     }
 
+    fun getAttribute(attribute: String): CategoryAttribute? {
+        return attributes.get()[attribute]
+    }
+
     fun isNumeric(attribute: String): Boolean {
         return attributes.get()[attribute]?.dataType == AttributeDataType.NUMBER
     }

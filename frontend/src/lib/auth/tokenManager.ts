@@ -1,6 +1,7 @@
 class TokenManager {
-    private accessToken: String | null = null
-    private refreshTokenExpiry: String | null = null
+    private accessToken: string | null = null
+    private refreshTokenExpiry: string | null = null
+    private refreshHandler: (() => Promise<boolean>) | null = null
 
     getAccessToken() {
         return this.accessToken
@@ -8,6 +9,14 @@ class TokenManager {
 
     setAccessToken(token: string) {
         this.accessToken = token
+    }
+
+    setRefreshHandler(fn: () => Promise<boolean>) {
+      this.refreshHandler = fn
+    }
+
+    getRefreshHandler() {
+      return this.refreshHandler
     }
 
     clearAccessToken(): void {

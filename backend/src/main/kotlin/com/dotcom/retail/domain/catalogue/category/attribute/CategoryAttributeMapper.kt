@@ -1,5 +1,7 @@
 package com.dotcom.retail.domain.catalogue.category.attribute
 
+import com.dotcom.retail.domain.admin.category.dto.AdminCategoryAttributeDto
+import org.springframework.data.domain.Page
 import org.springframework.stereotype.Component
 
 @Component
@@ -16,7 +18,7 @@ class CategoryAttributeMapper {
         categories = categoryAttribute.categories.map { it.id }
     )
 
-    fun toAdminDto(categoryAttribute: CategoryAttribute): CategoryAttributeDto = CategoryAttributeDto(
+    fun toAdminDto(categoryAttribute: CategoryAttribute): AdminCategoryAttributeDto = AdminCategoryAttributeDto(
         id = categoryAttribute.id,
         attribute = categoryAttribute.attribute,
         label = categoryAttribute.label,
@@ -27,4 +29,7 @@ class CategoryAttributeMapper {
         isPublic = categoryAttribute.isPublic,
         categories = categoryAttribute.categories.map { it.id }
     )
+
+    fun toPagedAdminDto(page: Page<CategoryAttribute>): Page<AdminCategoryAttributeDto> =
+        page.map { toAdminDto(it) }
 }

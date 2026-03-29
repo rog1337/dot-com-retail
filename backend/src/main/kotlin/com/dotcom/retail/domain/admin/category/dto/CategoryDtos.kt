@@ -1,24 +1,31 @@
 package com.dotcom.retail.domain.admin.category.dto
 
-import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeDto
+import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
+import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 
 data class AdminCategoryDto(
     val id: Long,
     val name: String,
-    val attributes: List<CategoryAttributeDto>,
-    val childrenIds: List<Long>?,
-    val parentId: Long?
+    val attributes: List<AdminAttributeDto>,
+)
+
+data class AdminAttributeDto(
+    val id: Long,
+    val attribute: String,
+    val label: String,
+    val unit: String?,
+    val dataType: AttributeDataType,
+    val filterType: FilterType,
+    val displayOrder: Int,
 )
 
 data class CreateCategoryRequest(
     val name: String,
     val attributeIds: List<Long>? = null,
-    val parentId: Long?,
 )
 
 data class EditCategoryRequest(
     val id: Long,
     val name: String,
     val attributeIds: List<Long>? = null,
-    val parentId: Long?,
 )

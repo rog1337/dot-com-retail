@@ -1,4 +1,4 @@
-import {createPage, Page, PageResponse} from "@_types/page"
+import {createPage, Page, PageMetadata} from "@_types/page"
 
 export interface Product {
     id: number
@@ -50,5 +50,5 @@ export function createProductQuery(): ProductQuery {
 
 export interface ProductResponse {
     content: Product[]
-    page: PageResponse
+    page: PageMetadata
 }
