@@ -54,8 +54,10 @@ class ProductService(
         return productRepository.findByIdOrNull(id)
     }
 
+
     fun get(id: Long): Product {
-        return productRepository.findByIdOrNull(id) ?: throw AppException(ProductError.PRODUCT_NOT_FOUND.withIdentifier(id))
+        return productRepository.findById(id)
+            .orElseThrow { AppException(ProductError.PRODUCT_NOT_FOUND.withIdentifier(id)) }
     }
 
     fun findAll(specification: Specification<Product>, pageable: Pageable): Page<Product> {
@@ -80,7 +82,7 @@ class ProductService(
     fun query(params: ProductQueryParams, attributes: MultiValueMap<String, String>?): PagedResponse<ProductDto> {
         val query = productMapper.queryParamsToQuery(params, parseAttributeParams(attributes))
         val spec = productSpecifications.fromParams(query)
-        val pageable = PageRequest.of(params.page, params.pageSize)
+        val pageable = PageRequest.of(params.page, params.size)
         val productPage = findAll(spec, pageable)
 
         return PageMapper.toPagedResponse(productPage.map { product -> productMapper.toDto(product)})

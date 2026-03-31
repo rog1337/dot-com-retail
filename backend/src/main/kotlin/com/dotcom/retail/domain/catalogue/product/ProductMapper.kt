@@ -21,7 +21,7 @@ class ProductMapper(
         salePrice = p.salePrice,
         stock = p.stock,
         brand = p.brand?.let { brandMapper.toDto(it) },
-        category = p.category?.let { ProductCategoryDto(it.id) },
+        category = p.category?.let { ProductCategoryDto(it.id, it.name) },
         attributes = p.attributes?.map { ProductAttributeDto(name = it.key, values = it.value)},
         images = p.images.map { image -> imageMapper.toProductImageDto(image) },
         reviewCount = p.reviewCount,
@@ -35,7 +35,7 @@ class ProductMapper(
             brands = params.brands,
             attributes = attributes,
             page = params.page,
-            pageSize = params.pageSize,
+            size = params.size,
             sort = params.sort,
             price = params.price
         )

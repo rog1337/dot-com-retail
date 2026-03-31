@@ -9,11 +9,15 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Query
 import java.math.BigDecimal
+import java.util.Optional
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
     @EntityGraph(attributePaths = ["images", "brand"])
     override fun findAll(spec: Specification<Product>?, pageable: Pageable): Page<Product>
+
+    @EntityGraph(attributePaths = ["images", "brand", "category.name"])
+    override fun findById(id: Long): Optional<Product>
 
     @Query("select p from Product p")
     @EntityGraph(attributePaths = ["images", "brand", "category.name"])

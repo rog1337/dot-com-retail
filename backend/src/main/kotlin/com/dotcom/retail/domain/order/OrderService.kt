@@ -12,7 +12,6 @@ import com.dotcom.retail.domain.user.Contact as ContactEntity
 import com.dotcom.retail.common.service.EncryptionService
 import com.dotcom.retail.domain.cart.CartService
 import com.dotcom.retail.domain.catalogue.product.ProductService
-import com.dotcom.retail.domain.order.dto.CheckoutResponse
 import com.dotcom.retail.domain.order.dto.SubmitOrderRequest
 import com.dotcom.retail.domain.payment.PaymentService
 import com.dotcom.retail.domain.user.UserService
@@ -199,9 +198,9 @@ class OrderService(
         }
     }
 
-    fun getOrders(userId: UUID?, sessionId: String?, status: OrderStatus?, sort: AuditSortOrder, page: Int, pageSize: Int): Page<Order> {
+    fun getOrders(userId: UUID?, sessionId: String?, status: OrderStatus?, sort: AuditSortOrder, page: Int, size: Int): Page<Order> {
         val sort = if (sort == AuditSortOrder.desc) Sort.Direction.DESC else Sort.Direction.ASC
-        val pageable = PageRequest.of(page, pageSize, Sort.by(sort, "createdAt"))
+        val pageable = PageRequest.of(page, size, Sort.by(sort, "createdAt"))
         if (userId != null) return orderRepository.findByUserIdAndStatus(userId, status, pageable)
         if (sessionId != null) return orderRepository.findBySessionIdAndStatus(sessionId, status, pageable)
         throw AppException(CartError.CART_IDENTIFIER_REQUIRED)

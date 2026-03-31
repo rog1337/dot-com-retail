@@ -28,12 +28,9 @@ class AdminProductController(
     @GetMapping
     fun getProducts(
         @RequestParam("page", defaultValue = "0") page: Int,
-        @RequestParam("pageSize", defaultValue = "10") pageSize: Int,
-//        @RequestParam("sort_by", defaultValue = "ID") sortBy: String,
-//        @RequestParam("sort_dir", defaultValue = "ID") sortDir: String,
-//        @RequestParam("keyword", defaultValue = "") keyword: String
+        @RequestParam("size", defaultValue = "10") size: Int,
     ): ResponseEntity<PagedResponse<AdminProductDto>> {
-        val products = adminProductService.getProducts(page, pageSize)
+        val products = adminProductService.getProducts(page, size)
         return ok(PageMapper.toPagedResponse(productMapper.toPagedAdminDto(products)))
     }
 
@@ -41,9 +38,9 @@ class AdminProductController(
     fun search(
         @RequestParam query: String,
         @RequestParam("page", defaultValue = "0") page: Int,
-        @RequestParam("pageSize", defaultValue = "10") pageSize: Int,
+        @RequestParam("size", defaultValue = "10") size: Int,
     ): ResponseEntity<PagedResponse<AdminProductDto>> {
-        val products = adminProductService.getProductsByText(query, page, pageSize)
+        val products = adminProductService.getProductsByText(query, page, size)
         val mapped = PageMapper.toPagedResponse(productMapper.toPagedAdminDto(products))
         return ok(mapped)
     }

@@ -33,10 +33,10 @@ const paths = {
 
 export const adminApi = {
   getProducts: (page = 0, size = 20): Promise<Page<AdminProduct>> =>
-    api.get(paths.product() + `?page=${page}&pageSize=${size}`),
+    api.get(paths.product() + `?page=${page}&size=${size}`),
 
   getProductsByText: (query: string, page = 0, size = 20): Promise<Page<AdminProduct>> =>
-    api.get(paths.product() + `/search?query=${query}&page=${page}&pageSize=${size}`),
+    api.get(paths.product() + `/search?query=${query}&page=${page}&size=${size}`),
 
   getProduct: (id: number | string): Promise<AdminProduct> => api.get(paths.product() + `/${id}`),
 
