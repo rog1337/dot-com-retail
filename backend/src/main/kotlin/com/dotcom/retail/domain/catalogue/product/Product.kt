@@ -37,7 +37,6 @@ class Product(
     @JoinColumn(name = "category_id")
     var category: Category? = null,
 
-    @BatchSize(size = 50)
     @OneToMany(cascade = [CascadeType.ALL], orphanRemoval = true)
     var images: MutableList<Image> = mutableListOf(),
 
