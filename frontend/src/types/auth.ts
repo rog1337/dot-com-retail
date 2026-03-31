@@ -2,61 +2,61 @@ import { Contact } from "@_types/contact"
 import { Role } from "./admin"
 
 export interface User {
-    id: string
-    displayName: string
-    role?: Role | null
+  id: string
+  displayName: string
+  role?: Role | null
 }
 
 export interface LoginCredentials {
-    email: string
-    password: string
+  email: string
+  password: string
 }
 
 export interface RegisterData {
-    email: string
-    password: string
-    confirmPassword: string
-    displayName: string
-    captchaToken: string
+  email: string
+  password: string
+  confirmPassword: string
+  displayName: string
+  captchaToken: string
 }
 
 export interface AuthResponse {
-    accessToken: string
-    user: User
+  accessToken: string
+  user: User
 }
 
 export interface RefreshResponse {
-    accessToken: string
+  accessToken: string
 }
 
 export interface UserUpdate {
-    displayName: string
+  displayName: string
 }
 
 export interface UserDetails {
-    displayName: string
-    email: string
-    contact?: Contact
+  displayName: string
+  email: string
+  contact?: Contact
 }
 
 export interface PasswordResetInitiationRequest {
-    email: string
+  email: string
 }
 
 export interface PasswordResetRequest {
-    token: string
-    password: string
+  token: string
+  password: string
 }
 
 export interface TwoFactorStatus {
-    isEnabled: boolean
+  isEnabled: boolean
 }
 
 export interface TwoFactorSetupResponse {
-    secret: string
-    qrCode: string
+  secret: string
+  qrCode: string
 }
 
 export interface TwoFactorVerification {
-    code: string
+  code: string
 }

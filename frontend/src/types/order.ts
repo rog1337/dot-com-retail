@@ -2,59 +2,59 @@ import { AddressFields, Contact } from "@_types/contact"
 import { PageMetadata } from "@_types/page"
 
 export interface Order {
-    id: string
-    status: OrderStatus
-    paymentId: string
-    sessionId?: string
-    items: OrderItem[]
-    shippingType: ShippingType
-    shippingCost: number
-    totalAmount: number
-    contact: Contact
-    date: number
+  id: string
+  status: OrderStatus
+  paymentId: string
+  sessionId?: string
+  items: OrderItem[]
+  shippingType: ShippingType
+  shippingCost: number
+  totalAmount: number
+  contact: Contact
+  date: number
 }
 
 export interface OrderItem {
-    productId: string
-    productName: string
-    imageUrl: string
-    quantity: number
-    price: number
-    totalAmount: number
+  productId: string
+  productName: string
+  imageUrl: string
+  quantity: number
+  price: number
+  totalAmount: number
 }
 
 export interface CreateOrderResponse {
-    id: string
-    status: string
-    clientSecret: string
+  id: string
+  status: string
+  clientSecret: string
 }
 
 export interface SubmitOrderRequest {
-    name: string
-    email: string
-    phone: string
-    address: AddressFields
-    shippingType: ShippingType
-    notes?: string
+  name: string
+  email: string
+  phone: string
+  address: AddressFields
+  shippingType: ShippingType
+  notes?: string
 }
 
 export interface OrderResponse {
-    content: Order[]
-    page: PageMetadata
+  content: Order[]
+  page: PageMetadata
 }
 
 export enum OrderStatus {
-    PENDING_PAYMENT,
-    PAID,
-    SHIPPED,
-    DELIVERED,
-    CANCELLED,
-    FAILED,
-    REFUND_PENDING,
-    REFUNDED,
-    REFUND_FAILED,
+  PENDING_PAYMENT,
+  PAID,
+  SHIPPED,
+  DELIVERED,
+  CANCELLED,
+  FAILED,
+  REFUND_PENDING,
+  REFUNDED,
+  REFUND_FAILED,
 }
 export enum ShippingType {
-    STANDARD = "STANDARD",
-    EXPRESS = "EXPRESS",
+  STANDARD = "STANDARD",
+  EXPRESS = "EXPRESS",
 }

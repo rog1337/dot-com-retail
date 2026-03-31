@@ -3,11 +3,14 @@ package com.dotcom.retail.domain.catalogue.review
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.ReviewError
 import com.dotcom.retail.common.util.pagination.PageMapper
-import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
+import com.dotcom.retail.domain.catalogue.product.ProductReviewsResponse
 import com.dotcom.retail.domain.catalogue.product.ProductService
+import com.dotcom.retail.domain.catalogue.product.UserReviewStatusDto
 import com.dotcom.retail.domain.catalogue.review.dto.AddReviewRequest
-import com.dotcom.retail.domain.catalogue.review.dto.ReviewDto
+import com.dotcom.retail.domain.catalogue.review.dto.ToggleVoteResponse
+import com.dotcom.retail.domain.order.OrderRepository
+import com.dotcom.retail.domain.order.OrderStatus
 import com.dotcom.retail.domain.user.UserService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
@@ -23,7 +26,8 @@ class ReviewService(
     private val reviewRepository: ReviewRepository,
     private val productRepository: ProductRepository,
     private val reviewVoteRepository: ReviewVoteRepository,
-    private val reviewMapper: ReviewMapper
+    private val reviewMapper: ReviewMapper,
+    private val orderRepository: OrderRepository
 ) {
 
     @Transactional
@@ -55,10 +59,41 @@ class ReviewService(
     }
 
     @Transactional
-    fun getReviewsByProductId(productId: Long, page: Int, pageSize: Int): PagedResponse<ReviewDto> {
-        val pageable = PageRequest.of(page, pageSize)
+    fun getProductReviews(productId: Long, page: Int, size: Int, userId: UUID?): ProductReviewsResponse {
+        val pageable = PageRequest.of(page, size)
         val reviews = reviewRepository.findByProductId(productId, pageable)
-        return PageMapper.toPagedResponse(reviewMapper.toPagedDto(reviews))
+        val reviewIds = reviews.content.map { it.id }
+
+        val voteCounts = reviewVoteRepository.findVoteCountsByReviewIds(reviewIds)
+            .associate { it.reviewId to it.voteCount }
+
+        val userVotedReviewIds = userId?.let { reviewVoteRepository.findVotedReviewIdsByUser(it, reviewIds) }
+            ?: emptySet()
+
+        val status = getUserReviewStatus(userId, productId)
+        return ProductReviewsResponse(
+            PageMapper.toPagedResponse(reviewMapper.toPagedDto(reviews, voteCounts, userVotedReviewIds)),
+            userReviewStatus = status
+        )
+    }
+
+    fun getUserReviewStatus(userId: UUID?, productId: Long): UserReviewStatusDto {
+        if (userId == null) {
+            return UserReviewStatusDto(
+                hasPurchased = false,
+                hasReviewed = false,
+                canReview = false
+            )
+        }
+
+        val hasPurchased = orderRepository.hasUserPurchasedProduct(userId, productId, listOf(OrderStatus.PAID))
+        val hasReviewed = reviewRepository.existsByUserIdAndProductId(userId, productId)
+
+        return UserReviewStatusDto(
+            hasPurchased = hasPurchased,
+            hasReviewed = hasReviewed,
+            canReview = hasPurchased && hasReviewed
+        )
     }
 
     fun deleteReview(userId: UUID, reviewId: Long) {
@@ -68,30 +103,27 @@ class ReviewService(
         reviewRepository.delete(review)
     }
 
-
-    fun voteReview(userId: UUID, reviewId: Long) {
-        if (reviewVoteRepository.existsByReviewIdAndUserId(reviewId, userId))
-            return
-
-        val review = getReviewById(reviewId)
-        val vote = ReviewVote(review = review, user = userService.getById(userId))
-        review.votes.add(vote)
-        reviewRepository.save(review)
-    }
-
-    fun unvoteReview(userId: UUID, reviewId: Long) {
-        val review = getReviewById(reviewId)
-
-        val vote = reviewVoteRepository.findByReviewIdAndUserId(reviewId, userId)
-            ?: throw AppException(ReviewError.REVIEW_VOTE_NOT_FOUND)
-
-        review.votes.remove(vote)
-        reviewRepository.save(review)
-        reviewVoteRepository.delete(vote)
-    }
-
     fun getReviewById(reviewId: Long): Review {
         return reviewRepository.findByIdOrNull(reviewId)
             ?: throw AppException(ReviewError.REVIEW_NOT_FOUND.withIdentifier(reviewId))
+    }
+
+    fun toggleVote(userId: UUID, reviewId: Long): ToggleVoteResponse {
+        val review = getReviewById(reviewId)
+        if (review.user.id == userId) {
+            throw AppException(ReviewError.CANNOT_VOTE_ON_OWN_REVIEW)
+        }
+
+        reviewVoteRepository.findByReviewIdAndUserId(reviewId, userId)?.let {
+            review.votes.remove(it)
+            reviewRepository.save(review)
+            reviewVoteRepository.delete(it)
+            return ToggleVoteResponse(voted = false)
+        }
+
+        val vote = ReviewVote(review = review, user = userService.getById(userId))
+        review.votes.add(vote)
+        reviewRepository.save(review)
+        return ToggleVoteResponse(voted = true)
     }
 }

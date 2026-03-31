@@ -1,47 +1,45 @@
-import {Type} from "@components/shop/Filter"
+import { Type } from "@components/shop/Filter"
 
 export interface FilterQueryParams {
-    categoryId: number
+  categoryId: number
 }
 
 export interface FilterResponse {
-    attributes: FilterAttribute[]
-    brands: FilterBrand[]
+  category: FilterCategory
+  attributes: FilterAttribute[]
+  brands: FilterBrand[]
 }
 
 export interface FilterBrand {
-    id: number
-    name: string
-    count: number
+  id: number
+  name: string
+  count: number
+}
+
+export interface FilterCategory {
+  id: number
+  name: string
 }
 
 export interface FilterAttribute {
-    attribute: string
-    displayOrder: number
-    id: number
-    label: string
-    filterType: Type
-    values: AttributeValue[]
+  attribute: string
+  displayOrder: number
+  id: number
+  label: string
+  filterType: Type
+  values: AttributeValue[]
 }
 
 export interface AttributeValue {
-    value: string | number | boolean
-    count: number
-    id: number
-    isEnabled?: boolean
+  value: string | number | boolean
+  count: number
+  id: number
+  isEnabled?: boolean
 }
 
-// export interface FilterField {
-//     attribute: string | null
-//     param: any
-//     name: string | number
-//     values: AttributeValue[]
-//     filterType: Type
-// }
-
 export interface FilterField {
-    name: string
-    label: string
-    values: AttributeValue[]
-    filterType: Type
+  name: string
+  label: string
+  values: AttributeValue[]
+  filterType: Type
 }

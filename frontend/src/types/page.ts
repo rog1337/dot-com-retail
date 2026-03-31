@@ -23,8 +23,13 @@ export const defaultPageMetadata = {
     isLast: false,
 }
 
-export function createPage(): Page {
-    return { page: PAGE_DEFAULT, pageSize: PAGE_SIZE_DEFAULT }
+export interface PageParams {
+    page: number
+    size: number
+}
+
+export function createPageParams(): PageParams {
+    return { page: PAGE_DEFAULT, size: PAGE_SIZE_DEFAULT }
 }
 
 export const PAGE_DEFAULT = 0

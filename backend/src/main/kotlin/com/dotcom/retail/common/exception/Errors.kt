@@ -53,8 +53,8 @@ object UserError {
 }
 
 object ProductError {
-    val PRODUCT_ERROR = AppError("CART_ERROR", HttpStatus.BAD_REQUEST, "Product error")
-    val PRODUCT_NOT_FOUND = AppError("CART_ERROR", HttpStatus.BAD_REQUEST, "Product not found")
+    val PRODUCT_ERROR = AppError("PRODUCT_ERROR", HttpStatus.INTERNAL_SERVER_ERROR, "Product error")
+    val PRODUCT_NOT_FOUND = AppError("PRODUCT_NOT_FOUND", HttpStatus.NOT_FOUND, "Product not found")
     val PRODUCT_IDS_NOT_PROVIDED = AppError("PRODUCT_IDS_NOT_PROVIDED", HttpStatus.BAD_REQUEST, "Product ID's were not provided")
     val INVALID_PRODUCT_ATTRIBUTE = AppError("INVALID_PRODUCT_ATTRIBUTE", HttpStatus.BAD_REQUEST, "Invalid product attribute")
     val PRODUCT_INSUFFICIENT_STOCK = AppError("PRODUCT_INSUFFICIENT_STOCK", HttpStatus.CONFLICT, "Not enough stock for product")
@@ -119,4 +119,5 @@ object ReviewError {
     val REVIEW_NOT_FOUND = AppError("REVIEW_NOT_FOUND", HttpStatus.NOT_FOUND, "Review not found")
     val REVIEW_INSUFFICIENT_PRIVILEGES = AppError("REVIEW_INSUFFICIENT_PRIVILEGES", HttpStatus.UNAUTHORIZED, "Insufficient privileges")
     val REVIEW_VOTE_NOT_FOUND = AppError("REVIEW_VOTE_NOT_FOUND", HttpStatus.NOT_FOUND, "Review vote not found")
+    val CANNOT_VOTE_ON_OWN_REVIEW = AppError("CANNOT_VOTE_ON_OWN_REVIEW", HttpStatus.FORBIDDEN, "Cannot vote on own review")
 }

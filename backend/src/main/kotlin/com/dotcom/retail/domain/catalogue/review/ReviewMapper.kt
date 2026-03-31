@@ -11,16 +11,28 @@ import org.springframework.stereotype.Component
 @Component
 class ReviewMapper(private val userMapper: UserMapper) {
 
-    fun toPagedDto(reviews: Page<Review>): Page<ReviewDto> {
-        return reviews.map { toDto(it) }
+    fun toPagedDto(
+        reviews: Page<Review>,
+        voteCounts: Map<Long, Long>,
+        userVotedReviewIds: Collection<Long>
+    ): Page<ReviewDto> {
+        return reviews.map {
+            toDto(
+                review = it,
+                votes = voteCounts[it.id] ?: 0,
+                hasVoted = it.id in userVotedReviewIds
+            )
+        }
     }
 
-    fun toDto(review: Review): ReviewDto = ReviewDto(
+    fun toDto(review: Review, votes: Long, hasVoted: Boolean): ReviewDto = ReviewDto(
         id = review.id,
         rating = review.rating,
         body = review.body,
-        votes = review.votes.size,
-        author = toAuthorDto(review.user)
+        votes = votes,
+        author = toAuthorDto(review.user),
+        hasVoted = hasVoted,
+        createdAt = review.createdAt,
     )
 
     fun toAuthorDto(user: User): ReviewAuthorDto = ReviewAuthorDto(

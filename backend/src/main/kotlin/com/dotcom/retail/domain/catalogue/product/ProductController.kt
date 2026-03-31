@@ -6,7 +6,6 @@ import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.domain.catalogue.review.ReviewService
 import com.dotcom.retail.domain.catalogue.review.dto.AddReviewRequest
-import com.dotcom.retail.domain.catalogue.review.dto.ReviewDto
 import jakarta.validation.constraints.Max
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
@@ -52,12 +51,13 @@ class ProductController(
 
     @GetMapping("{productId}" + Product.REVIEW)
     fun getReviews(
+        @AuthenticationPrincipal userId: UUID?,
         @PathVariable productId: Long,
         @RequestParam page: Int = PageConstants.DEFAULT_PAGE,
-        @RequestParam @Max(20) pageSize: Int = PageConstants.DEFAULT_PAGE_SIZE,
-    ): ResponseEntity<PagedResponse<ReviewDto>> {
-        val reviews = reviewService.getReviewsByProductId(productId, page, pageSize)
-        return ok(reviews)
+        @RequestParam @Max(20) size: Int = PageConstants.DEFAULT_PAGE_SIZE,
+    ): ResponseEntity<ProductReviewsResponse> {
+        val response = reviewService.getProductReviews(productId, page, size, userId)
+        return ok(response)
     }
 
     @PostMapping("{productId}" + Product.REVIEW)

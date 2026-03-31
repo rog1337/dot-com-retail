@@ -61,23 +61,23 @@ export interface CreateProductRequest {
 }
 
 export interface ImageMetadata {
-  fileName: string,
-  sortOrder?: number | null,
-  altText: string | null,
+  fileName: string
+  sortOrder?: number | null
+  altText: string | null
 }
 
 export interface EditProductRequest {
-  id: number;
-  name?: string;
-  sku?: string;
-  description?: string;
-  price?: number;
-  salePrice?: number;
-  stock?: number;
-  isActive?: boolean;
-  categoryId?: number | null;
-  brandId?: number | null;
-  attributes: AdminProductAttribute[];
+  id: number
+  name?: string
+  sku?: string
+  description?: string
+  price?: number
+  salePrice?: number
+  stock?: number
+  isActive?: boolean
+  categoryId?: number | null
+  brandId?: number | null
+  attributes: AdminProductAttribute[]
   images?: AdminEditImage[] | null
 }
 

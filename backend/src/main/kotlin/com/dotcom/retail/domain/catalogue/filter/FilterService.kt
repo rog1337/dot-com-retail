@@ -43,5 +43,5 @@ class FilterService(
             filterMapper.toRangeData(it.min.toDouble(), it.max.toDouble())
         }
 
-        return filterMapper.toDto(categoryId, attributes, brands,  price) }
+        return filterMapper.toDto(category, attributes, brands,  price) }
 }

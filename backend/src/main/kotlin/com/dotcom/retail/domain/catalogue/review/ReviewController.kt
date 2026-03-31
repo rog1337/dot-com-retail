@@ -1,10 +1,10 @@
 package com.dotcom.retail.domain.catalogue.review
 
 import com.dotcom.retail.common.constants.ApiRoutes
-import org.springframework.http.HttpStatus
+import com.dotcom.retail.domain.catalogue.review.dto.ToggleVoteResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.noContent
-import org.springframework.http.ResponseEntity.status
+import org.springframework.http.ResponseEntity.ok
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
 import java.util.*
@@ -23,20 +23,11 @@ class ReviewController(private val reviewService: ReviewService) {
     }
 
     @PostMapping("{reviewId}" + ApiRoutes.Review.VOTE)
-    fun voteReview(
+    fun toggleVote(
         @AuthenticationPrincipal userId: UUID,
-        @PathVariable(required = true) reviewId: Long,
-    ): ResponseEntity<Void> {
-        reviewService.voteReview(userId, reviewId)
-        return status(HttpStatus.CREATED).build()
-    }
-
-    @DeleteMapping("{reviewId}" + ApiRoutes.Review.VOTE)
-    fun unvoteReview(
-        @AuthenticationPrincipal userId: UUID,
-        @PathVariable(required = true) reviewId: Long,
-    ): ResponseEntity<Void> {
-        reviewService.unvoteReview(userId, reviewId)
-        return noContent().build()
+        @PathVariable reviewId: Long,
+    ): ResponseEntity<ToggleVoteResponse> {
+        val voted = reviewService.toggleVote(userId, reviewId)
+        return ok(voted)
     }
 }
