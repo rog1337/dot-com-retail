@@ -38,7 +38,7 @@ export default function GridItem({product, onAddToCart, isLoading}: {product: Pr
       </div>
 
       <div className="mt-1 flex items-end px-1">
-        <span className="bg-foreground text-background font-bold text-xl rounded px-1">${product.price.toFixed(2)}</span>
+        <span className="bg-foreground text-background font-bold text-xl rounded px-1">€{product.price.toFixed(2)}</span>
       </div>
 
       <StarRating

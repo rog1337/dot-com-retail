@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Product } from "@_types/product"
 import StarRating from "@components/shop/StarRating"
-import {Package} from "lucide-react"
+import { Package, ShoppingCart } from "lucide-react"
 
 export default function ListItem({
   product,
@@ -29,7 +29,7 @@ export default function ListItem({
       className="group flex flex-row items-center justify-between overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md"
     >
       <div className="flex items-center gap-2">
-        <div className="relative aspect-square w-24 overflow-hidden ">
+        <div className="relative aspect-square w-24 overflow-hidden">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -45,11 +45,32 @@ export default function ListItem({
             </div>
           )}
         </div>
-        <h3 className="font-semibold transition-colors group-hover:text-blue-600">
-          {product.name}
-        </h3>
+
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:hidden">
+          <div className="flex min-w-0 flex-1 flex-col gap-1 px-3 py-2">
+            <h3 className="font-medium wrap-normal transition-colors group-hover:text-blue-600">
+              {product.name}
+            </h3>
+            <StarRating averageRating={product.averageRating} reviewCount={product.reviewCount} />
+            <span className="bg-foreground text-background w-fit rounded px-1 text-base font-bold">
+              €{product.price.toFixed(2)}
+            </span>
+          </div>
+
+          <button
+            onClick={handleAddToCart}
+            className="mr-3 shrink-0 rounded-lg bg-black px-3 py-2 font-semibold text-white hover:bg-gray-800 focus:ring-2 focus:ring-black focus:ring-offset-2 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoading}
+          >
+            <ShoppingCart className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="hidden flex-1 flex-row items-center justify-between gap-2 px-2 sm:flex">
+          <h3 className="transition-colors group-hover:text-blue-600">{product.name}</h3>
+        </div>
       </div>
-      <div className="flex flex-row gap-5 items-center">
+      <div className="hidden flex-row items-center gap-5 sm:flex">
         <div className="">
           <StarRating
             averageRating={product.averageRating}
@@ -58,9 +79,9 @@ export default function ListItem({
         </div>
         <div className="flex flex-col items-center">
           <div className="flex items-end px-1">
-          <span className="bg-foreground text-background rounded px-1 text-xl font-bold">
-            ${product.price.toFixed(2)}
-          </span>
+            <span className="bg-foreground text-background rounded px-1 text-xl font-bold">
+              €{product.price.toFixed(2)}
+            </span>
           </div>
           <div className="flex flex-1 flex-col p-1">
             <button
@@ -72,7 +93,6 @@ export default function ListItem({
             </button>
           </div>
         </div>
-
       </div>
     </Link>
   )
