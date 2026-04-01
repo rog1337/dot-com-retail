@@ -77,6 +77,10 @@ export default function Browse({params, products, page} : { params: ProductQuery
               onViewChange={handleSetView}
             />
 
+            {products.length === 0 &&
+              <p className="mt-10 justify-self-center" >No products found</p>
+            }
+
             {view === "grid" && (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 justify-items-center sm:gap-6 lg:grid-cols-3">
                 {products.map((p: Product, key: number) => (
