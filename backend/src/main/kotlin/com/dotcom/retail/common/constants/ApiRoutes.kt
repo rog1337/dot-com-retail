@@ -86,6 +86,10 @@ object ApiRoutes {
         const val VOTE = "/vote"
     }
 
+    object Contact {
+        const val BASE = "$V1/contact"
+    }
+
     object Admin {
         const val BASE = "$V1/admin"
 

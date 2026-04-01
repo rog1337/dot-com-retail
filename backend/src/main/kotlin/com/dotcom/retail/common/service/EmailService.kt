@@ -2,9 +2,11 @@ package com.dotcom.retail.common.service
 
 import com.dotcom.retail.config.properties.FrontendProperties
 import com.dotcom.retail.config.properties.PasswordProperties
+import com.dotcom.retail.domain.contact.ContactRequest
 import com.dotcom.retail.domain.order.Order
 import jakarta.mail.internet.MimeMessage
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.mail.SimpleMailMessage
 import org.springframework.mail.javamail.JavaMailSender
 import org.springframework.mail.javamail.MimeMessageHelper
@@ -21,6 +23,15 @@ class EmailService(
     private val frontendProperties: FrontendProperties,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
+
+    @Value("\${spring.mail.username}")
+    private lateinit var username: String
+
+    @Async
+    fun sendContactEmail(request: ContactRequest) {
+        val subject = "Contact Request"
+        send(username, subject, request.message)
+    }
 
     @Async
     fun sendOrderCancelled(order: Order) {
