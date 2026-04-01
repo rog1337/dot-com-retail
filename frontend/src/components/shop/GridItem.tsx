@@ -2,10 +2,11 @@ import Image from "next/image"
 import Link from "next/link"
 import {Product} from "@_types/product";
 import StarRating from "@components/shop/StarRating"
+import {Package} from "lucide-react"
 
 export default function GridItem({product, onAddToCart, isLoading}: {product: Product, onAddToCart: any, isLoading: boolean}) {
   const images = product.images
-  const imageUrl = images[0]?.url || "404"
+  const imageUrl = images[0]?.url || ""
   const imageAltText = images[0]?.altText || product.name
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -19,15 +20,21 @@ export default function GridItem({product, onAddToCart, isLoading}: {product: Pr
       href={`/products/${product.id}`}
       className="group flex w-full max-w-xs flex-col overflow-hidden rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md"
     >
-      <div className="relative aspect-square w-full overflow-hidden bg-gray-50">
-        <Image
-          src={imageUrl}
-          alt={imageAltText}
-          loading="eager"
-          fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
+      <div className="relative aspect-square w-full overflow-hidden">
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={imageAltText}
+            loading="eager"
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center">
+            <Package className="h-20 w-20" />
+          </div>
+        )}
       </div>
 
       <div className="mt-1 flex items-end px-1">

@@ -2,6 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { Product } from "@_types/product"
 import StarRating from "@components/shop/StarRating"
+import {Package} from "lucide-react"
 
 export default function ListItem({
   product,
@@ -13,7 +14,7 @@ export default function ListItem({
   isLoading: boolean
 }) {
   const images = product.images
-  const imageUrl = images[0]?.url || "404"
+  const imageUrl = images[0]?.url || ""
   const imageAltText = images[0]?.altText || product.name
 
   const handleAddToCart = (e: React.MouseEvent) => {
@@ -29,14 +30,20 @@ export default function ListItem({
     >
       <div className="flex items-center gap-2">
         <div className="relative aspect-square w-24 overflow-hidden ">
-          <Image
-            src={imageUrl}
-            alt={imageAltText}
-            loading="eager"
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={imageAltText}
+              loading="eager"
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <Package className="h-10 w-10" />
+            </div>
+          )}
         </div>
         <h3 className="font-semibold transition-colors group-hover:text-blue-600">
           {product.name}
