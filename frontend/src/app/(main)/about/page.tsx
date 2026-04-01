@@ -1,21 +1,21 @@
 export default function AboutPage() {
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
-      <h1 className="text-4xl font-bold text-center">About Us</h1>
+    <div className="mx-auto max-w-4xl space-y-8 p-6">
+      <h1 className="text-center text-4xl font-bold">About Us</h1>
 
       <section className="space-y-2">
         <h2 className="text-2xl font-semibold">Company Info</h2>
         <p>
-          Tyre-dot-com is a student project e-commerce store focused on providing high-quality tyres online.
-          Built as a solo full-stack project using Next.js, TypeScript, and Tailwind CSS.
+          Tyre-dot-com is a student project e-commerce store focused on providing high-quality tyres
+          online. Built as a solo full-stack project using Next.js, TypeScript, and Tailwind CSS.
         </p>
       </section>
 
       <section className="space-y-2">
         <h2 className="text-2xl font-semibold">Our Mission</h2>
         <p>
-          Our mission is to make buying tyres simple and convenient for everyone.
-          We aim to provide a seamless online experience while showcasing modern web development skills.
+          Our mission is to make buying tyres simple and convenient for everyone. We aim to provide
+          a seamless online experience while showcasing modern web development skills.
         </p>
       </section>
 
@@ -38,5 +38,5 @@ export default function AboutPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }
