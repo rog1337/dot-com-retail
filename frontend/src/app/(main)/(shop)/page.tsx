@@ -3,7 +3,7 @@ import Link from "next/link"
 
 export default function Home() {
     return (
-        <div className="p-50 flex flex-col items-center justify-center text-xl">
+        <div className="mt-50 flex flex-col items-center justify-center text-xl">
             <h1>Welcome!</h1>
             <Link
                 href="/browse?categoryId=1"

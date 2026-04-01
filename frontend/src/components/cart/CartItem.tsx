@@ -91,7 +91,7 @@ export default function CartItem({item}: {item: CartProduct }) {
                 />
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 text-foreground">
                 <p className="font-medium">{item.productName}</p>
                 <p className="mt-0.5">
                     €{(item.price * item.quantity).toFixed(2)}
@@ -102,20 +102,18 @@ export default function CartItem({item}: {item: CartProduct }) {
                 <button
                     onClick={() => onDecrease(item.productId)}
                     className="w-7 h-7 rounded-full border border-gray-200 flex items-center
-                     justify-center hover:bg-gray-400 hover:border-gray-500 transition-colors
+                     justify-center text-foreground hover:border-foreground/60 transition-colors
                       leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Decrease quantity"
                     disabled={isLoading}
                 >
                     −
                 </button>
-                <span className="w-5 text-center font-medium ">
-          {item.quantity}
-        </span>
+                <span className="w-5 text-center text-foreground font-medium">{item.quantity}</span>
                 <button
                     onClick={() => onIncrease(item.productId)}
                     className="w-7 h-7 rounded-full border border-gray-200 flex items-center
-                     justify-center hover:bg-gray-400 hover:border-gray-500 transition-colors
+                     justify-center text-foreground hover:border-foreground/60 transition-colors
                       leading-none disabled:opacity-50 disabled:cursor-not-allowed"
                     aria-label="Increase quantity"
                     disabled={isQuantityMaxed || isLoading}
@@ -126,8 +124,8 @@ export default function CartItem({item}: {item: CartProduct }) {
 
             <button
                 onClick={() => onRemove(item.productId)}
-                className="shrink-0 hover:text-red-400 transition-colors ml-1
-                disabled:opacity-50 disabled:cursor-not-allowed"
+                className="shrink-0 hover:red-400 transition-colors ml-1
+                disabled:opacity-50 disabled:cursor-not-allowed text-foreground hover:text-red-500"
                 aria-label="Remove item"
                 disabled={isLoading}
             >

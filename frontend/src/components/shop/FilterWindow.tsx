@@ -81,7 +81,7 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
       <div className="h-full">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center justify-between">
-            <Car className="h-8 w-8 text-orange-500" />
+            <Car className="h-8 w-8 text-blue-500" />
             <span className="ml-5 text-xl">Filters</span>
           </div>
         </div>

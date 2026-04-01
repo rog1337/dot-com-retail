@@ -1,20 +1,23 @@
 "use client"
-import {useEffect, useState} from 'react'
+import { useContext, useEffect, useState } from "react"
 import {useTheme} from "next-themes"
 import {Search, ShoppingCart, User, LogIn, Menu, X, LogOut, LoaderPinwheel, Moon, Sun} from 'lucide-react'
 import Link from "next/link"
 import {useRouter} from "next/navigation";
 import { useAuth } from "@lib/auth/authContext"
 import UserMenu from "@components/UserMenu";
+import {useCartStore} from "@store/cartStore"
+import CartPreview from "@components/cart/CartPreview"
 
 export default function Header() {
     const { isLoggedIn, logout } = useAuth()
-    const [cartCount, setCartCount] = useState(3)
     const [searchQuery, setSearchQuery] = useState('')
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+    const [cartOpen, setCartOpen] = useState(false)
     const {theme, setTheme } = useTheme()
     const [mounted, setMounted] = useState(false)
     const router = useRouter()
+    const { items } = useCartStore()
 
     useEffect(() => setMounted(true), [])
 
@@ -29,6 +32,21 @@ export default function Header() {
             handleSearch()
         }
     }
+
+    const CartButton = ({ className }: { className?: string }) => (
+      <button
+        onClick={() => setCartOpen(true)}
+        className={`relative ${className}`}
+        aria-label="Open cart"
+      >
+          <ShoppingCart />
+          {items.length > 0 && (
+            <span className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center leading-none">
+                    {items.length > 9 ? '9+' : items.length}
+                </span>
+          )}
+      </button>
+    )
 
     return (
         <header className="bg-slate-900 text-white shadow-lg w-full top-0 z-50">
@@ -86,17 +104,12 @@ export default function Header() {
                             </button>
                         )}
 
-                        <Link
-                            href="/cart"
-                        >
-                            <ShoppingCart/>
-                        </Link>
+                        <CartButton/>
                     </div>
 
                     <div className="flex md:hidden items-center space-x-2">
-                        <Link href="/cart">
-                            <ShoppingCart/>
-                        </Link>
+                        <CartButton/>
+
                         <button
                             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                             className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
@@ -166,6 +179,8 @@ export default function Header() {
                     </div>
                 )}
             </div>
+
+            <CartPreview isOpen={cartOpen} onClose={() => setCartOpen(false)} />
         </header>
     )
 }
