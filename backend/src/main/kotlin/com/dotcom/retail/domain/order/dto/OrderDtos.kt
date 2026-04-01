@@ -1,13 +1,14 @@
 package com.dotcom.retail.domain.order.dto
 
 import com.dotcom.retail.common.model.Contact
+import com.dotcom.retail.domain.catalogue.image.ImageDto
 import com.dotcom.retail.domain.order.OrderStatus
 import com.dotcom.retail.domain.order.ShippingType
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 class SubmitOrderRequest(
     @field:NotBlank
@@ -57,7 +58,7 @@ data class OrderDto(
 data class OrderItemDto(
     val productId: Long,
     val productName: String,
-    val imageUrl: String?,
+    val image: ImageDto?,
     val price: BigDecimal,
     val quantity: Int,
     val totalAmount: BigDecimal,

@@ -3,16 +3,17 @@ package com.dotcom.retail.domain.catalogue.image
 import com.dotcom.retail.common.exception.AppException
 import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.config.properties.FileProperties
+import net.coobird.thumbnailator.Thumbnails
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.Resource
-import org.springframework.core.io.UrlResource
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
+import java.awt.image.BufferedImage
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.UUID
+import java.util.*
+import javax.imageio.ImageIO
 
 @Service
 class ImageService(
@@ -45,51 +46,39 @@ class ImageService(
         return imageRepository.save(image)
     }
 
-    fun isExist(id: Long): Boolean {
-        return imageRepository.existsById(id)
+    @Transactional
+    fun create(multipartFile: MultipartFile, metaData: ImageMetadata, directory: Path): Image {
+        val imageFile = ImageIO.read(multipartFile.inputStream)
+            ?: throw AppException(ImageError.CANNOT_READ_IMAGE.withIdentifier(multipartFile.name))
+
+        val contentType = multipartFile.contentType ?: MediaType.IMAGE_JPEG_VALUE
+        return create(imageFile, contentType, metaData, directory)
     }
 
     @Transactional
-    fun create(imageFile: MultipartFile, metaData: ImageMetadata, directory: Path): Image {
+    fun create(imageFile: BufferedImage, contentType: String, metaData: ImageMetadata, directory: Path): Image {
+        val baseName = UUID.randomUUID().toString().replace("-", "")
+        val contentType = contentType
 
-        val uniqueName = UUID.randomUUID().toString() + metaData.fileName
-
-        var image = Image(
-            fileName = uniqueName,
+        val image = Image(
+            fileName = baseName,
+            contentType = contentType,
             sortOrder = metaData.sortOrder,
-            contentType = MediaType.IMAGE_JPEG_VALUE
+            altText = metaData.altText,
         )
 
-        image = imageRepository.save(image)
-        val filePath = fileProperties.imagesPathFull.resolve(directory).resolve(uniqueName)
-        write(imageFile, filePath)
+        ImageSize.entries.forEach { size ->
+            val dest = fileProperties.imagesPathFull.resolve(directory).resolve(image.fileNameForSize(size))
 
-        return image
-    }
+            Thumbnails.of(imageFile)
+                .size(size.width, size.height)
+                .keepAspectRatio(true)
+                .toFile(dest.toFile())
 
-    fun write(file: MultipartFile, pathToFile: Path): Boolean {
-        if (file.isEmpty) throw AppException(ImageError.IMAGE_EMPTY)
-
-        val contentType = file.contentType ?: throw AppException(ImageError.NOT_AN_IMAGE)
-        if (!contentType.startsWith(CONTENT_TYPE_IMAGE_PREFIX)) {
-            throw AppException(ImageError.NOT_AN_IMAGE)
+            logger.debug("Saved {} → {}", size, dest)
         }
 
-        Files.copy(file.inputStream, pathToFile)
-        logger.info("Wrote image to $pathToFile")
-
-        return true
-    }
-
-    fun findFile(fileName: Path): Resource? {
-        val fullPath = fileProperties.imagesPathFull.resolve(fileName)
-        val resource: Resource = UrlResource(fullPath.toUri())
-        if (!resource.exists() || !resource.isReadable) return null
-        return resource;
-    }
-
-    fun getActiveBrandImagePath(brandId: Long): String {
-        return imageRepository.findActiveBrandImagePath(brandId) ?: throw AppException(ImageError.IMAGE_NOT_FOUND)
+        return imageRepository.save(image)
     }
 
     fun edit(data: EditImage): Image {

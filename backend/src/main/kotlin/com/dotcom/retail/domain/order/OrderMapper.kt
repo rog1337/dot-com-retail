@@ -1,9 +1,6 @@
 package com.dotcom.retail.domain.order
 
 import com.dotcom.retail.common.ContactMapper
-import com.dotcom.retail.common.model.AddressFields
-import com.dotcom.retail.common.model.Contact
-import com.dotcom.retail.common.service.EncryptionService
 import com.dotcom.retail.domain.admin.order.dto.AdminOrderDto
 import com.dotcom.retail.domain.catalogue.image.ImageMapper
 import com.dotcom.retail.domain.order.dto.OrderDto
@@ -20,7 +17,7 @@ class OrderMapper(
         date = o.createdAt.toEpochMilli(),
         status = o.status,
         totalAmount = o.totalAmount,
-        items = o.items.map { toCartItemDto(it) },
+        items = o.items.map { toOrderItemDto(it) },
         paymentId = o.intentId,
         sessionId = o.sessionId,
         shippingType = o.shippingType,
@@ -29,12 +26,12 @@ class OrderMapper(
         notes = o.notes
     )
 
-    fun toCartItemDto(o: OrderItem): OrderItemDto {
+    fun toOrderItemDto(o: OrderItem): OrderItemDto {
         val image = o.product.images.firstOrNull()
         return OrderItemDto(
             productId = o.product.id,
             productName = o.productName,
-            imageUrl = image?.let { imageMapper.toCartImageDto(image) },
+            image = image?.let { imageMapper.toProductImageDto(image) },
             quantity = o.quantity,
             price = o.price,
             totalAmount = o.totalAmount(),
@@ -46,7 +43,7 @@ class OrderMapper(
         date = o.createdAt.toEpochMilli(),
         status = o.status,
         totalAmount = o.totalAmount,
-        items = o.items.map { toCartItemDto(it) },
+        items = o.items.map { toOrderItemDto(it) },
         paymentId = o.intentId,
         sessionId = o.sessionId,
         shippingType = o.shippingType,

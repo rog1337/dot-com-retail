@@ -12,14 +12,14 @@ class BrandMapper(
     fun toDto(brand: Brand): BrandDto = BrandDto(
         id = brand.id,
         name = brand.name,
-        image = brand.image?.let { imageMapper.toBrandImageDto(it, brand.id) },
+        image = brand.image?.let { imageMapper.toBrandImageDto(it) },
         isActive = brand.isActive,
     )
 
     fun toAdminDto(brand: Brand): AdminBrandDto = AdminBrandDto(
         id = brand.id,
         name = brand.name,
-        image = brand.image?.let { imageMapper.toBrandImageDto(it, brand.id) },
+        image = brand.image?.let { imageMapper.toBrandImageDto(it) },
         isActive = brand.isActive,
     )
 

@@ -1,5 +1,6 @@
 import { AddressFields, Contact } from "@_types/contact"
 import { PageMetadata } from "@_types/page"
+import {Image} from "@_types/product"
 
 export interface Order {
   id: string
@@ -17,7 +18,7 @@ export interface Order {
 export interface OrderItem {
   productId: string
   productName: string
-  imageUrl: string
+  image: Image
   quantity: number
   price: number
   totalAmount: number

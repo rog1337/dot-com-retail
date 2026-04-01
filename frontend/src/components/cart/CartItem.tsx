@@ -84,8 +84,8 @@ export default function CartItem({item}: {item: CartProduct }) {
         <div className="flex items-center gap-4 py-4 border-b border-gray-100 last:border-0">
             <div className="relative w-16 h-16 rounded-lg overflow-hidden shrink-0">
                 <Image
-                    src={item.imageUrl}
-                    alt={item.productName}
+                    src={item.image.urls.sm}
+                    alt={item.image.altText}
                     fill
                     className="object-cover"
                 />

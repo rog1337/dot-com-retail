@@ -6,8 +6,8 @@ export default function OrderItem({ item }: { item: OrderItem }) {
         <div className="flex items-center gap-3 py-3 border-b-2 border-gray-200 last:border-0">
             <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                 <Image
-                    src={item.imageUrl}
-                    alt={item.productName}
+                    src={item.image.urls.sm}
+                    alt={item.image.altText}
                     fill
                     className="object-cover"
                 />

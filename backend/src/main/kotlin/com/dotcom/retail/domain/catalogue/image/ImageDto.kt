@@ -5,13 +5,15 @@ import java.nio.file.Path
 
 open class ImageDto(
     val id: Long,
-    val url: String,
+    val urls: ImageUrls,
     val sortOrder: Int,
     val altText: String?,
 )
 
-data class CreateImage(
-    val sortOrder: Int = 0,
+data class ImageUrls(
+    val sm: String,
+    val md: String,
+    val lg: String,
 )
 
 data class EditImage(

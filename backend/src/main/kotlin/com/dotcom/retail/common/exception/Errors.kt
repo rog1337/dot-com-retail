@@ -80,6 +80,7 @@ object ImageError {
     val IMAGE_EMPTY = AppError("IMAGE_EMPTY", HttpStatus.BAD_REQUEST, "Image is empty")
     val NOT_AN_IMAGE = AppError("NOT_AN_IMAGE", HttpStatus.BAD_REQUEST, "File is not an image")
     val IMAGE_NOT_PROVIDED = AppError("IMAGE_NOT_PROVIDED", HttpStatus.BAD_REQUEST, "Image was not provided")
+    val CANNOT_READ_IMAGE = AppError("CANNOT_READ_IMAGE", HttpStatus.BAD_REQUEST, "Can not read image")
 }
 
 object ImageMetadataError {

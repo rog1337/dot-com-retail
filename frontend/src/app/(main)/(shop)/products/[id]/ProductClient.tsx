@@ -25,7 +25,6 @@ const SKIP_FIELDS = new Set([
 
 export default function ProductClient({
   product,
-  hasPurchased = false,
 }: {
   product: Product
   hasPurchased?: boolean
@@ -50,7 +49,7 @@ export default function ProductClient({
       setCart(cart)
       setSessionId(cart.sessionId)
       show("Product added to cart")
-    } catch (e: any) {
+    } catch (e) {
       const code = e.response?.data?.code
       if (code === "PRODUCT_INSUFFICIENT_STOCK") {
         show("Can't add this product to cart, not enough in stock", "error", 5000)
@@ -94,7 +93,7 @@ export default function ProductClient({
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl border border-gray-100 shadow-sm">
               {images.length > 0 ? (
                 <Image
-                  src={images[activeImage].url}
+                  src={images[activeImage].urls.lg}
                   alt={`${product.name} — image ${activeImage + 1}`}
                   fill
                   className="object-contain p-4 transition-opacity duration-200"
@@ -122,7 +121,7 @@ export default function ProductClient({
                     }`}
                   >
                     <Image
-                      src={src.url}
+                      src={src.urls.lg}
                       alt={`${product.name} thumbnail ${idx + 1}`}
                       fill
                       className="object-cover"

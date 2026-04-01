@@ -1,8 +1,9 @@
 package com.dotcom.retail.domain.cart.dto
 
+import com.dotcom.retail.domain.catalogue.image.ImageDto
 import com.dotcom.retail.domain.order.ShippingType
 import java.math.BigDecimal
-import java.util.UUID
+import java.util.*
 
 data class CartUpdateRequest(
     val items: Set<ItemUpdateRequest>?,
@@ -28,7 +29,7 @@ data class CartDto(
 data class CartItemDto(
     val productId: Long,
     val productName: String,
-    val imageUrl: String?,
+    val image: ImageDto?,
     val price: BigDecimal,
     val quantity: Int,
 )

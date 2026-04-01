@@ -1,9 +1,10 @@
 import { ShippingType } from "@_types/order"
+import {Image} from "@_types/product"
 
 export interface CartItem {
   productId: number
   productName: string
-  imageUrl: string
+  image: Image
   price: number
   quantity: number
 }

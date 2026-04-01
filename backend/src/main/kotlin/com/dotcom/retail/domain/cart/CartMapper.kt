@@ -25,7 +25,7 @@ class CartMapper(
         return CartItemDto(
             productId = cartItem.product.id,
             productName = cartItem.product.name,
-            imageUrl = image?.let { imageMapper.toCartImageDto(it) },
+            image = image?.let { imageMapper.toProductImageDto(it) },
             price = cartItem.priceSnapshot,
             quantity = cartItem.quantity,
         )

@@ -6,7 +6,7 @@ import {Package} from "lucide-react"
 
 export default function GridItem({product, onAddToCart, isLoading}: {product: Product, onAddToCart: any, isLoading: boolean}) {
   const images = product.images
-  const imageUrl = images[0]?.url || ""
+  const imageUrl = images[0]?.urls.lg || ""
   const imageAltText = images[0]?.altText || product.name
 
   const handleAddToCart = (e: React.MouseEvent) => {

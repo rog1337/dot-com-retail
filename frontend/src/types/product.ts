@@ -30,9 +30,15 @@ export interface Category {
 
 export interface Image {
   id: number
-  url: string
+  urls: ImageUrls
   sortOrder: number
   altText: string
+}
+
+export interface ImageUrls {
+  sm: string
+  md: string
+  lg: string
 }
 
 export type Attribute = {

@@ -1,5 +1,7 @@
 package com.dotcom.retail.config.db
 
+import com.dotcom.retail.common.exception.AppException
+import com.dotcom.retail.common.exception.ImageError
 import com.dotcom.retail.config.properties.FileProperties
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.brand.BrandRepository
@@ -10,10 +12,12 @@ import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeRepository
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 import com.dotcom.retail.domain.catalogue.image.Image
+import com.dotcom.retail.domain.catalogue.image.ImageMetadata
 import com.dotcom.retail.domain.catalogue.image.ImageRepository
 import com.dotcom.retail.domain.catalogue.image.ImageService
 import com.dotcom.retail.domain.catalogue.product.Product
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
+import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
 import org.springframework.core.io.ClassPathResource
 import org.springframework.http.MediaType
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import java.nio.file.Files
 import java.util.UUID
+import javax.imageio.ImageIO
 import javax.sql.DataSource
 
 @Component
@@ -37,7 +42,7 @@ class DatabaseInitializer(
     private val imageService: ImageService
 ) : CommandLineRunner {
 
-    private val logger = org.slf4j.LoggerFactory.getLogger(this.javaClass)
+    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     @Transactional
     override fun run(vararg args: String?) {
@@ -85,31 +90,27 @@ class DatabaseInitializer(
 
     fun images(name: String): Image {
         val imageData = mapOf(
-            "Michelin" to "sample_michelin.jpg",
-            "Continental" to "sample_continental.jpg",
+            "Michelin" to "sample_michelin.png",
+            "Continental" to "sample_continental.png",
             "Goodyear" to "sample_goodyear.png",
-            "Pirelli" to "sample_pirelli.jpg",
-            "Bridgestone" to "sample_bridgestone.jpeg",
+            "Pirelli" to "sample_pirelli.png",
+            "Bridgestone" to "sample_bridgestone.png",
         )
 
-        val fileName = UUID.randomUUID().toString() + imageData[name]
-
-        val image = Image(
-                fileName = fileName,
-                contentType = MediaType.IMAGE_JPEG_VALUE,
-                sortOrder = 0,
-                altText = name
-            )
-
+        val fileName = imageData[name]
         val path = fileProperties.productPathFull
-        val sourceDir = path.resolve("sample/${imageData[name]}")
-        val targetDir = path.resolve(fileName)
+        val file = path.resolve("sample/${fileName}")
 
-        if (!Files.exists(targetDir)) {
-            Files.copy(sourceDir, targetDir)
-        }
+        val original = ImageIO.read(file.toFile())
+            ?: throw AppException(ImageError.CANNOT_READ_IMAGE.withIdentifier(file.fileName.toString()))
 
-        return imageRepository.save(image)
+        val meta = ImageMetadata(
+            fileName = "",
+            sortOrder = 0,
+            altText = "Tyre $fileName"
+        )
+
+        return imageService.create(original, Files.probeContentType(file), meta, fileProperties.productPath)
     }
 
     fun products(brandMap: Map<String, Brand>, category: Category): List<Product> {
