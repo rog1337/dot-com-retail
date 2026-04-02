@@ -58,11 +58,6 @@ export interface ProductQuery extends PageParams {
 
 export function createProductQuery(): ProductQuery {
   return {
-    categoryId: 0,
-    brands: [],
-    attributes: [],
-    sort: "TOP",
-    search: "",
     ...createPageParams(),
   }
 }

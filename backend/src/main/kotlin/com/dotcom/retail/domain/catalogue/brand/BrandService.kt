@@ -39,7 +39,7 @@ class BrandService(
     @Transactional
     fun create(data: CreateBrand): Brand {
         val image = data.image?.let(imageService::get)
-        val brand = Brand(name = data.name, image = image)
+        val brand = Brand(name = data.name, image = image, isActive = true)
         return save(brand)
     }
 

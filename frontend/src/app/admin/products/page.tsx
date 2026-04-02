@@ -243,7 +243,7 @@ export default function AdminProductsPage() {
       stock: String(p.stock ?? 0),
       brandId: p.brand?.id ? String(p.brand.id) : "",
       categoryId: categoryId ? String(p.category.id) : "",
-      isActive: !!p.isActive,
+      isActive: true,
       attributes: catDriven,
     })
 
@@ -390,7 +390,7 @@ export default function AdminProductsPage() {
           stock,
           brandId,
           categoryId,
-          isActive: productForm.isActive,
+          isActive: true,
           images: newImageMetadata,
           attributes: allAttributes,
         }
@@ -410,7 +410,7 @@ export default function AdminProductsPage() {
           stock,
           brandId,
           categoryId,
-          isActive: productForm.isActive,
+          isActive: true,
           attributes: allAttributes,
           ...(editImages !== undefined
             ? {
@@ -578,7 +578,6 @@ export default function AdminProductsPage() {
                       <th className="pr-3 pb-2">Price</th>
                       <th className="pr-3 pb-2">Sale</th>
                       <th className="pr-3 pb-2">Stock</th>
-                      {/*<th className="pr-3 pb-2">Active</th>*/}
                       <th className="pb-2 text-right">Actions</th>
                     </tr>
                   </thead>
@@ -739,24 +738,7 @@ export default function AdminProductsPage() {
                   }
                 />
               </label>
-
-              <label className="space-y-1">
-                <FieldLabel>Active</FieldLabel>
-                <select
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs"
-                  value={productForm.isActive ? "true" : "false"}
-                  onChange={(e) =>
-                    setProductForm((f) => ({
-                      ...f,
-                      isActive: e.target.value === "true",
-                    }))
-                  }
-                >
-                  <option value="true">Active</option>
-                  <option value="false">Inactive</option>
-                </select>
-              </label>
-
+              
               {/* Brand Search*/}
               <label className="space-y-1">
                 <FieldLabel>Brand name or #id</FieldLabel>

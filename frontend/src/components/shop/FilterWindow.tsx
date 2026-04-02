@@ -21,8 +21,8 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
   useEffect(() => {
     const fetchFilters = async () => {
       try {
+        if (!params.categoryId) return
         const data = await filterApi.getFilters({ categoryId: params.categoryId })
-        log.d("Filters", data)
 
         setNormalizedFilters(normalizeFilters(data, params))
         setCategory(data.category.name)
@@ -39,21 +39,24 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
     const newParams = { ...params }
 
     if (param.startsWith("attr_")) {
-      const attr = newParams.attributes.find((o) => o.name == param.substring("attr_".length))
+      const attr = newParams.attributes?.find((o) => o.name == param.substring("attr_".length))
       if (!attr) {
         const newAttribute: Attribute = { name: param.substring("attr_".length), values: values }
-        newParams.attributes.push(newAttribute)
+        newParams.attributes?.push(newAttribute)
       } else if (values.length < 1) {
-        newParams.attributes = newParams.attributes.filter(
+        newParams.attributes = newParams.attributes?.filter(
           (o) => o.name !== param.substring("attr_".length),
         )
       } else {
         attr.values = values
       }
     }
-    const key: keyof ProductQuery = param as keyof ProductQuery
 
-    // @ts-ignore
+    const a = Object.keys(newParams)
+    console.log(a)
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     newParams[key] = values
 
     setParams(newParams)
@@ -90,7 +93,9 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
           <Filter
             filter={filter}
             key={filter.name}
-            onChange={(param: any, values: any) => handleChange(param, values)}
+            onChange={(param: string, values: (string | number | boolean)[]) =>
+              handleChange(param, values)
+            }
           />
         ))}
       </div>

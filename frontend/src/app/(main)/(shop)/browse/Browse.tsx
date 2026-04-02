@@ -64,25 +64,22 @@ export default function Browse({params, products, page} : { params: ProductQuery
   return (
     <div className="min-h-screen">
       <div className="mx-auto max-w-7xl px-4 py-6">
-        <div className="lg:flex sm-flex lg:gap-6">
-          <aside className="hidden w-64 flex-shrink-0 lg:block">
-            <FilterWindow urlParams={params} />
-          </aside>
+        <div className="sm-flex lg:flex lg:gap-6">
+          {params.categoryId && (
+            <aside className="hidden w-64 flex-shrink-0 lg:block">
+              <FilterWindow urlParams={params} />
+            </aside>
+          )}
 
           <main className="mx-auto min-w-0 flex-1 pb-24 lg:pb-0">
-            <TopBar
-              pageMeta={page}
-              params={params}
-              view={view}
-              onViewChange={handleSetView}
-            />
+            <TopBar pageMeta={page} params={params} view={view} onViewChange={handleSetView} />
 
-            {products.length === 0 &&
-              <p className="mt-10 justify-self-center" >No products found</p>
-            }
+            {products.length === 0 && (
+              <p className="mt-10 justify-self-center">No products found</p>
+            )}
 
             {view === "grid" && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 justify-items-center sm:gap-6 lg:grid-cols-3">
+              <div className="grid grid-cols-1 justify-items-center gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
                 {products.map((p: Product, key: number) => (
                   <GridItem
                     key={key}
