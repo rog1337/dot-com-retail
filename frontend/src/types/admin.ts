@@ -1,4 +1,6 @@
 import { OrderStatus, ShippingType } from "@_types/order"
+import {PageParams} from "@_types/page"
+import { Attribute, SortOrder } from "@_types/product"
 
 export type Role = "ADMIN" | "USER"
 
@@ -181,4 +183,12 @@ export interface AdminEditImage {
   id: number
   sortOrder: number
   altText: string | null
+}
+
+export interface AdminProductQuery extends PageParams {
+  categoryId?: number
+  brands?: number[]
+  attributes?: Attribute[]
+  sort?: SortOrder
+  search?: string
 }

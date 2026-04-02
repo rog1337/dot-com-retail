@@ -107,12 +107,10 @@ export default function AdminProductsPage() {
   }>(defaultProductForm)
 
   useEffect(() => {
-    if (!productQuery) {
-      refreshProducts()
-      return
-    }
     const timeout = setTimeout(() => {
-      fetchProductsByQuery(productQuery)
+      setLoading(true)
+      fetchProducts(productQuery)
+      setLoading(false)
     }, 300)
     return () => clearTimeout(timeout)
   }, [productQuery, pageSize, pageIndex])
@@ -143,15 +141,37 @@ export default function AdminProductsPage() {
     }
   }, [newImages])
 
-  const refreshProducts = async (page = pageIndex) => {
+  const fetchProducts = async (search: string = productQuery, page = pageIndex) => {
+    if (search.startsWith("#")) {
+      const productId = search.substring(1)
+      if (!productId) return
+      try {
+        const product = await adminApi.getProduct(productId)
+        setProducts([product])
+        setProductsPage((p) => ({
+          ...p,
+          totalPages: 1,
+        }))
+      } catch (e) {
+        setProducts([])
+        show("Error loading products", "error")
+        logger.d("Error fetching product by id", e)
+      }
+      return
+    }
+
     try {
-      const res = await adminApi.getProducts(page, pageSize)
+      const query = {
+        search: search,
+        page: page,
+        size: pageSize,
+      }
+      const res = await adminApi.getProducts(query)
       setProducts(res.content)
       setProductsPage(res.page)
     } catch (e: unknown) {
       show("Error loading products", "error")
-    } finally {
-      setLoading(false)
+      logger.d("Error fetching products", e)
     }
   }
 
@@ -408,7 +428,7 @@ export default function AdminProductsPage() {
         mode: "create",
       })
       resetImageState()
-      await refreshProducts()
+      await fetchProducts()
     } catch (e) {
       const detail = e?.response?.data?.detail
       if (detail) {
@@ -426,35 +446,9 @@ export default function AdminProductsPage() {
     try {
       await adminApi.deleteProduct(p.id)
       show("Product deleted", "success")
-      await refreshProducts()
+      await fetchProducts()
     } catch (e: unknown) {
       show("Failed deleting product", "error")
-    }
-  }
-
-  const fetchProductsByQuery = async (value: string) => {
-    if (value.startsWith("#")) {
-      const productId = value.substring(1)
-      if (!productId) return
-      try {
-        const product = await adminApi.getProduct(productId)
-        setProducts([product])
-        setProductsPage((p) => ({
-          ...p,
-          totalPages: 1,
-        }))
-      } catch (e: unknown) {
-        setProducts([])
-        logger.d("Error fetching product by id", e)
-      }
-      return
-    }
-    try {
-      const res = await adminApi.getProductsByText(value, pageIndex, pageSize)
-      setProducts(res.content)
-      setProductsPage(res.page)
-    } catch (e: unknown) {
-      logger.d("Error fetching products by text query", e)
     }
   }
 

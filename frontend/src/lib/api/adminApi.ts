@@ -6,6 +6,7 @@ import {
   AdminCategoryAttribute,
   AdminOrder,
   AdminProduct,
+  AdminProductQuery,
   AdminReview,
   AdminUser,
   CreateBrandRequest,
@@ -20,6 +21,7 @@ import {
   Role,
 } from "@_types/admin"
 import { Page } from "@_types/page"
+import {createProductQueryParams} from "@lib/params"
 
 const paths = {
   base: "/admin",
@@ -32,11 +34,10 @@ const paths = {
 }
 
 export const adminApi = {
-  getProducts: (page = 0, size = 20): Promise<Page<AdminProduct>> =>
-    api.get(paths.product() + `?page=${page}&size=${size}`),
-
-  getProductsByText: (query: string, page = 0, size = 20): Promise<Page<AdminProduct>> =>
-    api.get(paths.product() + `/search?query=${query}&page=${page}&size=${size}`),
+  getProducts: (query: AdminProductQuery): Promise<Page<AdminProduct>> => {
+    const params = createProductQueryParams(query)
+    return api.get(paths.product(), { params })
+  },
 
   getProduct: (id: number | string): Promise<AdminProduct> => api.get(paths.product() + `/${id}`),
 

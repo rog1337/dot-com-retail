@@ -14,8 +14,8 @@ export function createProductQueryParams(queryObject: ProductQuery): URLSearchPa
 }
 
 export function compactParams(params: ProductQuery): Record<string, any> {
-    let attributes: Record<string, (string | number | boolean)[]> = {}
-    params.attributes.forEach(attribute => {
+    const attributes: Record<string, (string | number | boolean)[]> = {}
+    params.attributes?.forEach(attribute => {
         const key = `attr_${attribute.name}`
         attributes[key] = attribute.values
     })

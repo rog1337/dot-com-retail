@@ -49,10 +49,11 @@ export type Attribute = {
 export type SortOrder = "TOP" | "PRICE_ASC" | "PRICE_DESC"
 
 export interface ProductQuery extends PageParams {
-  categoryId: number
-  brands: number[]
-  attributes: Attribute[]
-  sort: SortOrder
+  categoryId?: number
+  brands?: number[]
+  attributes?: Attribute[]
+  sort?: SortOrder
+  search?: string
 }
 
 export function createProductQuery(): ProductQuery {
@@ -61,6 +62,7 @@ export function createProductQuery(): ProductQuery {
     brands: [],
     attributes: [],
     sort: "TOP",
+    search: "",
     ...createPageParams(),
   }
 }
