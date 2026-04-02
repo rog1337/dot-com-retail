@@ -20,8 +20,7 @@ export default async function BrowsePage({ searchParams }: any) {
         query.categoryId = 1
     }
 
-    const params = createProductQueryParams(query)
-    const { content: products, page }: ProductResponse = await productApi.getByQuery(params)
+    const { content: products, page }: ProductResponse = await productApi.getByQuery(query)
 
     function formatAttributes() {
         return Object.entries(parsedParams)

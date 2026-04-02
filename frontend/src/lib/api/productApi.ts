@@ -1,7 +1,8 @@
 import api from "@lib/api/api"
-import { Product, ProductResponse } from "@_types/product"
+import { Product, ProductQuery, ProductResponse } from "@_types/product"
 import { cache } from "react"
 import { AddReviewRequest, ProductReviewResponse, Review } from "@_types/review"
+import {createProductQueryParams} from "@lib/params"
 
 export const productPaths = {
   base: "/product",
@@ -10,8 +11,10 @@ export const productPaths = {
 
 export const productApi = {
   getById: cache((id: number | string): Promise<Product> => api.get(productPaths.base + `/${id}`)),
-  getByQuery: (params: URLSearchParams): Promise<ProductResponse> =>
-    api.get(productPaths.base, { params }),
+  getByQuery: (query: ProductQuery): Promise<ProductResponse> => {
+    const params = createProductQueryParams(query)
+    return api.get(productPaths.base, { params })
+  },
 
   getReviews: cache(
     (productId: number | string): Promise<ProductReviewResponse> =>

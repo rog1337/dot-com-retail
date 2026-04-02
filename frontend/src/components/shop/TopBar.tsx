@@ -49,7 +49,7 @@ export default function TopBar({ pageMeta, params, view, onViewChange }: TopBarP
           <ChevronLeft className="h-4 w-4" />
         </button>
 
-        <span className="min-w-[80px] text-center text-sm text-gray-700">
+        <span className="min-w-[80px] text-center text-sm">
           Page {page + 1} of {totalPages}
         </span>
 
@@ -68,7 +68,7 @@ export default function TopBar({ pageMeta, params, view, onViewChange }: TopBarP
   function sortingComp() {
     return (
       <div className="flex items-center gap-2">
-        <label htmlFor="sort" className="text-sm whitespace-nowrap text-gray-700">
+        <label htmlFor="sort" className="text-sm whitespace-nowrap">
           Sort by:
         </label>
         <select
@@ -108,7 +108,7 @@ export default function TopBar({ pageMeta, params, view, onViewChange }: TopBarP
     <div className="mb-6 rounded-lg border border-gray-200 p-4 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="text-sm text-gray-600">
+        <div className="text-sm">
           Showing {elements} of {totalElements} products
         </div>
 
