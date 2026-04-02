@@ -52,8 +52,7 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
       }
     }
 
-    const a = Object.keys(newParams)
-    console.log(a)
+    const key: keyof ProductQuery = param as keyof ProductQuery
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-expect-error
