@@ -52,7 +52,7 @@ class DatabaseInitializer(
     }
 
     fun executeInitScript() {
-        val resource = PathMatchingResourcePatternResolver().getResource("classpath:db/migration/indexes.sql")
+        val resource = PathMatchingResourcePatternResolver().getResource("classpath:db/migration/start_script.sql")
         val populator = ResourceDatabasePopulator()
         populator.addScript(resource)
         populator.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR)
