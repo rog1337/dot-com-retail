@@ -1,19 +1,22 @@
 package com.dotcom.retail.domain.admin.product
 
 import com.dotcom.retail.common.constants.ApiRoutes.Admin
-import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.domain.admin.product.dto.AdminProductDto
 import com.dotcom.retail.domain.admin.product.dto.CreateProduct
 import com.dotcom.retail.domain.admin.product.dto.EditProductDto
 import com.dotcom.retail.domain.catalogue.image.ImageMetadata
+import com.dotcom.retail.domain.catalogue.product.ProductDto
 import com.dotcom.retail.domain.catalogue.product.ProductMapper
+import com.dotcom.retail.domain.catalogue.product.ProductQueryParams
 import com.dotcom.retail.domain.catalogue.product.ProductService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.*
+import org.springframework.util.MultiValueMap
+import org.springframework.validation.annotation.Validated
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -22,27 +25,15 @@ import org.springframework.web.multipart.MultipartFile
 class AdminProductController(
     private val productService: ProductService,
     private val productMapper: ProductMapper,
-    private val adminProductService: AdminProductService
 ) {
 
     @GetMapping
     fun getProducts(
-        @RequestParam("page", defaultValue = "0") page: Int,
-        @RequestParam("size", defaultValue = "10") size: Int,
-    ): ResponseEntity<PagedResponse<AdminProductDto>> {
-        val products = adminProductService.getProducts(page, size)
-        return ok(PageMapper.toPagedResponse(productMapper.toPagedAdminDto(products)))
-    }
-
-    @GetMapping(Admin.Product.SEARCH)
-    fun search(
-        @RequestParam query: String,
-        @RequestParam("page", defaultValue = "0") page: Int,
-        @RequestParam("size", defaultValue = "10") size: Int,
-    ): ResponseEntity<PagedResponse<AdminProductDto>> {
-        val products = adminProductService.getProductsByText(query, page, size)
-        val mapped = PageMapper.toPagedResponse(productMapper.toPagedAdminDto(products))
-        return ok(mapped)
+        @Validated params: ProductQueryParams,
+        @RequestParam attributes: MultiValueMap<String, String>?
+    ): ResponseEntity<PagedResponse<ProductDto>> {
+        val products = productService.query(params, attributes)
+        return ok(products)
     }
 
     @PostMapping

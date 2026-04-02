@@ -42,7 +42,8 @@ data class ProductQueryParams(
     val page: Int = PageConstants.DEFAULT_PAGE,
     val size: Int = PageConstants.DEFAULT_PAGE_SIZE,
     val sort: ProductSortOrder = ProductSortOrder.TOP,
-    val price: RangeData? = null
+    val price: RangeData? = null,
+    val search: String? = null,
 )
 
 data class ProductQuery(
@@ -52,7 +53,8 @@ data class ProductQuery(
     val page: Int = PageConstants.DEFAULT_PAGE,
     val size: Int = PageConstants.DEFAULT_PAGE_SIZE,
     val sort: ProductSortOrder = ProductSortOrder.TOP,
-    val price: RangeData? = null
+    val price: RangeData? = null,
+    val search: String? = null,
 )
 
 data class ProductCategoryDto(

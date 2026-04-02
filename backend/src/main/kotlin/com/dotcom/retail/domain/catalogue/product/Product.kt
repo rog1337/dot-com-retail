@@ -4,10 +4,8 @@ import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.catalogue.brand.Brand
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.image.Image
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonManagedReference
 import jakarta.persistence.*
-import org.hibernate.annotations.BatchSize
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
@@ -49,26 +47,13 @@ class Product(
 
     var isActive: Boolean = false,
 
-    @JsonIgnore
-    var searchContent: String? = null,
+    @Column(name = "search_vector", insertable = false, updatable = false, columnDefinition = "tsvector")
+    val searchVector: String? = null,
 
     @Version
     var version: Long? = null
 
 ) : AuditingEntity() {
-
-    @PrePersist
-    @PreUpdate
-    fun updateSearchContent() {
-        val attributeText = attributes?.values?.flatten()?.joinToString(" ") { it.toString() } ?: ""
-
-        this.searchContent = """
-            $name 
-            $sku 
-            ${description ?: ""} 
-            $attributeText
-        """.trimIndent().lowercase().replace("\\s+".toRegex(), " ")
-    }
 
     override fun toString(): String {
         return "Product(id=$id, name='$name', sku='$sku', description=$description, price=$price, salePrice=$salePrice, stock=$stock, attributes=$attributes, isActive=$isActive, ${super.toString()})"

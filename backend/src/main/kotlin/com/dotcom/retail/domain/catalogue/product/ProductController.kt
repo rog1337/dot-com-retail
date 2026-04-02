@@ -2,12 +2,10 @@ package com.dotcom.retail.domain.catalogue.product
 
 import com.dotcom.retail.common.constants.ApiRoutes.Product
 import com.dotcom.retail.common.util.pagination.PageConstants
-import com.dotcom.retail.common.util.pagination.PageMapper
 import com.dotcom.retail.common.util.pagination.PagedResponse
 import com.dotcom.retail.domain.catalogue.review.ReviewService
 import com.dotcom.retail.domain.catalogue.review.dto.AddReviewRequest
 import jakarta.validation.constraints.Max
-import org.springframework.data.domain.PageRequest
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.ResponseEntity.ok
@@ -23,7 +21,6 @@ import java.util.*
 class ProductController(
     private val productService: ProductService,
     private val productMapper: ProductMapper,
-    private val productRepository: ProductRepository,
     private val reviewService: ReviewService,
 ) {
     @GetMapping
@@ -39,14 +36,6 @@ class ProductController(
     fun getById(@PathVariable id: Long): ResponseEntity<ProductDto> {
         val product = productService.get(id)
         return ok(productMapper.toDto(product))
-    }
-
-    @GetMapping(Product.SEARCH)
-    fun search(query: String): ResponseEntity<PagedResponse<ProductDto>> {
-        val pageable = PageRequest.of(0, 10)
-        val products = productRepository.searchByText(query, pageable)
-        val mapped = PageMapper.toPagedResponse(products.map { productMapper.toDto(it) })
-        return ok(mapped)
     }
 
     @GetMapping("{productId}" + Product.REVIEW)

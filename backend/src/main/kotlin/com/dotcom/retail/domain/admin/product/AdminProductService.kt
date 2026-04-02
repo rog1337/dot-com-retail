@@ -16,9 +16,4 @@ class AdminProductService(
         val products = productRepository.findAllAdmin(pageable)
         return products
     }
-
-    fun getProductsByText(query: String, page: Int, size: Int): Page<Product> {
-        val pageable = PageRequest.of(page, size)
-        return productRepository.searchByText(query, pageable)
-    }
 }

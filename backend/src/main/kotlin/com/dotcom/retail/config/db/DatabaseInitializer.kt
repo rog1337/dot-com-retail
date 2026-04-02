@@ -19,9 +19,10 @@ import com.dotcom.retail.domain.catalogue.product.Product
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.CommandLineRunner
-import org.springframework.core.io.ClassPathResource
-import org.springframework.http.MediaType
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver
+import org.springframework.jdbc.datasource.init.DatabasePopulatorUtils
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator
+import org.springframework.jdbc.datasource.init.ScriptUtils
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -46,17 +47,22 @@ class DatabaseInitializer(
 
     @Transactional
     override fun run(vararg args: String?) {
-        insertIndexes()
+        executeInitScript()
         generateData()
     }
 
-    fun insertIndexes() {
-        val resource = ClassPathResource("db/migration/indexes.sql")
-        val databasePopulator = ResourceDatabasePopulator(resource)
+    fun executeInitScript() {
+        val resource = PathMatchingResourcePatternResolver().getResource("classpath:db/migration/indexes.sql")
+        val populator = ResourceDatabasePopulator()
+        populator.addScript(resource)
+        populator.setSeparator(ScriptUtils.EOF_STATEMENT_SEPARATOR)
+        populator.setContinueOnError(false)
+        populator.setIgnoreFailedDrops(true)
+        populator.setSqlScriptEncoding("UTF-8")
         try {
-            databasePopulator.execute(dataSource)
+            DatabasePopulatorUtils.execute(populator, dataSource)
         } catch (e: Exception) {
-            logger.debug("Failed to execute indexes: ${e.message}")
+            logger.error("Error executing init script: {}", e)
         }
     }
 

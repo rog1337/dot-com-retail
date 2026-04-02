@@ -37,7 +37,8 @@ class ProductMapper(
             page = params.page,
             size = params.size,
             sort = params.sort,
-            price = params.price
+            price = params.price,
+            search = params.search
         )
     }
 

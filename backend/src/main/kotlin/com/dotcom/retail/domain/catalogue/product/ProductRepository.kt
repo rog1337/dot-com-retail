@@ -13,7 +13,7 @@ import java.util.Optional
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
-    @EntityGraph(attributePaths = ["images", "brand"])
+    @EntityGraph(attributePaths = ["images", "brand", "category.name"])
     override fun findAll(spec: Specification<Product>?, pageable: Pageable): Page<Product>
 
     @EntityGraph(attributePaths = ["images", "brand", "category.name"])
@@ -25,43 +25,6 @@ interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExec
 
     @EntityGraph(attributePaths = ["images", "brand"])
     override fun findAllById(ids: Iterable<Long>): List<Product>
-
-    @Query("""
-    SELECT p.* FROM product p
-    LEFT JOIN brand b ON p.brand_id = b.id
-    WHERE p.is_active = true
-      AND (
-          p.search_content ILIKE ALL(
-              SELECT '%' || word || '%' 
-              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
-          )
-          OR 
-          b.name ILIKE ALL(
-              SELECT '%' || word || '%' 
-              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
-          )
-      )
-    ORDER BY 
-        similarity(p.search_content, lower(:query)) DESC,
-        similarity(coalesce(b.name, ''), :query) DESC
-""",
-        countQuery = """
-    SELECT count(*) FROM product p
-    LEFT JOIN brand b ON p.brand_id = b.id
-    WHERE p.is_active = true
-      AND (
-          p.search_content ILIKE ALL(
-              SELECT '%' || word || '%' 
-              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
-          )
-          OR 
-          b.name ILIKE ALL(
-              SELECT '%' || word || '%' 
-              FROM unnest(string_to_array(lower(trim(:query)), ' ')) AS word
-          )
-      )
-""", nativeQuery = true)
-    fun searchByText(query: String, pageable: Pageable): Page<Product>
 
     @Query("""
         SELECT

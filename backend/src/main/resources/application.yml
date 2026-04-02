@@ -29,6 +29,9 @@ spring:
       ddl-auto: update
 #      ddl-auto: create-drop
     show-sql: true
+    properties:
+      hibernate:
+        function_contributor: com.dotcom.retail.config.db.FunctionContributor
   rabbitmq:
     host: localhost
     port: 5672
