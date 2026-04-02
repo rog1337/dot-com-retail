@@ -1,6 +1,7 @@
 import axios, {InternalAxiosRequestConfig} from "axios"
 import {tokenManager} from "@lib/auth/tokenManager"
 import { logger as log } from "@lib/logger"
+import {useToastStore} from "@store/toastStore"
 
 const API_URL = typeof window === "undefined" && process.env.NODE_ENV !== "development"
     ? process.env.BACKEND_URL
@@ -78,6 +79,9 @@ api.interceptors.response.use(
             } finally {
                 isRefreshing = false
             }
+        } else if (error?.status === 429 ) {
+            const toast = useToastStore.getState()
+            toast.show("Too many requests", "error")
         }
         return Promise.reject(error)
     }
