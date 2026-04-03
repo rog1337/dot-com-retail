@@ -52,7 +52,7 @@ class ReviewService(
 
         product.apply {
             reviewCount = newCount
-            averageRating = (newTotalScore / newCount).roundToLong() * 10 / 10.0
+            averageRating = ((newTotalScore / newCount) * 10).roundToLong() / 10.0
         }
         productRepository.save(product)
         return review
@@ -100,6 +100,18 @@ class ReviewService(
         val review = getReviewById(reviewId)
         if (review.user.id != userId)
             throw AppException(ReviewError.REVIEW_INSUFFICIENT_PRIVILEGES)
+
+        val product = review.product
+        val newCount = product.reviewCount - 1
+        val newTotalScore = (product.averageRating * product.reviewCount) - review.rating
+
+        product.apply {
+            reviewCount = newCount
+            averageRating = if (newCount > 0) ((newTotalScore / newCount) * 10).roundToLong() / 10.0
+            else 0.0
+
+        }
+        productRepository.save(product)
         reviewRepository.delete(review)
     }
 
