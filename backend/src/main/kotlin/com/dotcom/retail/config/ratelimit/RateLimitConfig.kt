@@ -1,5 +1,6 @@
-package com.dotcom.retail.security.ratelimit
+package com.dotcom.retail.config.ratelimit
 
+import com.dotcom.retail.config.properties.RateLimitProperties
 import io.github.bucket4j.Bandwidth
 import io.github.bucket4j.BucketConfiguration
 import io.github.bucket4j.distributed.ExpirationAfterWriteStrategy
@@ -12,10 +13,11 @@ import io.lettuce.core.codec.StringCodec
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory
-import java.time.Duration
 
 @Configuration
-class RateLimitConfig {
+class RateLimitConfig(
+    private val rateLimitProperties: RateLimitProperties,
+) {
 
     @Bean
     fun proxyManager(connectionFactory: LettuceConnectionFactory): ProxyManager<String> {
@@ -29,15 +31,15 @@ class RateLimitConfig {
         return Bucket4jLettuce.casBasedBuilder(connection)
             .expirationAfterWrite(
                 ExpirationAfterWriteStrategy
-                    .basedOnTimeForRefillingBucketUpToMax(Duration.ofMinutes(10)))
+                    .basedOnTimeForRefillingBucketUpToMax(rateLimitProperties.bucketExpiration))
             .build()
     }
 
     @Bean
     fun bucketConfiguration(): BucketConfiguration {
         val limit = Bandwidth.builder()
-            .capacity(100)
-            .refillGreedy(100, Duration.ofMinutes(1))
+            .capacity(rateLimitProperties.capacity)
+            .refillGreedy(rateLimitProperties.refill, rateLimitProperties.refillInterval)
             .build()
 
         return BucketConfiguration.builder()

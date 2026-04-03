@@ -95,3 +95,10 @@ stripe:
 
 encryption:
   secret-key: ${ENCRYPTION_SECRET_KEY}
+
+
+ratelimit:
+  capacity: 100
+  refill: 100
+  refill-interval: 1m
+  bucket-expiration: 2m
