@@ -13,7 +13,7 @@ import java.util.Optional
 
 interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
 
-    @EntityGraph(attributePaths = ["images", "brand", "category.name"])
+    @EntityGraph(attributePaths = ["brand", "category.name"])
     override fun findAll(spec: Specification<Product>?, pageable: Pageable): Page<Product>
 
     @EntityGraph(attributePaths = ["images", "brand", "category.name"])
