@@ -22,7 +22,7 @@ class Logger {
         this.isDev = process.env.NODE_ENV === Environment.DEVELOPMENT
     }
 
-    private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
+    private formatMessage(level: LogLevel, message: string, context?: unknown): string {
         const timestamp = new Date().toISOString()
         return `[${timestamp}] [${level.toUpperCase()}] ${message}${context ? "\n" : ""}`
     }
@@ -32,7 +32,7 @@ class Logger {
         return level === LogLevel.INFO || level === LogLevel.WARNING || level === LogLevel.ERROR
     }
 
-    debug(message: string, context?: LogContext) {
+    debug(message: string, context?: unknown) {
         if (this.shouldLog(LogLevel.DEBUG)) {
             console.debug(this.formatMessage(LogLevel.DEBUG, message, context), context || "")
         }

@@ -77,7 +77,7 @@ export default function CheckoutForm({ paymentFormRef }: CheckoutFormProps) {
         setContact(contact)
     }
 
-    const handleSubmit = async (e: React.SubmitEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (stripe == null) {
             show("Stripe error", "error", 5000)

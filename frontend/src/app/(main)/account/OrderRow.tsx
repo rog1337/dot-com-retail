@@ -54,8 +54,8 @@ export default function OrderRow({ order }: { order: Order }) {
                         {order.items.map((item) => (
                             <div key={item.productId} className="flex items-center gap-3">
                                 <img
-                                    src={item.imageUrl}
-                                    alt={item.productName}
+                                    src={item.image.urls.sm}
+                                    alt={item.image.altText}
                                     className="w-10 h-10 rounded-lg object-cover shrink-0 border border-zinc-100"
                                 />
                                 <div className="flex-1 min-w-0">
