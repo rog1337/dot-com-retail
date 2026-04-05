@@ -1,13 +1,6 @@
 import org.springframework.boot.gradle.tasks.run.BootRun
 import java.util.Properties
 
-tasks.named<BootRun>("bootRun") {
-	val props = Properties()
-	file("../.env").reader().use { props.load(it) }
-	val keys = props.keys.map { it.toString() }.toSet()
-	environment = keys.associateWith { props.getProperty(it) }
-}
-
 plugins {
 	kotlin("jvm") version "2.0.20"
 	kotlin("plugin.spring") version "2.0.20"
@@ -18,7 +11,7 @@ plugins {
 
 group = "com.dotcom"
 version = "0.0.1-SNAPSHOT"
-description = "Demo project for Spring Boot"
+description = "e-commerce app"
 
 java {
 	toolchain {
@@ -88,6 +81,35 @@ allOpen {
 	annotation("jakarta.persistence.Entity")
 	annotation("jakarta.persistence.MappedSuperclass")
 	annotation("jakarta.persistence.Embeddable")
+}
+
+sourceSets {
+	create("loadtest") {
+		kotlin.srcDir("src/loadtest/kotlin")
+		resources.srcDir("src/loadtest/resources")
+		compileClasspath += sourceSets.main.get().output
+		runtimeClasspath += sourceSets.main.get().output
+	}
+}
+
+configurations {
+	getByName("loadtestImplementation").extendsFrom(configurations.implementation.get())
+}
+
+tasks.named<BootRun>("bootRun") {
+	val props = Properties()
+	file("../.env").reader().use { props.load(it) }
+	val keys = props.keys.map { it.toString() }.toSet()
+	environment = keys.associateWith { props.getProperty(it) }
+
+	if (project.hasProperty("loadtest")) {
+		classpath += sourceSets["loadtest"].output
+		args("--spring.profiles.active=dev,loadtest")
+	}
+}
+
+tasks.named<ProcessResources>("processLoadtestResources") {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.withType<Test> {

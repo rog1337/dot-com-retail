@@ -1,0 +1,16 @@
+ratelimit:
+  capacity: 1000000
+  refill: 1000000
+  refillInterval: 1m
+  bucket-expiration: 2m
+
+spring:
+  jpa:
+    show-sql: false
+
+cloudflare:
+  turnstile:
+    secret-key: 1x0000000000000000000000000000000AA
+
+stripe:
+  webhookSecret: whsec_516e79e1c9e2db074a3fb1d2844ddc4d5a223da58a1d1bd6d1f7650898d2387c

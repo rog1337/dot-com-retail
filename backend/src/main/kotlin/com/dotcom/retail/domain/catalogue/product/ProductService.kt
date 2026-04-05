@@ -261,7 +261,6 @@ class ProductService(
             }
 
         } catch (e: Exception) {
-            println(images.isNotEmpty())
             if (images.isNotEmpty()) {
                 eventPublisher.publishEvent(ImageDeletionEvent(images.map { fileProperties.productPathFull.resolve(it.fileName) }))
             }
