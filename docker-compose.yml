@@ -15,6 +15,7 @@ services:
         - SPRING_DATA_REDIS_PORT=6379
         - SPRING_RABBITMQ_HOST=rabbitmq
         - UPLOAD_PATH=uploads
+        - SPRING_JPA_SHOW-SQL=false
       env_file:
         - .env
       volumes:
