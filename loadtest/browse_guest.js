@@ -45,14 +45,13 @@ export default function () {
     group("2_auth_refresh", () => {
         const res = http.get(`${API}/auth/refresh`, {tags: {layer: "api"}})
         check(res, {"refresh responded": r => r.status === 200 || r.status === 401})
-        logFailure(res);
     })
     sleep(thinkTime(0.5, 1.5))
 
     group("3_featured_products", () => {
         const res = http.get(`${API}/product?page=0&size=8`, {tags: {layer: "api"}})
         check(res, {"featured products 200": r => r.status === 200})
-        logFailure(res);
+        logFailure(res)
     })
     sleep(thinkTime())
 
