@@ -1,6 +1,7 @@
 package com.dotcom.retail.security
 
 import com.dotcom.retail.config.properties.JwtProperties
+import com.dotcom.retail.domain.user.Role
 import com.dotcom.retail.security.jwt.JwtService
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -17,13 +18,11 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.mockito.Mockito.verify
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
 import java.time.Duration
 import java.time.Instant
-import java.util.Date
-import java.util.UUID
+import java.util.*
 
 class JwtServiceTest {
 
@@ -38,7 +37,8 @@ class JwtServiceTest {
     private lateinit var jwtProperties: JwtProperties
 
     private val testSecret = "VGfucERcmymq3JmsYjDczP5Ntb2O3DM3BjtAg6ouk8p"
-    val userId: UUID = UUID.randomUUID()
+    private val userId: UUID = UUID.randomUUID()
+    private val role = Role.USER
 
     @BeforeEach
     fun setup() {
@@ -47,8 +47,8 @@ class JwtServiceTest {
 
         jwtProperties = JwtProperties(
             secret = testSecret,
-            access = JwtProperties.TokenProperties(exp = 3600000), // 1 hour
-            refresh = JwtProperties.TokenProperties(exp = 86400000) // 24 hours
+            access = JwtProperties.TokenProperties(exp = 3600000),
+            refresh = JwtProperties.TokenProperties(exp = 86400000)
         )
 
         jwtService = JwtService(jwtProperties, redisTemplate = redisTemplate)
@@ -58,7 +58,7 @@ class JwtServiceTest {
     fun `generateAccessToken generates valid signed access token`() {
         val version = Instant.now().epochSecond.toString()
 
-        val token = jwtService.generateAccessToken(userId, version)
+        val token = jwtService.generateAccessToken(userId, role, version)
 
         val claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(testSecret.toByteArray()))
@@ -75,7 +75,7 @@ class JwtServiceTest {
     fun `generateRefreshToken generates valid signed refresh token`() {
         val version = Instant.now().epochSecond.toString()
 
-        val token = jwtService.generateRefreshToken(userId, version)
+        val token = jwtService.generateRefreshToken(userId, role, version)
 
         val claims = Jwts.parser()
             .verifyWith(Keys.hmacShaKeyFor(testSecret.toByteArray()))
@@ -100,7 +100,7 @@ class JwtServiceTest {
 
         val version = jwtService.updateTokenVersion(userId)
 
-        assertThat(version).isNotNull
+        assertThat(version).isNotNull()
         assertThat(capturedVersion.captured).isEqualTo(version)
         assertThat(capturedDuration.captured).isEqualTo(Duration.ofMillis(jwtProperties.refresh.exp))
     }
@@ -112,11 +112,8 @@ class JwtServiceTest {
 
         every { valueOperations.get("u:$userId") } returns validVersion
 
-        val withValidVersion = jwtService.isValidTokenVersion(userId.toString(), validVersion)
-        assertThat(withValidVersion).isTrue
-
-        val withInvalidVersion = jwtService.isValidTokenVersion(userId.toString(), invalidVersion)
-        assertThat(withInvalidVersion).isFalse
+        assertThat(jwtService.isValidTokenVersion(userId.toString(), validVersion)).isTrue()
+        assertThat(jwtService.isValidTokenVersion(userId.toString(), invalidVersion)).isFalse()
     }
 
     @Test
@@ -145,33 +142,25 @@ class JwtServiceTest {
         )
         every { request.cookies } returns cookies
 
-        val result = jwtService.extractJwtFromCookie(request)
-
-        assertThat(result).isEqualTo(expectedToken)
+        assertThat(jwtService.extractJwtFromCookie(request)).isEqualTo(expectedToken)
     }
 
     @Test
     fun `extractJwtFromCookie returns null when cookie is missing`() {
         every { request.cookies } returns arrayOf(Cookie("other", "value"))
-
-        val result = jwtService.extractJwtFromCookie(request)
-
-        assertThat(result).isNull()
+        assertThat(jwtService.extractJwtFromCookie(request)).isNull()
     }
 
     @Test
     fun `extractJwtFromCookie returns null when cookies are null`() {
         every { request.cookies } returns null
-
-        val result = jwtService.extractJwtFromCookie(request)
-
-        assertThat(result).isNull()
+        assertThat(jwtService.extractJwtFromCookie(request)).isNull()
     }
 
     @Test
     fun `validateTokenAndExtractClaims parses valid token successfully`() {
         val version = "1234"
-        val token = jwtService.generateAccessToken(userId, version)
+        val token = jwtService.generateAccessToken(userId, role, version)
 
         val claims = jwtService.validateTokenAndExtractClaims(token)
 
@@ -199,12 +188,11 @@ class JwtServiceTest {
         val expiredToken = Jwts.builder()
             .subject(userId.toString())
             .signWith(Keys.hmacShaKeyFor(testSecret.toByteArray()))
-            .expiration(Date(System.currentTimeMillis() -1))
+            .expiration(Date(System.currentTimeMillis() - 1))
             .compact()
 
         assertThrows<ExpiredJwtException> {
             jwtService.validateTokenAndExtractClaims(expiredToken)
         }
     }
-
 }

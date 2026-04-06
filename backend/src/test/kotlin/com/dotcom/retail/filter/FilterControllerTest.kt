@@ -3,6 +3,7 @@ package com.dotcom.retail.filter
 import com.dotcom.retail.common.BaseIntegrationTest
 import com.dotcom.retail.common.constants.ApiRoutes
 import com.dotcom.retail.domain.catalogue.filter.Filter
+import com.dotcom.retail.domain.catalogue.filter.FilterCategoryDto
 import com.dotcom.retail.domain.catalogue.filter.FilterService
 import com.dotcom.retail.domain.catalogue.filter.RangeData
 import com.ninjasquad.springmockk.MockkBean
@@ -31,7 +32,7 @@ class FilterControllerTest : BaseIntegrationTest() {
     fun `GET filters should return 200 and correct structure`() {
         val categoryId = 1L
         val mockResponse = Filter(
-            categoryId = categoryId,
+            category = FilterCategoryDto(id = categoryId, name = "Electronics"),
             attributes = emptyList(),
             brands = emptyList(),
             price = RangeData(0.0, 100.0)
@@ -44,7 +45,8 @@ class FilterControllerTest : BaseIntegrationTest() {
             contentType = MediaType.APPLICATION_JSON
         }.andExpect {
             status { isOk() }
-            jsonPath("$.categoryId") { value(categoryId) }
+            jsonPath("$.category.id") { value(categoryId) }
+            jsonPath("$.category.name") { value("Electronics") }
             jsonPath("$.price.max") { value(100.0) }
         }
     }

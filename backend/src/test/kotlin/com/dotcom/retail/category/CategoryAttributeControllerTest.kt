@@ -2,19 +2,17 @@ package com.dotcom.retail.category
 
 import com.dotcom.retail.common.BaseIntegrationTest
 import com.dotcom.retail.common.constants.ApiRoutes
+import com.dotcom.retail.domain.admin.category.dto.CreateCategoryAttribute
+import com.dotcom.retail.domain.admin.category.dto.EditCategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.Category
 import com.dotcom.retail.domain.catalogue.category.CategoryRepository
 import com.dotcom.retail.domain.catalogue.category.attribute.AttributeDataType
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.attribute.CategoryAttributeRepository
-import com.dotcom.retail.domain.catalogue.category.attribute.CreateCategoryAttribute
-import com.dotcom.retail.domain.catalogue.category.attribute.EditCategoryAttribute
 import com.dotcom.retail.domain.catalogue.category.attribute.FilterType
 import com.dotcom.retail.domain.catalogue.product.ProductRepository
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -24,7 +22,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.transaction.annotation.Transactional
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -38,6 +37,8 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
     @Autowired private lateinit var categoryAttributeRepository: CategoryAttributeRepository
     @Autowired private lateinit var productRepository: ProductRepository
     @Autowired private lateinit var categoryRepository: CategoryRepository
+
+    private val adminAttributeBase = ApiRoutes.Admin.Category.BASE + ApiRoutes.Admin.Category.ATTRIBUTE
 
     @BeforeEach
     fun setup() {
@@ -60,14 +61,12 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
         )
 
         mockMvc.perform(get("${ApiRoutes.Category.Attribute.BASE}/${attribute.id}"))
-        .andExpect {
-            status().isOk
-            jsonPath("$.id").value(attribute.id)
-        }
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.id").value(attribute.id))
     }
 
     @Test
-    fun `create should return 200 and persist attribute`() {
+    fun `create should return 201 and persist attribute`() {
         val request = CreateCategoryAttribute(
             attribute = "test",
             label = "Test",
@@ -80,15 +79,14 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
         )
 
         mockMvc.perform(
-            post(ApiRoutes.Category.Attribute.BASE)
+            post(adminAttributeBase)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         )
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.attribute").value(request.attribute))
 
-        val stored = categoryAttributeRepository.findByAttribute(request.attribute)
-        assertEquals(1, stored.size)
+        assertEquals(1, categoryAttributeRepository.count())
     }
 
     @Test
@@ -107,7 +105,7 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
         )
 
         mockMvc.perform(
-            post(ApiRoutes.Category.Attribute.BASE)
+            post(adminAttributeBase)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
         )
@@ -147,7 +145,7 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
         )
 
         mockMvc.perform(
-            put("${ApiRoutes.Category.Attribute.BASE}/{id}", attribute.id)
+            put("$adminAttributeBase/{id}", attribute.id)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest))
         )
@@ -156,7 +154,6 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
 
         val updatedAttr = categoryAttributeRepository.findById(attribute.id).get()
         assertEquals(updateRequest.label, updatedAttr.label)
-
         assertEquals(2, updatedAttr.categories.size)
 
         val cat1 = categoryRepository.findById(category1.id).get()
@@ -176,7 +173,7 @@ class CategoryAttributeControllerTest : BaseIntegrationTest() {
             )
         )
 
-        mockMvc.perform(delete("${ApiRoutes.Category.Attribute.BASE}/{id}", attribute.id))
+        mockMvc.perform(delete("$adminAttributeBase/{id}", attribute.id))
             .andExpect(status().isNoContent)
 
         assertFalse(categoryAttributeRepository.existsById(attribute.id))
