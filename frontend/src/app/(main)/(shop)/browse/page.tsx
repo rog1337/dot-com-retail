@@ -3,6 +3,8 @@ import {productApi} from "@lib/api/productApi"
 import {createProductQuery, ProductQuery, ProductResponse} from "@_types/product"
 import Browse from "@/src/app/(main)/(shop)/browse/Browse"
 
+export const revalidate = 60
+
 export default async function BrowsePage({ searchParams }: any) {
   const parsedParams = qs.parse(await searchParams, { allowDots: true, ignoreQueryPrefix: true })
   let query: ProductQuery = {

@@ -5,6 +5,8 @@ import {Metadata} from "next"
 
 type Props = { params: Promise<{ id: string }> }
 
+export const revalidate = 60
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { id } = await params
     const product = await productApi.getById(id)
