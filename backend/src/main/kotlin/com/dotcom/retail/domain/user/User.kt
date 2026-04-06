@@ -3,6 +3,7 @@ package com.dotcom.retail.domain.user
 import com.dotcom.retail.common.model.AuditingEntity
 import com.dotcom.retail.domain.order.Order
 import jakarta.persistence.CascadeType
+import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
@@ -23,6 +24,7 @@ class User(
     @Id
     val id: UUID = UUID.randomUUID(),
 
+    @Column(unique = true)
     var email: String,
     var passwordHash: String? = null,
 
