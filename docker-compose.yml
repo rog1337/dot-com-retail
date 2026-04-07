@@ -16,6 +16,8 @@ services:
         - SPRING_RABBITMQ_HOST=rabbitmq
         - UPLOAD_PATH=uploads
         - SPRING_JPA_SHOW-SQL=false
+        - SPRINGDOC_API_DOCS_ENABLED=false
+        - SPRINGDOC_SWAGGER_UI_ENABLED=false
         - APP_PUBLIC_URL=https://localhost
         - FRONTEND_PUBLIC_URL=https://localhost
         - FRONTEND_ACCOUNT_URL=https://localhost/account
