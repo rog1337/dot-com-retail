@@ -1,15 +1,17 @@
 server:
   port: 8080
 app:
-  url: http://localhost:${server.port}
+  internal-url: http://localhost:${server.port}
+  public-url: http://localhost:${server.port}
   db:
     init:
       product-count: 1000
       user-count: 100
 frontend:
-  url: http://localhost:3000
-  password-reset-url: ${frontend.url}/account/reset-password
-  account-url: ${frontend.url}/account
+  internal-url: http://frontend:3000
+  public-url: http://localhost:3000
+  password-reset-url: ${frontend.public-url}/account/reset-password
+  account-url: ${frontend.public-url}/account
 logging:
   level:
 #    root: DEBUG
@@ -53,14 +55,9 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: ${app.url}/api/v1/oauth2/code/{registrationId}
+            redirect-uri: ${app.public-url}/api/v1/oauth2/code/{registrationId}
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
-          github:
-            redirect-uri: ${app.url}/api/v1/oauth2/code/{registrationId}
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
-            scope: user:email
   mail:
     host: smtp.gmail.com
     port: 587

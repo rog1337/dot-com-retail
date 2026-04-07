@@ -58,7 +58,7 @@ class OAuth2SuccessHandler(
             val cookie = authService.createRefreshTokenCookie(jwtService.generateRefreshToken(user.id, user.role, version))
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString())
 
-            response.sendRedirect(frontendProperties.url)
+            response.sendRedirect(frontendProperties.publicUrl)
         } catch (e: AppException) {
             oauth2Service.errorRedirect(response, e.message)
         } catch (e: Exception) {

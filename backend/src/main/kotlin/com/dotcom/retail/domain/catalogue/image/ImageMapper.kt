@@ -30,7 +30,7 @@ class ImageMapper(
     }
 
     private fun toImageUrl(path: Path): String {
-        return URI.create(appProperties.url + "/" + path).toString()
+        return URI.create(appProperties.publicUrl + "/" + path).toString()
     }
 
     fun toProductImageDto(image: Image): ImageDto {
