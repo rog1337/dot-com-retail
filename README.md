@@ -1,12 +1,12 @@
 ## Shopping app backend
 
 
-- [Requirements](#requirements)
 - [Tech stack](#tech-stack)
 - [Project overview](#project-overview)
 - [Entity Relationship Diagram](#entity-relationship-diagram)
 - [Setup](#setup)
 - [Endpoints](./endpoints.md)
+- [Testing](#testing)
 - [File storage](#file-storage)
 
 
