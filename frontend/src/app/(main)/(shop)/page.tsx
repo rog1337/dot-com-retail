@@ -7,8 +7,8 @@ export const revalidate = 60
 
 const CATEGORIES = [
   { label: "All-Season", params: "?categoryId=1&attr_type=All-Season" },
-  { label: "Tyre Repair Kits", params: "?categoryId=2" },
-  { label: "Air Fresheners", params: "?categoryId=3" },
+  { label: "Tyre Repair Kits", params: "?categoryId=3" },
+  { label: "Air Fresheners", params: "?categoryId=2" },
 ]
 
 async function getFeaturedProducts() {
