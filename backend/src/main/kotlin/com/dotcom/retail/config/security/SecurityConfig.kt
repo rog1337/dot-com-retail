@@ -31,7 +31,7 @@ class SecurityConfig(
     private val authenticationProvider: AuthenticationProvider
 ) {
 
-    @Value("\${frontend.url}") lateinit var frontendUrl: String
+    @Value("\${frontend.public-url}") lateinit var frontendUrl: String
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
