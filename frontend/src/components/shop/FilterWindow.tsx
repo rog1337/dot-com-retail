@@ -64,7 +64,6 @@ export default function FilterWindow({ urlParams }: { urlParams: ProductQuery })
 
   const handleSearch = async (params: ProductQuery) => {
     const compactedParams = compactParams(params)
-    console.log(compactedParams)
     const query = qs.stringify(compactedParams, {
       arrayFormat: "comma",
       allowDots: true,
