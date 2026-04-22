@@ -1,4 +1,4 @@
-## Shopping app backend
+# Full stack shopping app
 
 
 - [Tech stack](#tech-stack)
